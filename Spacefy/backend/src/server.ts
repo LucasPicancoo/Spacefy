@@ -1,18 +1,20 @@
-// server.ts - Configuração do servidor Express
 import express from "express";
-import db from "./config/database";
-import routes from "./routes";
-import authRoutes from "./routes/authRoutes";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+import userRouter from "./routes";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json()); // Middleware para JSON
-app.use("/api", routes); // Rotas principais da API
-app.use("/auth", authRoutes); // Rotas de autenticação
+app.use("/users", userRouter); // Rotas de usuários
 
 const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/meubanco";
+
 app.listen(PORT, async () => {
   try {
-    await db.authenticate(); // Conexão com o banco de dados
+    await mongoose.connect(MONGO_URI);
     console.log("Banco de dados conectado!");
   } catch (error) {
     console.error("Erro ao conectar no banco de dados:", error);

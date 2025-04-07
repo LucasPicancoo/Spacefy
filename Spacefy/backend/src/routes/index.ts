@@ -1,12 +1,9 @@
-// routes/index.ts - Definição das rotas da API
 import express from "express";
-import * as spaceController from "../controllers/spaceController";
-import { authMiddleware } from "../middlewares/authMiddleware";
+import { getAllUsers, createUser } from "../controllers/userController";
 
-const router = express.Router();
+const userRouter = express.Router();
 
-router.get("/spaces", spaceController.getAllSpaces); // Rota para listar espaços
-router.get("/spaces/:id", spaceController.getSpaceById); // Rota para buscar um espaço pelo ID
-router.post("/spaces", authMiddleware, spaceController.createSpace); // Rota protegida para criar espaço
+userRouter.get("/", getAllUsers); // Rota para listar usuários
+userRouter.post("/", createUser); // Rota para criar um novo usuário
 
-export default router;
+export default userRouter;

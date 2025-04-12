@@ -7,7 +7,10 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Define a URI de conexão com o MongoDB, utilizando a variável de ambiente MONGO_URI ou um valor padrão
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/meubanco";
+const MONGO_URI = process.env.MONGO_URI;
+if (!MONGO_URI) {
+  throw new Error("MONGO_URI não definida no arquivo .env");
+}
 
 // Função assíncrona para conectar ao banco de dados MongoDB
 const connectDB = async () => {

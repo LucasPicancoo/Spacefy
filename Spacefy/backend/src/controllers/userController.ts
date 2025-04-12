@@ -15,8 +15,8 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // Criar um novo usuário
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role } = req.body;
-    const newUser = new UserModel({ name, email, password, role });
+    const { name, surname, email, password, telephone, role } = req.body;
+    const newUser = new UserModel({ name, surname, email, password, telephone, role });
     await newUser.save();
     res.status(201).json(newUser);
   } catch (error) {

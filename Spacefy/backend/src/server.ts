@@ -10,7 +10,11 @@ app.use(express.json()); // Middleware para JSON
 app.use("/users", userRouter); // Rotas de usuários
 
 const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/meubanco";
+const MONGO_URI = process.env.MONGO_URI;
+
+if (!MONGO_URI) {
+  throw new Error("MONGO_URI não definida no arquivo .env");
+}
 
 app.listen(PORT, async () => {
   try {

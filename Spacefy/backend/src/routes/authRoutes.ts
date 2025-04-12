@@ -5,6 +5,7 @@ import User from "../models/userModel";
 
 const authRouter = express.Router();
 
+// erro de promisse - resolver
 authRouter.post("/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });

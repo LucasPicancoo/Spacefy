@@ -1,6 +1,4 @@
-// Importa o Mongoose para gerenciar a conexão com o MongoDB
 import mongoose from "mongoose";
-// Importa o dotenv para carregar variáveis de ambiente do arquivo .env
 import dotenv from "dotenv";
 
 // Carrega as variáveis de ambiente do arquivo .env

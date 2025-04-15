@@ -1,73 +1,90 @@
-// Importa o Mongoose para trabalhar com MongoDB e definir tipos e esquemas
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { ISpace } from "../types/space"; // ajusta o caminho conforme a estrutura do seu projeto
 
-// Define a interface base para os atributos de um espaço
-export interface ISpace extends Document {
-  id_espaco: number; // ID do espaço
-  nome_espaco: string; // Nome do espaço
-  num_maximo_pessoas: number; // Capacidade máxima de pessoas
-  localizacao: string; // Localização do espaço
-  tipo_espaco: string; // Tipo do espaço (ex.: quadra, salão, auditório)
-  descricao_espaco: string; // Descrição opcional do espaço
-  preco_hora: number; // Preço por hora do aluguel
-  nome_propri: string; // Nome do proprietário
-  cpf?: number; // CPF do proprietário (opcional)
-  cnpj?: number; // CNPJ do proprietário (opcional)
-  tel_propri: string; // Telefone do proprietário
-  email: string; // E-mail do proprietário
-}
-
-// Define o esquema do espaço no MongoDB, incluindo validações e atributos
 const SpaceSchema: Schema = new Schema({
-  id_espaco: { type: Number, required: true, unique: true }, // ID do espaço (obrigatório e único)
-  nome_espaco: { type: String, required: true }, // Nome do espaço (obrigatório)
-  num_maximo_pessoas: { type: Number, required: true }, // Capacidade máxima de pessoas (obrigatório)
-  localizacao: { type: String, required: true }, // Localização do espaço (obrigatório)
-  tipo_espaco: { type: String, required: true }, // Tipo do espaço (obrigatório)
-  descricao_espaco: { type: String }, // Descrição do espaço (opcional)
-  preco_hora: { type: Number, required: true }, // Preço por hora do aluguel (obrigatório)
-  nome_propri: { type: String, required: true }, // Nome do proprietário (obrigatório)
-  cpf: { type: Number }, // CPF do proprietário (opcional)
-  cnpj: { type: Number }, // CNPJ do proprietário (opcional)
-  tel_propri: { type: String, required: true }, // Telefone do proprietário (obrigatório)
-  email: { type: String, required: true }, // E-mail do proprietário (obrigatório)
+  id_espaco: { type: Number, required: true, unique: true },
+  nome_espaco: { type: String, required: true },
+  num_maximo_pessoas: { type: Number, required: true },
+  localizacao: { type: String, required: true },
+  tipo_espaco: { type: String, required: true },
+  descricao_espaco: { type: String },
+  preco_hora: { type: Number, required: true },
+  nome_propri: { type: String, required: true },
+  cpf: { type: Number },
+  cnpj: { type: Number },
+  tel_propri: { type: String, required: true },
+
+  space_name: { 
+    type: String, 
+    required: true 
+  }, // Nome do espaço (obrigatório)
+
+  max_people: { 
+    type: Number, 
+    required: true 
+  }, // Capacidade máxima de pessoas (obrigatório)
+
+  location: { 
+    type: String, 
+    required: true 
+  }, // Localização do espaço (obrigatório)
+
+  space_type: { 
+    type: String, 
+    required: true 
+  }, // Tipo do espaço (obrigatório)
+
+  space_description: { 
+    type: String,
+    maxlength: 500 // Descrição do espaço (opcional, máximo de 500 caracteres)
+  }, // Descrição do espaço (opcional)
+
+  price_per_hour: { 
+    type: Number, 
+    required: true 
+  }, // Preço por hora do aluguel (obrigatório)
+
+  owner_name: { 
+    type: String, 
+    required: true 
+  }, // Nome do proprietário (obrigatório)
+
+  document_number: { 
+    type: String, 
+    required: true, 
+    validate: {
+      validator: function (value: string) {
+        // Validação para CPF (11 dígitos) ou CNPJ (14 dígitos)
+        const isCPF = value.length === 11 && /^\d{11}$/.test(value);
+        const isCNPJ = value.length === 14 && /^\d{14}$/.test(value);
+        return isCPF || isCNPJ;
+      },
+
+      message: "O campo CPF/CNPJ deve conter um CPF válido (11 dígitos) ou um CNPJ válido (14 dígitos)."
+    }
+  }, // CPF ou CNPJ do proprietário (obrigatório)
+  owner_phone: { type: String, required: true }, // Telefone do proprietário (obrigatório)
+  email: { type: String, required: true },
+  image_url: { type: String, required: true }, // URL da imagem do espaço (obrigatório)
 });
 
-// Middleware que pode ser usado para validações ou transformações antes de salvar
 SpaceSchema.pre<ISpace>("save", async function (next) {
-  // Validação: Campos obrigatórios
-  if (!this.nome_espaco || !this.localizacao || !this.tipo_espaco) {
-    throw new Error("Os campos nome_espaco, localizacao e tipo_espaco são obrigatórios.");
+  if (!this.space_name || !this.location || !this.space_type) {
+    throw new Error("Os campos Nome do Espaço, localização e Tipo do Espaço são obrigatórios.");
   }
 
-  // Validação: CPF ou CNPJ deve ser informado
-  if (!this.cpf && !this.cnpj) {
-    throw new Error("Pelo menos um dos campos CPF ou CNPJ deve ser informado.");
+  if (!this.document_number) {
+    throw new Error("O campo CPF/CNPJ é obrigatório.");
   }
 
-  // Validação: CPF deve conter 11 dígitos
-  if (this.cpf && this.cpf.toString().length !== 11) {
-    throw new Error("O CPF deve conter 11 dígitos.");
+  const isCPF = this.document_number.length === 11 && /^\d{11}$/.test(this.document_number);
+  const isCNPJ = this.document_number.length === 14 && /^\d{14}$/.test(this.document_number);
+
+  if (!isCPF && !isCNPJ) {
+    throw new Error("O CPF deve conter 11 dígitos ou o CNPJ deve conter 14 dígitos.");
   }
 
-  // Validação: CNPJ deve conter 14 dígitos
-  if (this.cnpj && this.cnpj.toString().length !== 14) {
-    throw new Error("O CNPJ deve conter 14 dígitos.");
-  }
-
-  next(); // Continua o fluxo de execução
+  next();
 });
 
-// Exporta o modelo "Space" baseado no esquema SpaceSchema
 export default mongoose.model<ISpace>("Space", SpaceSchema);
-
-// Define o esquema para imagens relacionadas aos espaços
-const ImageSchema: Schema = new Schema({
-  id_espaco: { type: Schema.Types.ObjectId, ref: "Space", required: true }, // Relacionamento com o espaço
-  url: { type: String, required: true }, // URL ou caminho da imagem
-  descricao: { type: String }, // Descrição opcional da imagem
-  criado_em: { type: Date, default: Date.now }, // Data de criação
-});
-
-// Exporta o modelo "Image" baseado no esquema ImageSchema
-export const ImageModel = mongoose.model("Image", ImageSchema);

@@ -1,23 +1,19 @@
-// Importa o Mongoose para trabalhar com MongoDB e definir tipos e esquemas
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { ISpace } from "../types/space"; // ajusta o caminho conforme a estrutura do seu projeto
 
-// Define a interface base para os atributos de um espaço
-export interface ISpace extends Document {
-  space_name: string; // Nome do espaço
-  max_people: number; // Capacidade máxima de pessoas
-  location: string; // Localização do espaço
-  space_type: string; // Tipo do espaço (ex.: court, hall, auditorium)
-  space_description: string; // Descrição opcional do espaço
-  price_per_hour: number; // Preço por hora do aluguel
-  owner_name: string; // Nome do proprietário
-  document_number: string; // CPF ou CNPJ do proprietário
-  owner_phone: string; // Telefone do proprietário
-  email: string; // E-mail do proprietário
-  image_url: string; // URL da imagem do espaço (obrigatório)
-}
-
-// Define o esquema do espaço no MongoDB, incluindo validações e atributos
 const SpaceSchema: Schema = new Schema({
+  id_espaco: { type: Number, required: true, unique: true },
+  nome_espaco: { type: String, required: true },
+  num_maximo_pessoas: { type: Number, required: true },
+  localizacao: { type: String, required: true },
+  tipo_espaco: { type: String, required: true },
+  descricao_espaco: { type: String },
+  preco_hora: { type: Number, required: true },
+  nome_propri: { type: String, required: true },
+  cpf: { type: Number },
+  cnpj: { type: Number },
+  tel_propri: { type: String, required: true },
+
   space_name: { 
     type: String, 
     required: true 
@@ -68,18 +64,15 @@ const SpaceSchema: Schema = new Schema({
     }
   }, // CPF ou CNPJ do proprietário (obrigatório)
   owner_phone: { type: String, required: true }, // Telefone do proprietário (obrigatório)
-  email: { type: String, required: true }, // E-mail do proprietário (obrigatório)
+  email: { type: String, required: true },
   image_url: { type: String, required: true }, // URL da imagem do espaço (obrigatório)
 });
 
-// Middleware que pode ser usado para validações ou transformações antes de salvar
 SpaceSchema.pre<ISpace>("save", async function (next) {
-  // Validação: Campos obrigatórios
   if (!this.space_name || !this.location || !this.space_type) {
     throw new Error("Os campos Nome do Espaço, localização e Tipo do Espaço são obrigatórios.");
   }
 
-  // Validação: CPF ou CNPJ deve ser informado e válido
   if (!this.document_number) {
     throw new Error("O campo CPF/CNPJ é obrigatório.");
   }
@@ -91,8 +84,7 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
     throw new Error("O CPF deve conter 11 dígitos ou o CNPJ deve conter 14 dígitos.");
   }
 
-  next(); // Continua o fluxo de execução
+  next();
 });
 
-// Exporta o modelo "Space" baseado no esquema SpaceSchema
 export default mongoose.model<ISpace>("Space", SpaceSchema);

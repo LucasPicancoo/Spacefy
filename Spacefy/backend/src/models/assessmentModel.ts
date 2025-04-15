@@ -1,17 +1,13 @@
-// Importa o Mongoose para trabalhar com MongoDB e definir tipos e esquemas
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
+import { IAssessment } from "../types/assessment"; // importa o tipo
 
-// Define a interface para os atributos de uma avaliação
-export interface IAssessment extends Document {
-  score: number; // Nota da avaliação
-  comment?: string; // Comentário opcional
-  evaluation_date: Date; // Data da avaliação
-  user_id: mongoose.Types.ObjectId; // ID do usuário que fez a avaliação (ObjectId)
-  space_id: mongoose.Types.ObjectId; // ID do espaço avaliado (ObjectId)
-}
-
-// Define o esquema da avaliação no MongoDB, incluindo validações e atributos
 const AssessmentSchema: Schema = new Schema({
+  id_avaliacao: { type: Number, required: true, unique: true },
+  nota: { type: Number, required: true, min: 1, max: 5 },
+  comentario: { type: String, maxlength: 250 },
+  data_avaliacao: { type: Date, required: true, default: Date.now },
+  id_usuario: { type: Number, required: true },
+  id_espaco: { type: Number, required: true },
   score: { 
     type: Number, 
     required: true, 
@@ -42,16 +38,12 @@ const AssessmentSchema: Schema = new Schema({
   }, // ID do espaço avaliado (ObjectId, obrigatório)
 });
 
-// Middleware que pode ser usado para validações ou transformações antes de salvar
 AssessmentSchema.pre<IAssessment>("save", async function (next) {
-  // Validação adicional para garantir que a nota esteja no intervalo correto
   if (!this.score || this.score < 1 || this.score > 5) {
     throw new Error("A nota deve estar entre 1 e 5.");
   }
 
-  next(); // Continua o fluxo de execução
+  next();
 });
 
-// Exporta o modelo "Assessment" baseado no esquema AssessmentSchema
-// O modelo será usado para interagir com a coleção "Assessment" no MongoDB
 export default mongoose.model<IAssessment>("Assessment", AssessmentSchema);

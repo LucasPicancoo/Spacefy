@@ -1,21 +1,9 @@
-import express, { Request, Response } from "express";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import User from "../models/userModel";
+import express from "express";
+import { login } from "../controllers/authController"; // certifique-se que o caminho está certo
 
-const authRouter = express.Router();
+const Loginrouter = express.Router();
 
-// erro de promisse - resolver
-authRouter.post("/login", async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user || !(await bcrypt.compare(password, user.password))) {
-    return res.status(401).json({ error: "Credenciais inválidas" });
-  }
-  const token = jwt.sign({ id: user.id, role: user.role }, "secreto", {
-    expiresIn: "1h",
-  });
-  res.json({ token });
-});
+// Rota de login
+Loginrouter.post("/login", login as express.RequestHandler);
 
-export default authRouter;
+export default Loginrouter;

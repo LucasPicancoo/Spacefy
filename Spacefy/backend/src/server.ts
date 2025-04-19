@@ -3,10 +3,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import userRouter from "./routes/userRoutes";
 import authRoutes from "./routes/authRoutes";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
+
+app.use(cors());
 app.use(express.json()); // Middleware para JSON
 app.use("/users", userRouter); // Rotas de usuários
 app.use("/auth", authRoutes);

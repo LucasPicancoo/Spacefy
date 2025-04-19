@@ -45,3 +45,44 @@ export const createUser = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Erro ao criar usuário" });
   }
 };
+
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    if (updateData.password) {
+      return res.status(400).json({ error: "A senha não pode ser atualizada por aqui." });
+    }
+
+    const updatedUser = await UserModel.findByIdAndUpdate(id, updateData, { new: true }).select("-password");
+
+    if (!updatedUser) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+    res.status(500).json({ error: "Erro ao atualizar usuário" });
+  }
+};
+
+
+export const deleteUser = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const deletedUser = await UserModel.findByIdAndDelete(id);
+
+    if (!deletedUser) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    res.status(200).json({ message: "Usuário deletado com sucesso" });
+  } catch (error) {
+    console.error("Erro ao deletar usuário:", error);
+    res.status(500).json({ error: "Erro ao deletar usuário" });
+  }
+};
+

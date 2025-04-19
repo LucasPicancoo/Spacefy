@@ -2,53 +2,13 @@ import mongoose, { Schema } from "mongoose";
 import { ISpace } from "../types/space"; // ajusta o caminho conforme a estrutura do seu projeto
 
 const SpaceSchema: Schema = new Schema({
-  id_espaco: { type: Number, required: true, unique: true },
-  nome_espaco: { type: String, required: true },
-  num_maximo_pessoas: { type: Number, required: true },
-  localizacao: { type: String, required: true },
-  tipo_espaco: { type: String, required: true },
-  descricao_espaco: { type: String },
-  preco_hora: { type: Number, required: true },
-  nome_propri: { type: String, required: true },
-  cpf: { type: Number },
-  cnpj: { type: Number },
-  tel_propri: { type: String, required: true },
-
-  space_name: { 
-    type: String, 
-    required: true 
-  }, // Nome do espaço (obrigatório)
-
-  max_people: { 
-    type: Number, 
-    required: true 
-  }, // Capacidade máxima de pessoas (obrigatório)
-
-  location: { 
-    type: String, 
-    required: true 
-  }, // Localização do espaço (obrigatório)
-
-  space_type: { 
-    type: String, 
-    required: true 
-  }, // Tipo do espaço (obrigatório)
-
-  space_description: { 
-    type: String,
-    maxlength: 500 // Descrição do espaço (opcional, máximo de 500 caracteres)
-  }, // Descrição do espaço (opcional)
-
-  price_per_hour: { 
-    type: Number, 
-    required: true 
-  }, // Preço por hora do aluguel (obrigatório)
-
-  owner_name: { 
-    type: String, 
-    required: true 
-  }, // Nome do proprietário (obrigatório)
-
+  space_name: { type: String, required: true }, // Nome do espaço (obrigatório)
+  max_people: { type: Number, required: true }, // Capacidade máxima de pessoas (obrigatório)
+  location: { type: String, required: true }, // Localização do espaço (obrigatório)
+  space_type: { type: String, required: true }, // Tipo do espaço (obrigatório)
+  space_description: { type: String, maxlength: 500 }, // Descrição do espaço (opcional, máximo de 500 caracteres)}, // Descrição do espaço (opcional)
+  price_per_hour: { type: Number, required: true }, // Preço por hora do aluguel (obrigatório)
+  owner_name: { type: String, required: true }, // Nome do proprietário (obrigatório)
   document_number: { 
     type: String, 
     required: true, 
@@ -63,14 +23,31 @@ const SpaceSchema: Schema = new Schema({
       message: "O campo CPF/CNPJ deve conter um CPF válido (11 dígitos) ou um CNPJ válido (14 dígitos)."
     }
   }, // CPF ou CNPJ do proprietário (obrigatório)
+  
   owner_phone: { type: String, required: true }, // Telefone do proprietário (obrigatório)
   email: { type: String, required: true },
   image_url: { type: String, required: true }, // URL da imagem do espaço (obrigatório)
 });
 
 SpaceSchema.pre<ISpace>("save", async function (next) {
-  if (!this.space_name || !this.location || !this.space_type) {
-    throw new Error("Os campos Nome do Espaço, localização e Tipo do Espaço são obrigatórios.");
+  if (!this.space_name) {
+    throw new Error("O Nome do Espaço não foi informado.");
+  }
+
+  if (!this.max_people) {
+    throw new Error("O número máximo de pessoas não foi informado.");
+  }
+
+  if (!this.location) {
+    throw new Error("A URL de localização do espaço não foi informada.");
+  }
+
+  if (!this.price_per_hour) {
+    throw new Error("O preço por hora não foi informado.");
+  }
+
+  if (!this.space_type) {
+    throw new Error("O tipo de espaço não foi informado.");
   }
 
   if (!this.document_number) {

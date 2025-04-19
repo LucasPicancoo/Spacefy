@@ -7,21 +7,21 @@ import {
   deleteSpace,
 } from "../controllers/spaceController";
 
-const router = express.Router();
+const spaceRouter = express.Router();
 
 // Rota para listar todos os espaços
-router.get("/spaces", getAllSpaces);
+spaceRouter.get("/getAllSpaces", getAllSpaces);
 
 // Rota para obter um espaço por ID
-router.get("/spaces/:id", getSpaceById);
+spaceRouter.get("/getSpaceById", getSpaceById);
 
 // Rota para criar um novo espaço
-router.post("/spaces", createSpace);
+spaceRouter.post("/createSpace", createSpace);
 
 // Rota para atualizar um espaço por ID
-router.put("/spaces/:id", updateSpace);
+spaceRouter.put("/updateSpace", updateSpace);
 
 // Rota para excluir um espaço por ID
-router.delete("/spaces/:id", deleteSpace);
+spaceRouter.delete("/deleteSpace", deleteSpace);
 
-export default router;
+export default spaceRouter;

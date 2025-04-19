@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import userRouter from "./routes/userRoutes";
+import spaceRouter from "./routes/spaceRoutes";
 import authRoutes from "./routes/authRoutes";
 import cors from "cors";
 
@@ -12,7 +13,8 @@ const app = express();
 app.use(cors());
 app.use(express.json()); // Middleware para JSON
 app.use("/users", userRouter); // Rotas de usuários
-app.use("/auth", authRoutes);
+app.use("/spaces", spaceRouter); // Rotas de espaços
+app.use("/auth", authRoutes); // Rotas de autenticação
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;

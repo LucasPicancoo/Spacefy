@@ -19,12 +19,12 @@ export const createUser = async (req: Request, res: Response) => {
 
     // Verifica se todos os campos obrigatórios foram enviados
     if (!name || !surname || !email || !password || !telephone || !role) {
-      return res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+      res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
     }
 
     // Verifica se o campo CPF/CNPJ está vazio para locatários
     if (role === "locatario" && !cpfOrCnpj) {
-      return res.status(400).json({ error: "O campo CPF/CNPJ é obrigatório para locatários." });
+      res.status(400).json({ error: "O campo CPF/CNPJ é obrigatório para locatários." });
     }
 
     // Cria um novo usuário com os dados enviados
@@ -38,8 +38,8 @@ export const createUser = async (req: Request, res: Response) => {
     console.error("Erro ao criar usuário:", error);
 
     // Verifica se o erro é de duplicidade de e-mail
-    if (error.code === 11000) {
-      return res.status(400).json({ error: "O e-mail já está em uso." });
+    if (error instanceof Error && error.code === 11000) {
+      res.status(400).json({ error: "O e-mail já está em uso." });
     }
 
     res.status(500).json({ error: "Erro ao criar usuário" });

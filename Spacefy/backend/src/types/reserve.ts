@@ -1,17 +1,13 @@
-import mongoose, { Document } from "mongoose";
+// Importa os tipos Document e ObjectId do Mongoose para definir a estrutura dos documentos no banco de dados
+import mongoose, { Document, ObjectId } from "mongoose";
 
-// Interface para os atributos de uma reserva
+// Interface para reservas, representando os campos comuns a todas as reservas
 export interface IReservation extends Document {
-  id_reserva: number;
-  id_usuario: number;
-  id_espaco: number;
-  data_inicio: Date;
-  data_fim: Date;
-  status: "pendente" | "confirmada" | "cancelada";
-  criado_em: Date;
-  user_id: mongoose.Types.ObjectId; // ID do usuário que fez a reserva (ObjectId)
-  space_id: mongoose.Types.ObjectId; // ID do espaço reservado (ObjectId)
+  _id: ObjectId; // ID da reserva
   start_date: Date; // Data de início da reserva
   end_date: Date; // Data de término da reserva
+  status: "pending" | "confirmed" | "canceled"; // Status da reserva
   created_at: Date; // Data de criação da reserva
+  user_object_id: mongoose.Types.ObjectId; // ID do usuário (ObjectId do MongoDB)
+  space_object_id: mongoose.Types.ObjectId; // ID do espaço (ObjectId do MongoDB)
 }

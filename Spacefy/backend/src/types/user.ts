@@ -19,3 +19,8 @@ export interface User extends IBaseUser {}
 export interface Tenant extends IBaseUser {
   cpfOrCnpj: string; // CPF ou CNPJ do locatário
 }
+
+// Interface para espaços favoritados pelo usuarios
+export interface User extends IBaseUser {
+  favorites: ObjectId[]; // Lista de IDs dos espaços favoritados
+}

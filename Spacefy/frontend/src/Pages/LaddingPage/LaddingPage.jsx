@@ -160,8 +160,8 @@ const Landing = () => {
 
       {/* Banner de Login */}
       <section className="py-7">
-        <div className="container mx-auto px-4 max-w-7xl">
-          <div className="bg-gradient-to-r from-[#105B99] to-[#083A63] rounded-xl p-6 flex items-center justify-between">
+        <div className="container mx-auto px-4 max-w-7xl mt-10">
+          <div className="bg-gradient-to-r from-[#105B99] to-[#083A63] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="text-white">
                 <FaEnvelope className="text-3xl" />

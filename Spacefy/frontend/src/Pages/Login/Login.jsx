@@ -20,7 +20,7 @@ function LoginUsuario() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log(formData); //REMOVER APOS FASE DE TESTES
+    //console.log(formData); //REMOVER APOS FASE DE TESTES
 
     try {
       const response = await axios.post(
@@ -28,12 +28,15 @@ function LoginUsuario() {
         formData
       );
 
-      const token = response.data.token;
-      console.log("Token recebido:", token); //REMOVER APOS FASE DE TESTES
+      const { token, user} = response.data;
+      // console.log("Token recebido:", token); //REMOVER APOS FASE DE TESTES
 
-      if (response.data.success) {
-        toast.success("Login realizado com sucesso!");
+      if (token) {
+        localStorage.setItem("token", token);
+        localStorage.setItem("user", JSON.stringify(user));
         navigate("/Home");
+      } else {
+        toast.error("Erro: Token não recebido.");
       }
     } catch (error) {
       if (!error.response) {

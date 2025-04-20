@@ -1,10 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FaMapMarkerAlt, FaChevronDown } from 'react-icons/fa';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
+import ptBR from 'date-fns/locale/pt-BR';
+import { isAfter, startOfDay } from 'date-fns';
 
 export default function SearchBarLaddingPage() {
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [numberOfPeople, setNumberOfPeople] = useState('');
+
+  const today = startOfDay(new Date());
+
+  const handlePeopleChange = (e) => {
+    const value = e.target.value;
+    // Permite apenas números
+    if (/^\d*$/.test(value)) {
+      setNumberOfPeople(value);
+    }
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto flex items-center gap-2 bg-[#1486B8] rounded-xl p-4" style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}>
-
 
       {/* Campo de Localização */}
       <div className="flex-1 flex items-center bg-white rounded-xl px-4 py-3">
@@ -16,23 +33,42 @@ export default function SearchBarLaddingPage() {
         />
       </div>
 
-
       {/* Campo de Datas */}
-      <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3 cursor-pointer">
-        <div className="flex items-center">
-          <span className="text-sm text-gray-600">Datas</span>
-        </div>
+      <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3">
+        <DatePicker
+          selectsRange={true}
+          startDate={startDate}
+          endDate={endDate}
+          onChange={(update) => {
+            const [start, end] = update;
+            setStartDate(start);
+            setEndDate(end);
+          }}
+          locale={ptBR}
+          placeholderText="Selecione as datas"
+          className="w-full outline-none text-gray-700 text-sm cursor-pointer"
+          dateFormat="dd/MM/yyyy"
+          minDate={today}
+          filterDate={(date) => {
+            return isAfter(date, today) || date.getTime() === today.getTime();
+          }}
+        />
         <FaChevronDown className="text-gray-400 text-sm" />
       </div>
 
 
-
+      {/* Adicionar Limite de quantidade */}
       {/* Campo de Pessoas */}
-      <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3 cursor-pointer">
-        <div className="flex items-center">
-          <span className="text-sm text-gray-600">Pessoas</span>
-        </div>
-        <FaChevronDown className="text-gray-400 text-sm" />
+      <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3">
+        <input
+          type="text"
+          value={numberOfPeople}
+          onChange={handlePeopleChange}
+          placeholder="Número de pessoas"
+          className="w-full outline-none text-gray-700 placeholder-gray-400 text-sm"
+          inputMode="numeric"
+          pattern="[0-9]*"
+        />
       </div>
 
       {/* Botão de Pesquisa */}

@@ -1,5 +1,11 @@
 import express from "express";
-import { getAllUsers, createUser, updateUser, deleteUser } from "../controllers/userController";
+import {
+    getAllUsers,
+    createUser,
+    updateUser,
+    deleteUser,
+    toggleFavoriteSpace, 
+  } from "../controllers/userController";
 
 const userRouter = express.Router();
 
@@ -15,5 +21,7 @@ userRouter.put("/updateUser/:id", updateUser);
 //Rota para deletar o usuario pelo ID
 userRouter.delete("/deleteUser/:id", deleteUser);
 
+// Rota para favoritar ou desfavoritar um espaço
+userRouter.patch("/:userId/favorites", toggleFavoriteSpace);
 
 export default userRouter;

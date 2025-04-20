@@ -4,7 +4,9 @@ import dotenv from "dotenv";
 import userRouter from "./routes/userRoutes";
 import spaceRouter from "./routes/spaceRoutes";
 import authRoutes from "./routes/authRoutes";
+import paymentRoutes from "./routes/paymentRoutes";
 import cors from "cors";
+
 
 dotenv.config();
 
@@ -15,6 +17,7 @@ app.use(express.json()); // Middleware para JSON
 app.use("/users", userRouter); // Rotas de usuários
 app.use("/spaces", spaceRouter); // Rotas de espaços
 app.use("/auth", authRoutes); // Rotas de autenticação
+app.use("/payments", paymentRoutes);// Rotas de Pagamento Seguro 
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;

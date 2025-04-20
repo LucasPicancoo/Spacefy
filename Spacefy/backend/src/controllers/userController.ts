@@ -69,6 +69,46 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
+// Favoritar ou desfavoritar um espaço
+export const toggleFavoriteSpace = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { spaceId } = req.body;
+
+  try {
+    if (!spaceId) {
+      return res.status(400).json({ error: "O ID do espaço é obrigatório." });
+    }
+
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    const alreadyFavorited = user.favorites?.some((id) => id.toString() === spaceId);
+
+    if (alreadyFavorited) {
+      // Remove o espaço dos favoritos
+      user.favorites = user.favorites.filter((id) => id.toString() !== spaceId);
+    } else {
+      // Adiciona o espaço aos favoritos
+      user.favorites = [...(user.favorites || []), spaceId];
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: alreadyFavorited
+        ? "Espaço removido dos favoritos."
+        : "Espaço adicionado aos favoritos.",
+      favorites: user.favorites,
+    });
+  } catch (error) {
+    console.error("Erro ao favoritar/desfavoritar espaço:", error);
+    res.status(500).json({ error: "Erro ao atualizar favoritos." });
+  }
+};
+
 
 export const deleteUser = async (req: Request, res: Response) => {
   try {

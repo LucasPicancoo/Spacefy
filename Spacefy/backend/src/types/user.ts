@@ -10,6 +10,7 @@ export interface IBaseUser extends Document {
   password: string; // Senha do usuário
   telephone: string; // Telefone do usuário
   role: "locatario" | "usuario"; // Papel do usuário: locatário ou usuário comum
+  favorites: ObjectId[]; // IDs dos espaços favoritos
 }
 
 // Interface para usuários comuns, que herdam os campos da interface base
@@ -18,4 +19,9 @@ export interface User extends IBaseUser {}
 // Interface para locatários, que herdam os campos da interface base e adicionam o CPF ou CNPJ
 export interface Tenant extends IBaseUser {
   cpfOrCnpj: string; // CPF ou CNPJ do locatário
+}
+
+// Interface para espaços favoritados pelo usuarios
+export interface User extends IBaseUser {
+  favorites: ObjectId[]; // Lista de IDs dos espaços favoritados
 }

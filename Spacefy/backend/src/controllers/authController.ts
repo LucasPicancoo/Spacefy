@@ -11,18 +11,18 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Preencha todos os campos" });
+     res.status(400).json({ error: "Preencha todos os campos" });
     }
 
     const user = await UserModel.findOne({ email }) as IBaseUser;
 
     if (!user) {
-      return res.status(401).json({ error: "E-mail ou senha inválidos" });
+      res.status(401).json({ error: "E-mail ou senha inválidos" });
     }
 
     const isPasswordCorrect = await compare(password, user.password);
     if (!isPasswordCorrect) {
-      return res.status(401).json({ error: "E-mail ou senha inválidos" });
+       res.status(401).json({ error: "E-mail ou senha inválidos" });
     }
 
     const authenticator = new Authenticator();

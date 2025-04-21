@@ -7,7 +7,7 @@ export const registerViewHistory = async (req: Request, res: Response) => {
     const { user_id, space_id } = req.body;
 
     if (!user_id || !space_id) {
-      return res.status(400).json({ error: "user_id e space_id são obrigatórios." });
+     res.status(400).json({ error: "user_id e space_id são obrigatórios." });
     }
 
     const newViewHistory = new viewhistoryModel({ user_id, space_id });
@@ -26,7 +26,7 @@ export const getViewHistoryByUser = async (req: Request, res: Response) => {
       const { user_id } = req.params;
   
       if (!user_id) {
-        return res.status(400).json({ error: "user_id é obrigatório." });
+       res.status(400).json({ error: "user_id é obrigatório." });
       }
   
       const history = await viewhistoryModel

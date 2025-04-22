@@ -6,8 +6,6 @@ import spaceRouter from "./routes/spaceRoutes";
 import authRoutes from "./routes/authRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import cors from "cors";
-
-
 dotenv.config();
 
 const app = express();
@@ -17,7 +15,7 @@ app.use(express.json()); // Middleware para JSON
 app.use("/users", userRouter); // Rotas de usuários
 app.use("/spaces", spaceRouter); // Rotas de espaços
 app.use("/auth", authRoutes); // Rotas de autenticação
-app.use("/payments", paymentRoutes);// Rotas de Pagamento Seguro 
+app.use("/payments", paymentRoutes); // Rotas de Pagamento Seguro
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
@@ -33,5 +31,5 @@ app.listen(PORT, async () => {
   } catch (error) {
     console.error("Erro ao conectar no banco de dados:", error);
   }
-  console.log(`Servidor rodando na porta ${PORT}`);
+  console.log(`Servidor rodando na porta http://localhost:${PORT}/`);
 });

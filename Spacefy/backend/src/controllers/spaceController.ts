@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
 import SpaceModel from "../models/spaceModel";
+import userModel from "../models/userModel";
 
 // Listar todos os espaços
 export const getAllSpaces = async (req: Request, res: Response) => {
+  const id = req.auth?.id;
+
   try {
-    const spaces = await SpaceModel.find();
+    const user = await userModel.findById(id);
+    const spaces = await SpaceModel.find({ document_number: user.cpfOrCnpj });
 
-
-    if(!spaces){
-      res.status(404).json({error: "Nenhum espaço encontrado"})
+    if (!spaces) {
+      res.status(404).json({ error: "Nenhum espaço encontrado" });
     }
 
     res.status(200).json(spaces);
@@ -52,6 +55,12 @@ export const createSpace = async (req: Request, res: Response) => {
       image_url,
     } = req.body;
 
+    if (req.auth.role !== "locatario") {
+      return res.status(403).json({
+        error: "Apenas usuários do tipo locatário podem criar espaços.",
+      });
+    }
+
     // Verifica se todos os campos obrigatórios foram enviados
     if (
       !space_name ||
@@ -65,7 +74,9 @@ export const createSpace = async (req: Request, res: Response) => {
       !owner_email ||
       !image_url
     ) {
-      res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+      return res
+        .status(400)
+        .json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
     }
 
     // Cria um novo espaço
@@ -88,9 +99,9 @@ export const createSpace = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao criar espaço:", error);
 
-    // Verifica se o erro é de validação
+    // Verifica se o erro é de validação - corrigido
     if (error instanceof Error && error.name === "ValidationError") {
-      res.status(400).json({ error: "Erro de validação dos campos" });
+      return res.status(400).json({ error: error.message });
     }
 
     res.status(500).json({ error: "Erro ao criar espaço" });
@@ -101,22 +112,22 @@ export const createSpace = async (req: Request, res: Response) => {
 export const updateSpace = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updatedSpace = await SpaceModel.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedSpace = await SpaceModel.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     if (!updatedSpace) {
       res.status(404).json({ error: "Espaço não encontrado" });
     }
 
     res.status(200).json(updatedSpace);
-  } catch (error) {
-    console.error("Erro ao atualizar espaço:", error);
-
-    // Verifica se o erro é de validação
-    if (error instanceof Error && error.name === "ValidationError") {
-      res.status(400).json({ error: error.message });
+    // Resolvendo o erro em "errors" para permitir acessar .name e .message sem erro
+  } catch (err: any) {
+    if (err.name === "ValidationError") {
+      return res.status(400).json({ error: err.message });
     }
 
-    res.status(500).json({ error: "Erro ao atualizar espaço" });
+    res.status(500).json({ error: "Erro ao criar espaço" });
   }
 };
 

@@ -14,7 +14,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Preencha todos os campos" });
     }
 
-    const user = await UserModel.findOne({ email }) as IBaseUser;
+    const user = (await UserModel.findOne({ email })) as IBaseUser;
 
     if (!user) {
       return res.status(401).json({ error: "E-mail ou senha inválidos" });
@@ -26,16 +26,22 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const authenticator = new Authenticator();
-    const token = authenticator.generateToken({ id: user._id.toString() });
+    // const token = authenticator.generateToken({ id: user._id.toString() });
+
+    // O papel do usuário é adicionado ao token
+    const token = authenticator.generateToken({
+      id: user._id.toString(),
+      role: user.role, // Adiciona o papel do usuário no token
+    });
 
     res.status(200).json({
-      message: "Login realizado com sucesso", 
+      message: "Login realizado com sucesso",
       token,
       user: {
         id: user._id.toString(),
         name: user.name,
-        role: user.role
-      }
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Erro ao fazer login:", error);

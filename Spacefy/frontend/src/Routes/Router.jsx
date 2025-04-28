@@ -5,6 +5,7 @@ import CadastroUsuario from '../Pages/Cadastro/Cadastro'
 import Login from '../Pages/Login/Login'
 import Perfil from '../Pages/Perfil'
 import Descobrir from '../Pages/Descobrir/Descobrir'
+import Espaço from '../Pages/Espaço/Espaço'
 const AppRoutes = () => {
   return (
     <Router>
@@ -15,6 +16,7 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/Perfil" element={<Perfil />} />
         <Route path="/Descobrir" element={<Descobrir />} />
+        <Route path="/Espaço" element={<Espaço />} />
       </Routes>
     </Router>
   )

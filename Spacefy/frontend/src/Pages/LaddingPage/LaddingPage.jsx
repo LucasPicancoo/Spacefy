@@ -9,8 +9,8 @@ import SalaoDeFestas from "../../assets/Spaces/SalaoDeFestas.jpg";
 import { FaParking, FaWifi, FaSwimmingPool, FaUmbrellaBeach, FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaClock, FaEnvelope, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { MdAir, MdTv } from 'react-icons/md';
 import { GiBarbecue } from 'react-icons/gi';
-import { FaFacebookF, FaPinterestP, FaTwitter, FaYoutube, FaInstagram } from 'react-icons/fa';
-import Logo from "../../assets/Logo.svg";
+import Footer from "../../Components/Footer/Footer";
+import { useUser } from "../../Contexts/userContext.jsx";
 
 const Landing = () => {
   // const navigate = useNavigate();  //Vai ser ustilizado nas divs abaixo
@@ -23,6 +23,7 @@ const Landing = () => {
   const totalPages = 3; // Fixado em 3 páginas
   const [openQuestion, setOpenQuestion] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const { isLoggedIn } = useUser();
 
   const handleAmenityClick = (amenity) => {
     // Sempre atualiza para o novo amenity, não permite desmarcar
@@ -101,10 +102,6 @@ const Landing = () => {
     }
   ];
 
-  const handleClick = (e) => {
-    e.preventDefault();
-  };
-
   const handleFavorite = (itemId) => {
     setFavorites(prev => ({
       ...prev,
@@ -159,6 +156,7 @@ const Landing = () => {
       </section>
 
       {/* Banner de Login */}
+      {!isLoggedIn && (
       <section className="py-7">
         <div className="container mx-auto px-4 max-w-7xl mt-10">
           <div className="bg-gradient-to-r from-[#105B99] to-[#083A63] rounded-xl p-4 flex items-center justify-between">
@@ -176,6 +174,7 @@ const Landing = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Encontre o espaço ideal */} 
       <section className="py-16 bg-gray-50">
@@ -459,97 +458,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-gray-200 py-12">
-        <div className="container mx-auto px-4">
-          {/* Logo e Linha Superior */}
-          <div className="border-b border-[#00A3FF] pb-8 mb-8 flex items-center gap-4">
-            <img src={Logo} alt="Spacefy" className="h-12" />
-            <span className="text-2xl sm:text-3xl md:text-4xl bg-gradient-to-r from-[#1EACE3] to-[#152F6C] bg-clip-text text-transparent tracking-widest">
-              SPACEFY
-            </span>
-          </div>
-
-          {/* Grid de Links */}
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
-            {/* Spacefy */}
-            <div>
-              <ul className="space-y-2">
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Quem somos</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Cadastro/Login</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Trabalhe conosco</a></li>
-              </ul>
-            </div>
-
-            {/* Hospedagem */}
-            <div>
-              <h3 className="font-bold mb-4">Hospedagem</h3>
-              <ul className="space-y-2">
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Anuncie seu espaço</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Mais bem avaliados</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Quadras poliesportivas</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Locais para festas</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Casas de show</a></li>
-              </ul>
-            </div>
-
-            {/* Central de Atendimento */}
-            <div>
-              <h3 className="font-bold mb-4">Central de Atendimento</h3>
-              <ul className="space-y-2">
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Central de Ajuda</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Contate-nos</a></li>
-                <li><span className="text-gray-600">(00) 0000 - 0000</span></li>
-                <li><span className="text-gray-600">Segunda a Sexta: 08h às 18h</span></li>
-                <li><span className="text-gray-600">Sábados e Feriados Nacionais: 09h às 16h</span></li>
-              </ul>
-            </div>
-
-            {/* Termos */}
-            <div>
-              <h3 className="font-bold mb-4">Termos</h3>
-              <ul className="space-y-2">
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Termos de uso do site</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Política de privacidade</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Política de Cancelamento e Reembolso</a></li>
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Política de Pagamento</a></li>
-              </ul>
-            </div>
-
-            {/* App */}
-            <div>
-              <h3 className="font-bold mb-4">App</h3>
-              <ul className="space-y-2">
-                <li><a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF]">Baixe o nosso aplicativo</a></li>
-              </ul>
-            </div>
-          </div>
-
-          {/* Redes Sociais e Copyright */}
-          <div className="flex flex-col items-center space-y-4">
-            <div className="flex space-x-6">
-              <a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF] transition-colors">
-                <FaFacebookF className="text-xl" />
-              </a>
-              <a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF] transition-colors">
-                <FaPinterestP className="text-xl" />
-              </a>
-              <a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF] transition-colors">
-                <FaTwitter className="text-xl" />
-              </a>
-              <a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF] transition-colors">
-                <FaYoutube className="text-xl" />
-              </a>
-              <a href="/" onClick={handleClick} className="text-gray-600 hover:text-[#00A3FF] transition-colors">
-                <FaInstagram className="text-xl" />
-              </a>
-            </div>
-            <p className="text-gray-500 text-sm">
-              Copyright © 2025, Spacefy. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Botão de voltar ao topo */}
       {showScrollTop && (

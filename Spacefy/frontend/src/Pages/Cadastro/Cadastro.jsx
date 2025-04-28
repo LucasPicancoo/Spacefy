@@ -3,7 +3,7 @@ import axios from "axios";
 import Header from "../../Components/Header/Header";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import { useNavigate } from "react-router-dom";
 function CadastroUsuario() {
   const [formData, setFormData] = useState({
     name: "",
@@ -13,6 +13,8 @@ function CadastroUsuario() {
     telephone: "",
     role: "usuario",
   });
+
+  const navigate = useNavigate();
 
   const [senhaInvalida, setSenhaInvalida] = useState(false);
 
@@ -132,7 +134,7 @@ function CadastroUsuario() {
         </button>
         <div className="flex flex-col items-center">
         <label className="block">Já possui uma conta?</label>
-        <a href="/login" className="text-[#1EACE3] hover:text-[#1486B8]">Faça login</a>
+        <button onClick={() => navigate("/login")} className="text-[#1EACE3] hover:text-[#1486B8] cursor-pointer">Faça login</button>
         </div>
       </form>
     </div>

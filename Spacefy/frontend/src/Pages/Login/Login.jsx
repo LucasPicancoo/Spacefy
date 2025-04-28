@@ -5,9 +5,11 @@ import Header from "../../Components/Header/Header";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import profile from "../../assets/Profile.svg";
+import { useUser } from "../../Contexts/userContext";
 
 function LoginUsuario() {
   const navigate = useNavigate();
+  const { login } = useUser();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -32,9 +34,9 @@ function LoginUsuario() {
       // console.log("Token recebido:", token); //REMOVER APOS FASE DE TESTES
 
       if (token) {
+        login(token);
         localStorage.setItem("token", token);
-        localStorage.setItem("user", JSON.stringify(user));
-        navigate("/Home");
+        navigate("/Home", { replace: true }) ;
       } else {
         toast.error("Erro: Token não recebido.");
       }
@@ -102,9 +104,9 @@ function LoginUsuario() {
 
           <div className="flex flex-col items-center mt-4">
             <label className="block">Não possui uma conta?</label>
-            <a href="/cadastro" className="text-[#1EACE3] hover:text-[#1486B8]">
+            <button onClick={() => navigate("/cadastro")} className="text-[#1EACE3] hover:text-[#1486B8] cursor-pointer">
               Crie uma conta
-            </a>
+            </button>
           </div>
         </form>
       </div>

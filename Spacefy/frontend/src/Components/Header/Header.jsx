@@ -2,11 +2,13 @@ import logo from "../../assets/Logo.svg";
 import { CgProfile } from "react-icons/cg";
 import { useState, useRef, useEffect } from "react";
 import { useUser } from "../../Contexts/userContext"; // Importe o hook useUser
+import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const { user, isLoggedIn, logout } = useUser(); // Usando o contexto
   const [menuVisible, setMenuVisible] = useState(false);
   const menuRef = useRef(null);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setMenuVisible(!menuVisible);
@@ -28,11 +30,11 @@ export default function Header() {
 
   const handleLogout = () => {
     logout(); // Usando o logout do contexto
-    window.location.href = "/"; // Redirecionamento após logout
+    navigate("/"); // Redirecionamento após logout
   };
 
   const handlePerfil = () => {
-    window.location.href = "/Perfil";
+    navigate("/Perfil");
   };
 
   useEffect(() => {
@@ -41,21 +43,21 @@ export default function Header() {
 
   return (
     <header className="bg-white shadow-md h-17 relative flex items-center border-b-2 border-[#E3E3E3]">
-      <a className="absolute left-4 md:left-12 flex items-center gap-x-2" href="/">
+      <div onClick={() => navigate("/")} className="absolute left-4 md:left-12 flex items-center gap-x-2 cursor-pointer">
         <img src={logo} alt="Logo" className="w-6 sm:w-8 md:w-10 h-auto" />
         <span className="text-2xl sm:text-3xl md:text-4xl bg-gradient-to-r from-[#1EACE3] to-[#152F6C] bg-clip-text text-transparent tracking-widest">
           SPACEFY
         </span>
-      </a>
+      </div>
       <nav className="mx-auto flex gap-x-8 text-gray-600">
-        <a href="#" className="relative group">
+        <button onClick={() => navigate("/Descobrir")} className="relative group cursor-pointer">
           Descobrir
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
-        </a>
-        <a href="#" className="relative group">
+        </button>
+        <button onClick={() => navigate("/Anunciar")} className="relative group cursor-pointer">
           Anunciar
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
-        </a>
+        </button>
       </nav>
 
       {isLoggedIn ? (
@@ -92,9 +94,9 @@ export default function Header() {
         </>
       ) : (
         <div className="absolute right-5 md:right-10 lg:right-30">
-          <a href="/Cadastro" className="hover:text-blue-600">
+          <button onClick={() => navigate("/Cadastro")} className="hover:text-blue-600 cursor-pointer">
             Cadastre-se
-          </a>
+          </button>
         </div>
       )}
     </header>

@@ -29,6 +29,27 @@ export function UserProvider({ children }) {
     }
   }, []);
 
+  const login = (token) => {
+    try {
+      const decodedToken = jwtDecode(token);
+      setUser({
+        id: decodedToken.id,
+        name: decodedToken.name,
+        surname: decodedToken.surname,
+        email: decodedToken.email,
+        telephone: decodedToken.telephone,
+        role: decodedToken.role
+      });
+      setIsLoggedIn(true);
+      localStorage.setItem("token", token); // Salvar token no localStorage
+      window.location.href = "/Descobrir" // Redireciona o usuário após o login
+    } catch (error) {
+      console.error("Erro ao decodificar o token", error);
+      setIsLoggedIn(false);
+      setUser(null);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     setIsLoggedIn(false);
@@ -37,7 +58,7 @@ export function UserProvider({ children }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, isLoggedIn, logout }}>
+    <UserContext.Provider value={{ user, isLoggedIn, login, logout }}>
       {children}
     </UserContext.Provider>
   );

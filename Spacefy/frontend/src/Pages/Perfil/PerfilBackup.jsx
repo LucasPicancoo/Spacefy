@@ -399,12 +399,11 @@ const Perfil = () => {
                     </div>
                   ))}
                 </div>
-
                 {/* Botões de navegação */}
                 {currentPage > 0 && (
                   <button 
                     onClick={() => scrollRecentCarousel('prev')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 ml-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
                   >
                     <FaChevronLeft className="text-lg" />
                   </button>
@@ -412,7 +411,7 @@ const Perfil = () => {
                 {currentPage < Math.ceil(mockCards.length / Math.floor(recentCarouselRef.current?.clientWidth / 250 || 1)) - 1 && (
                   <button 
                     onClick={() => scrollRecentCarousel('next')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
                   >
                     <FaChevronRight className="text-lg" />
                   </button>
@@ -473,12 +472,11 @@ const Perfil = () => {
                     </div>
                   ))}
                 </div>
-
                 {/* Botões de navegação */}
                 {ratedPage > 0 && (
                   <button 
                     onClick={() => scrollRatedCarousel('prev')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 ml-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
                   >
                     <FaChevronLeft className="text-lg" />
                   </button>
@@ -486,7 +484,7 @@ const Perfil = () => {
                 {ratedPage < Math.ceil(mockCards.length / Math.floor(ratedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && (
                   <button 
                     onClick={() => scrollRatedCarousel('next')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
                   >
                     <FaChevronRight className="text-lg" />
                   </button>
@@ -547,12 +545,11 @@ const Perfil = () => {
                     </div>
                   ))}
                 </div>
-
                 {/* Botões de navegação */}
                 {rentedPage > 0 && (
                   <button 
                     onClick={() => scrollRentedCarousel('prev')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 ml-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
                   >
                     <FaChevronLeft className="text-lg" />
                   </button>
@@ -560,7 +557,7 @@ const Perfil = () => {
                 {rentedPage < Math.ceil(mockCards.length / Math.floor(rentedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && (
                   <button 
                     onClick={() => scrollRentedCarousel('next')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
                   >
                     <FaChevronRight className="text-lg" />
                   </button>

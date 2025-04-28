@@ -1,9 +1,27 @@
 import { Request, Response } from "express";
 import UserModel from "../models/userModel";
+import { Authenticator } from "../services/authenticator"; // Ajusta o caminho conforme seu projeto
 
-// Listar todos os usuários
+// Listar todos os usuários (apenas os admins)
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
+    const token = req.headers.authorization;
+
+    if (!token) {
+      return res.status(401).json({ error: "Token não fornecido" });
+    }
+
+    const authenticator = new Authenticator();
+    const tokenData = authenticator.getTokenData(token);
+
+    if (tokenData.role !== "admin") {
+      return res
+        .status(403)
+        .json({
+          error: "Acesso negado. Apenas administradores podem listar usuários.",
+        });
+    }
+
     const users = await UserModel.find({}, "-password"); // Exclui o campo "password" da resposta
     res.status(200).json(users);
   } catch (error) {
@@ -15,20 +33,33 @@ export const getAllUsers = async (req: Request, res: Response) => {
 // Criar um novo usuário
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, surname, email, password, telephone, role, cpfOrCnpj } = req.body;
+    const { name, surname, email, password, telephone, role, cpfOrCnpj } =
+      req.body;
 
     // Verifica se todos os campos obrigatórios foram enviados
     if (!name || !surname || !email || !password || !telephone || !role) {
-      res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+      res
+        .status(400)
+        .json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
     }
 
     // Verifica se o campo CPF/CNPJ está vazio para locatários
     if (role === "locatario" && !cpfOrCnpj) {
-      res.status(400).json({ error: "O campo CPF/CNPJ é obrigatório para locatários." });
+      res
+        .status(400)
+        .json({ error: "O campo CPF/CNPJ é obrigatório para locatários." });
     }
 
     // Cria um novo usuário com os dados enviados
-    const newUser = new UserModel({ name, surname, email, password, telephone, role, cpfOrCnpj });
+    const newUser = new UserModel({
+      name,
+      surname,
+      email,
+      password,
+      telephone,
+      role,
+      cpfOrCnpj,
+    });
     await newUser.save();
 
     // Remove a senha da resposta
@@ -46,17 +77,20 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
-
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
 
     if (updateData.password) {
-      return res.status(400).json({ error: "A senha não pode ser atualizada por aqui." });
+      return res
+        .status(400)
+        .json({ error: "A senha não pode ser atualizada por aqui." });
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(id, updateData, { new: true }).select("-password");
+    const updatedUser = await UserModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    }).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({ error: "Usuário não encontrado" });
@@ -85,7 +119,9 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    const alreadyFavorited = user.favorites?.some((id) => id.toString() === spaceId);
+    const alreadyFavorited = user.favorites?.some(
+      (id) => id.toString() === spaceId
+    );
 
     if (alreadyFavorited) {
       // Remove o espaço dos favoritos
@@ -124,4 +160,3 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Erro ao deletar usuário" });
   }
 };
-

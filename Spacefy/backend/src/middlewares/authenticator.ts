@@ -33,4 +33,5 @@ export class Authenticator {
 
 export interface AuthenticationData {
   id: string;
+  role: "user" | "locatario" | "admin";
 }

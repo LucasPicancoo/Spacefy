@@ -2,7 +2,6 @@ import mongoose, { Schema } from "mongoose";
 import { IBaseUser } from "../types/user";
 import { hash } from "../middlewares/hashManager";
 
-
 const UserSchema: Schema = new Schema({
   name: { type: String, required: true },
   surname: { type: String, required: true },
@@ -23,11 +22,11 @@ const UserSchema: Schema = new Schema({
   favorites: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "space", // Substitua se seu model tiver outro nome
+      ref: "space", // ajuste conforme seu model de espaços
     },
   ],
-
-
+  resetPasswordToken: { type: String }, // Adicionado para recuperação de senha
+  resetPasswordExpires: { type: Date }, // Adicionado para expiração do token
 });
 
 UserSchema.pre<IBaseUser>("save", async function (this: any, next) {

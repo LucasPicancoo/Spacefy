@@ -6,8 +6,8 @@ export const verifyToken = (token: string): string => {
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_KEY as string) as { id: string };
-    return decoded.id;
+    const decoded = jwt.verify(token, process.env.JWT_KEY as string) as { id: string, name: string };
+    return decoded.id, decoded.name;
   } catch (error) {
     throw new Error("Invalid or expired token.");
   }

@@ -26,7 +26,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const authenticator = new Authenticator();
-    const token = authenticator.generateToken({ id: user._id.toString() });
+    const token = authenticator.generateToken({ id: user._id.toString(), name: user.name, surname: user.surname, email: user.email, telephone: user.telephone, role: user.role });
 
     res.status(200).json({
       message: "Login realizado com sucesso", 

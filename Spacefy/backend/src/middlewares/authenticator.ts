@@ -33,4 +33,9 @@ export class Authenticator {
 
 export interface AuthenticationData {
   id: string;
+  name: string;
+  surname: string;
+  email: string;
+  telephone: string;
+  role: string;
 }

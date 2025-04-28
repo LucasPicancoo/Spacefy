@@ -1,11 +1,11 @@
 import logo from "../../assets/Logo.svg";
 import { CgProfile } from "react-icons/cg";
 import { useState, useRef, useEffect } from "react";
+import { useUser } from "../../Contexts/userContext"; // Importe o hook useUser
 
 export default function Header() {
+  const { user, isLoggedIn, logout } = useUser(); // Usando o contexto
   const [menuVisible, setMenuVisible] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [user, setUser] = useState(null);
   const menuRef = useRef(null);
 
   const toggleMenu = () => {
@@ -26,32 +26,22 @@ export default function Header() {
     };
   }, []);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-
-    if (token && storedUser) {
-      setIsLoggedIn(true);
-      setUser(JSON.parse(storedUser));
-    } else {
-      setIsLoggedIn(false);
-    }
-  }, []);
-
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setIsLoggedIn(false);
-    setUser(null);
-    window.location.href = "/";
+    logout(); // Usando o logout do contexto
+    window.location.href = "/"; // Redirecionamento após logout
   };
+
+  const handlePerfil = () => {
+    window.location.href = "/Perfil";
+  };
+
+  useEffect(() => {
+    console.log(user); // Verifique se o nome está sendo atribuído corretamente
+  }, [user]);
 
   return (
     <header className="bg-white shadow-md h-17 relative flex items-center border-b-2 border-[#E3E3E3]">
-      <a
-        className="absolute left-4 md:left-12 flex items-center gap-x-2"
-        href="/"
-      >
+      <a className="absolute left-4 md:left-12 flex items-center gap-x-2" href="/">
         <img src={logo} alt="Logo" className="w-6 sm:w-8 md:w-10 h-auto" />
         <span className="text-2xl sm:text-3xl md:text-4xl bg-gradient-to-r from-[#1EACE3] to-[#152F6C] bg-clip-text text-transparent tracking-widest">
           SPACEFY
@@ -66,11 +56,6 @@ export default function Header() {
           Anunciar
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
         </a>
-        {/* Perfil Teste */}
-        <a href="/Perfil" className="relative group">
-          Perfil
-          <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
-        </a>
       </nav>
 
       {isLoggedIn ? (
@@ -81,7 +66,7 @@ export default function Header() {
           >
             <CgProfile className="text-[#2F2F2F] w-6 h-auto" />
             <span className="text-sm text-[#2F2F2F] font-medium hidden sm:inline">
-            {user?.name}
+              {user?.name} {/* Exibindo o nome do usuário */}
             </span>
           </div>
 
@@ -92,7 +77,7 @@ export default function Header() {
               style={{ top: "calc(50% + 10px)", right: "0.5rem" }}
             >
               <ul className="text-gray-700">
-                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer">
+                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handlePerfil}>
                   Meu Perfil
                 </li>
                 <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer">

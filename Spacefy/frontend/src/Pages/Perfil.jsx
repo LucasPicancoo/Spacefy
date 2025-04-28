@@ -1,13 +1,26 @@
 import React from "react";
 import Header from "../Components/Header/Header";
-import { useUser } from "../Contexts/UserContext"; // Importe o hook useUser
+import { useUser } from "../Contexts/userContext";
 
 const Perfil = () => {
-  const { user, isLoggedIn } = useUser(); // Use o contexto para pegar os dados do usuário
+  const { user, isLoggedIn } = useUser();
 
   if (!isLoggedIn) {
-    return <div>Você precisa estar logado para ver o perfil.</div>;
+    return <div>Você precisa estar logado para ver o perfil.</div>; // corrigir futuramente (fazer o redirect para a landing page)
   }
+
+  const formatPhoneNumber = (phoneNumber) => {
+    // Remove qualquer coisa que não seja número
+    const cleaned = ("" + phoneNumber).replace(/\D/g, "");
+
+    // Verifica se o número tem 11 dígitos e formata
+    if (cleaned.length === 11) {
+      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(
+        7
+      )}`;
+    }
+    return phoneNumber; // Retorna o número original caso não tenha 11 dígitos
+  };
 
   return (
     <div>
@@ -29,13 +42,14 @@ const Perfil = () => {
         <div className="mt-4 text-left w-full bg-gray-50 rounded-lg p-3 text-xs">
           <div className="font-bold mb-1">Sobre o usuário</div>
           <div>
-            <b>Nome:</b> {user?.name}
+            <b>Nome:</b> {user?.name} {user?.surname}
           </div>
           <div>
             <b>E-mail:</b> {user?.email || "Não informado"}
           </div>
           <div>
-            <b>Telefone:</b> {user?.phone || "Não informado"}
+            <b>Telefone:</b>{" "}
+            {formatPhoneNumber(user?.telephone) || "Não informado"}
           </div>
         </div>
       </section>

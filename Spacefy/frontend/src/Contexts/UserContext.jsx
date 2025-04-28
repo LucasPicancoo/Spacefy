@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { jwtDecode } from 'jwt-decode';
 
 // Criação do contexto do usuário
 const UserContext = createContext(undefined);
@@ -9,11 +10,19 @@ export function UserProvider({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    
 
-    if (token && storedUser) {
-      setIsLoggedIn(true);
-      setUser(JSON.parse(storedUser));
+    if (token) {
+      try {
+        const decodedToken = jwtDecode(token);
+        console.log(decodedToken)
+        setUser({ id: decodedToken.id, name: decodedToken.name, surname: decodedToken.surname, email: decodedToken.email, telephone: decodedToken.telephone, role: decodedToken.role });
+        setIsLoggedIn(true);
+      } catch (error) {
+        console.error("Erro ao decodificar o token", error);
+        setIsLoggedIn(false);
+        setUser(null);
+      }
     } else {
       setIsLoggedIn(false);
       setUser(null);
@@ -22,7 +31,6 @@ export function UserProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user");
     setIsLoggedIn(false);
     setUser(null);
     window.location.href = "/"; // Redirecionamento após logout

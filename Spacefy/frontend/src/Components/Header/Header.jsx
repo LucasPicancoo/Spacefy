@@ -1,7 +1,7 @@
 import logo from "../../assets/Logo.svg";
 import { CgProfile } from "react-icons/cg";
 import { useState, useRef, useEffect } from "react";
-import { useUser } from "../../Contexts/UserContext"; // Importe o hook useUser
+import { useUser } from "../../Contexts/userContext"; // Importe o hook useUser
 
 export default function Header() {
   const { user, isLoggedIn, logout } = useUser(); // Usando o contexto

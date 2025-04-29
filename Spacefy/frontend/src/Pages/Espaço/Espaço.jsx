@@ -1,7 +1,15 @@
 import Header from "../../Components/Header/Header";
 import Footer from "../../Components/Footer/Footer";
+import ReservaCard from "../../Components/ReservaCard/ReservaCard";
 import { useState, useRef } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { registerLocale, setDefaultLocale } from "react-datepicker";
+import ptBR from 'date-fns/locale/pt-BR';
+
+registerLocale('pt-BR', ptBR);
+setDefaultLocale('pt-BR');
 
 const mockImgs = [
     {
@@ -31,29 +39,28 @@ const mockImgs = [
   ];
 
 function Espaço() {
-
     const [currentPage, setCurrentPage] = useState(0);
     const PhotosCarouselRef = useRef(null);
 
     const scrollPhotosCarousel = (direction) => {
         if (PhotosCarouselRef.current) {
-          const newPage = direction === 'next' ? currentPage + 1 : currentPage - 1;
-          const totalCards = mockImgs.length;
-          const cardWidth = 500; // Largura fixa do card
-          const containerWidth = PhotosCarouselRef.current.clientWidth;
-          const cardsPerPage = Math.floor(containerWidth / cardWidth);
-          const maxPages = Math.ceil(totalCards / cardsPerPage);
-          
-          if (newPage >= 0 && newPage < maxPages) {
-            const scrollAmount = cardWidth * cardsPerPage;
-            PhotosCarouselRef.current.scrollTo({
-              left: scrollAmount * newPage,
-              behavior: 'smooth'
-            });
-            setCurrentPage(newPage);
-          }
+            const newPage = direction === 'next' ? currentPage + 1 : currentPage - 1;
+            const totalCards = mockImgs.length;
+            const cardWidth = 500;
+            const containerWidth = PhotosCarouselRef.current.clientWidth;
+            const cardsPerPage = Math.floor(containerWidth / cardWidth);
+            const maxPages = Math.ceil(totalCards / cardsPerPage);
+            
+            if (newPage >= 0 && newPage < maxPages) {
+                const scrollAmount = cardWidth * cardsPerPage;
+                PhotosCarouselRef.current.scrollTo({
+                    left: scrollAmount * newPage,
+                    behavior: 'smooth'
+                });
+                setCurrentPage(newPage);
+            }
         }
-      };
+    };
 
     return (
         <div>
@@ -63,45 +70,45 @@ function Espaço() {
 
                 {/* Carousel de fotos */}
                 <section className="overflow-hidden">
-                <div className="relative">
-                    <div 
-                    ref={PhotosCarouselRef}
-                    className="flex overflow-x-auto gap-4 pb-8 hide-scrollbar scroll-smooth"
-                    style={{
-                        scrollSnapType: 'x mandatory',
-                        scrollPadding: '0 16px',
-                    }}
-                    >
-                    {mockImgs.map((img) => (
+                    <div className="relative">
                         <div 
-                        key={img.id} 
-                        className="min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden flex-shrink-0"
-                        style={{ scrollSnapAlign: 'start' }}
+                            ref={PhotosCarouselRef}
+                            className="flex overflow-x-auto gap-4 pb-8 hide-scrollbar scroll-smooth"
+                            style={{
+                                scrollSnapType: 'x mandatory',
+                                scrollPadding: '0 16px',
+                            }}
                         >
-                        <div className="relative">
-                            <img src={img.imagem} className="w-full h-[300px] object-cover" />
+                            {mockImgs.map((img) => (
+                                <div 
+                                    key={img.id} 
+                                    className="min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden flex-shrink-0"
+                                    style={{ scrollSnapAlign: 'start' }}
+                                >
+                                    <div className="relative">
+                                        <img src={img.imagem} className="w-full h-[350px] object-cover" />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                        </div>
-                    ))}
+                        {/* Botões de navegação do carrossel de fotos */}
+                        {currentPage > 0 && (
+                            <button 
+                                onClick={() => scrollPhotosCarousel('prev')}
+                                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 ml-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                            >
+                                <FaChevronLeft className="text-lg" />
+                            </button>
+                        )}
+                        {currentPage < Math.ceil(mockImgs.length / Math.floor(PhotosCarouselRef.current?.clientWidth / 500 || 1)) - 1 && (
+                            <button 
+                                onClick={() => scrollPhotosCarousel('next')}
+                                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
+                            >
+                                <FaChevronRight className="text-lg" />
+                            </button>
+                        )}
                     </div>
-                    {/* Botões de navegação do carrossel de fotos */}
-                    {currentPage > 0 && (
-                    <button 
-                        onClick={() => scrollPhotosCarousel('prev')}
-                        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 ml-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
-                    >
-                        <FaChevronLeft className="text-lg" />
-                    </button>
-                    )}
-                    {currentPage < Math.ceil(mockImgs.length / Math.floor(PhotosCarouselRef.current?.clientWidth / 500 || 1)) - 1 && (
-                    <button 
-                        onClick={() => scrollPhotosCarousel('next')}
-                        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
-                    >
-                        <FaChevronRight className="text-lg" />
-                    </button>
-                    )}
-                </div>
                 </section>
                 
                 {/* Colunas de informações */}
@@ -124,7 +131,6 @@ function Espaço() {
                         <div className="mb-4 pb-8">
                             <h2 className="text-2xl font-bold text-[#363636]">Comodidades:</h2>
                             <div className="flex flex-wrap gap-8 mt-4">
-                                {/* Exemplo de comodidades */}
                                 <div className="flex items-center gap-2 text-[#363636] font-bold"><span>🏢</span>2500 m²</div>
                                 <div className="flex items-center gap-2 text-[#363636] font-bold"><span>📶</span>Wifi</div>
                                 <div className="flex items-center gap-2 text-[#363636] font-bold"><span>❄️</span>Ar-Condicionado</div>
@@ -139,44 +145,7 @@ function Espaço() {
                     </div>
 
                     {/* Coluna da direita - Card de reserva */}
-                    <div className="w-[340px] flex flex-col gap-6">
-                        {/* Card do locatário */}
-                        <div className="bg-white rounded-lg shadow-md p-4 flex flex-col items-center">
-                            <div className="w-14 h-14 bg-gray-200 rounded-full flex items-center justify-center mb-2">
-                                <span className="text-3xl">👤</span>
-                            </div>
-                            <span className="font-bold">Zaylian Vortelli</span>
-                            <span className="text-xs text-gray-500">★★★★★ <span className="font-normal">(1823)</span></span>
-                            <button className="text-xs text-[#00A3FF] mt-2">Ver mais sobre o locatário</button>
-                        </div>
-                        {/* Card de reserva */}
-                        <div className="bg-white rounded-lg shadow-md p-4">
-                            <div className="flex justify-between text-xs mb-2">
-                                <span>Check-in</span>
-                                <span>Hora:</span>
-                            </div>
-                            <div className="flex justify-between mb-2">
-                                <input className="border rounded px-2 py-1 w-[60%] text-xs" placeholder="DD/MM/YYYY" />
-                                <input className="border rounded px-2 py-1 w-[35%] text-xs" placeholder="HH:SS" />
-                            </div>
-                            <div className="flex justify-between text-xs mb-2">
-                                <span>Check-out</span>
-                                <span>Hora:</span>
-                            </div>
-                            <div className="flex justify-between mb-2">
-                                <input className="border rounded px-2 py-1 w-[60%] text-xs" placeholder="DD/MM/YYYY" />
-                                <input className="border rounded px-2 py-1 w-[35%] text-xs" placeholder="HH:SS" />
-                            </div>
-                            <div className="mb-2">
-                                <select className="border rounded px-2 py-1 w-full text-xs">
-                                    <option>Pessoas: 4 pessoas</option>
-                                </select>
-                            </div>
-                            <div className="font-bold text-lg mb-2">Total:</div>
-                            <div className="font-bold text-2xl mb-2">R$ 1250,00 <span className="text-xs font-normal">/hora</span></div>
-                            <button className="w-full bg-[#00A3FF] text-white font-bold py-2 rounded">Alugar</button>
-                        </div>
-                    </div>
+                    <ReservaCard />
                 </div>
 
                 {/* Avaliação geral */}

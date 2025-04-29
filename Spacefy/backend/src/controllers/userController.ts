@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import UserModel from "../models/userModel";
-import { ObjectId } from "mongoose";
-import { IBaseUser } from "../types/user";
-import { User } from "../types/user";
-import mongoose, { Schema, model } from "mongoose"; // Para importar o ObjectId
+
+// Deixando aqui algumas importações caso necessário
+// import { ObjectId } from "mongoose";
+// import { IBaseUser } from "../types/user";
+// import { User } from "../types/user";
+// import mongoose, { Schema, model } from "mongoose";
 
 // Listar todos os usuários
 export const getAllUsers = async (req: Request, res: Response) => {

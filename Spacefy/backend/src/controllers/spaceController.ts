@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import SpaceModel from "../models/spaceModel";
-import { AuthenticationData } from "../types/auth";
+
+// import { AuthenticationData } from "../types/auth";
 
 // Listar todos os espaços
 export const getAllSpaces = async (req: Request, res: Response) => {

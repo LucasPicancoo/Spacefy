@@ -8,6 +8,7 @@ import Descobrir from '../Pages/Descobrir/Descobrir'
 import Espaço from '../Pages/Espaço/Espaço'
 import DashboardLocatario from '../Pages/Locatario/DashboardLocatario'
 import CadastrarEspaco from '../Pages/CadastrarEspaco.jsx/CadastrarEspaco'
+import Perfil_Locatario from '../Pages/Perfil_Locatario/Perfil_Locatario'
 
 const AppRoutes = () => {
   return (
@@ -22,6 +23,7 @@ const AppRoutes = () => {
         <Route path="/Espaço" element={<Espaço />} />
         <Route path="/DashboardLocatario" element={<DashboardLocatario />} />
         <Route path="/CadastrarEspaco" element={<CadastrarEspaco />} />
+        <Route path="/Perfil_Locatario" element={<Perfil_Locatario />} />
       </Routes>
     </Router>
   )

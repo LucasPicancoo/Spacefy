@@ -4,12 +4,13 @@ import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import ptBR from 'date-fns/locale/pt-BR';
 import { isAfter, startOfDay } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 export default function SearchBarLaddingPage() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [numberOfPeople, setNumberOfPeople] = useState('');
-
+  const navigate = useNavigate();
   const today = startOfDay(new Date());
 
   const handlePeopleChange = (e) => {
@@ -73,7 +74,7 @@ export default function SearchBarLaddingPage() {
 
       {/* Botão de Pesquisa */}
       <button
-        type="button"
+        type="button" onClick={() => navigate("/Espaço")}
         className="bg-[#1EACE3] hover:bg-[#32C6FF] hover:scale-[1.05] text-white font-medium px-8 py-2.5 rounded-lg transition-all duration-300 cursor-pointer" style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}>
         Pesquisar
       </button>

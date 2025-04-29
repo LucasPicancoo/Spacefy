@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Header() {
   const { user, isLoggedIn, logout } = useUser(); // Usando o contexto
+  // const { isTenant } = useUser();
   const [menuVisible, setMenuVisible] = useState(false);
   const menuRef = useRef(null);
   const navigate = useNavigate();
@@ -49,15 +50,22 @@ export default function Header() {
           SPACEFY
         </span>
       </div>
-      <nav className="mx-auto flex gap-x-8 text-gray-600">
+      <nav className="mx-auto flex gap-x-8 text-gray-600"> 
         <button onClick={() => navigate("/Descobrir")} className="relative group cursor-pointer">
           Descobrir
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
         </button>
-        <button onClick={() => navigate("/Anunciar")} className="relative group cursor-pointer">
+        <button onClick={() => navigate("/CadastrarEspaco")} className="relative group cursor-pointer">
           Anunciar
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
         </button>
+        {/* {isTenant ? ( */}
+        <button onClick={() => navigate("/DashboardLocatario")} className="relative group cursor-pointer">
+          Locatario
+          <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
+        </button>
+      
+        {/* ) : null} */}
       </nav>
 
       {isLoggedIn ? (
@@ -99,6 +107,10 @@ export default function Header() {
           </button>
         </div>
       )}
+
+
+
+    
     </header>
   );
 }

@@ -5,6 +5,10 @@ import CadastroUsuario from '../Pages/Cadastro/Cadastro'
 import Login from '../Pages/Login/Login'
 import Perfil from '../Pages/Perfil'
 import Descobrir from '../Pages/Descobrir/Descobrir'
+import Espaço from '../Pages/Espaço/Espaço'
+import DashboardLocatario from '../Pages/Locatario/DashboardLocatario'
+import CadastrarEspaco from '../Pages/CadastrarEspaco.jsx/CadastrarEspaco'
+
 const AppRoutes = () => {
   return (
     <Router>
@@ -15,6 +19,9 @@ const AppRoutes = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/Perfil" element={<Perfil />} />
         <Route path="/Descobrir" element={<Descobrir />} />
+        <Route path="/Espaço" element={<Espaço />} />
+        <Route path="/DashboardLocatario" element={<DashboardLocatario />} />
+        <Route path="/CadastrarEspaco" element={<CadastrarEspaco />} />
       </Routes>
     </Router>
   )

@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
 import SpaceModel from "../models/spaceModel";
 
+// import { AuthenticationData } from "../types/auth";
+
 // Listar todos os espaços
 export const getAllSpaces = async (req: Request, res: Response) => {
   try {
     const spaces = await SpaceModel.find();
 
-
-    if(!spaces){
-      res.status(404).json({error: "Nenhum espaço encontrado"})
+    if (!spaces) {
+      res.status(404).json({ error: "Nenhum espaço encontrado" });
     }
 
     res.status(200).json(spaces);
@@ -38,6 +39,12 @@ export const getSpaceById = async (req: Request, res: Response) => {
 // Criar um novo espaço
 export const createSpace = async (req: Request, res: Response) => {
   try {
+    // Para que somente locatários possam criar espaços
+    if (req.auth?.role !== "locatario") {
+      return res
+        .status(403)
+        .json({ error: "Apenas locatários podem criar espaços." });
+    }
     const {
       space_name,
       max_people,
@@ -65,7 +72,9 @@ export const createSpace = async (req: Request, res: Response) => {
       !owner_email ||
       !image_url
     ) {
-      res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+      res
+        .status(400)
+        .json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
     }
 
     // Cria um novo espaço
@@ -100,8 +109,17 @@ export const createSpace = async (req: Request, res: Response) => {
 // Atualizar um espaço por ID
 export const updateSpace = async (req: Request, res: Response) => {
   try {
+    // Para que somente locatários possam atualizar espaços
+    if (req.auth?.role !== "locatario") {
+      return res
+        .status(403)
+        .json({ error: "Apenas locatários podem atualizar espaços." });
+    }
+
     const { id } = req.params;
-    const updatedSpace = await SpaceModel.findByIdAndUpdate(id, req.body, { new: true });
+    const updatedSpace = await SpaceModel.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
 
     if (!updatedSpace) {
       res.status(404).json({ error: "Espaço não encontrado" });

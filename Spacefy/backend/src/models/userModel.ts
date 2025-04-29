@@ -1,7 +1,7 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, model } from "mongoose";
 import { IBaseUser } from "../types/user";
 import { hash } from "../middlewares/hashManager";
-
+import { User } from "../types/user";
 
 const UserSchema: Schema = new Schema({
   name: { type: String, required: true },
@@ -11,7 +11,7 @@ const UserSchema: Schema = new Schema({
   telephone: { type: String, required: true },
   role: {
     type: String,
-    enum: ["locatario", "usuario"],
+    enum: ["locatario", "usuario", "admin"],
     required: true,
   },
   cpfOrCnpj: {
@@ -26,8 +26,6 @@ const UserSchema: Schema = new Schema({
       ref: "space", // Substitua se seu model tiver outro nome
     },
   ],
-
-
 });
 
 UserSchema.pre<IBaseUser>("save", async function (this: any, next) {
@@ -37,7 +35,9 @@ UserSchema.pre<IBaseUser>("save", async function (this: any, next) {
 
   if (this.role === "locatario" && this.cpfOrCnpj) {
     if (this.cpfOrCnpj.length !== 11 && this.cpfOrCnpj.length !== 14) {
-      throw new Error("O CPF deve conter 11 dígitos ou o CNPJ deve conter 14 dígitos.");
+      throw new Error(
+        "O CPF deve conter 11 dígitos ou o CNPJ deve conter 14 dígitos."
+      );
     }
   }
 
@@ -45,3 +45,4 @@ UserSchema.pre<IBaseUser>("save", async function (this: any, next) {
 });
 
 export default mongoose.model<IBaseUser>("user", UserSchema, "user");
+export const UserModel = model<User>("User", UserSchema);

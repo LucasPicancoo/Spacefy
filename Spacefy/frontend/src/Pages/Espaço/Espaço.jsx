@@ -1,6 +1,7 @@
 import Header from "../../Components/Header/Header";
 import Footer from "../../Components/Footer/Footer";
 import ReservaCard from "../../Components/ReservaCard/ReservaCard";
+import CommentsModal from "../../Components/CommentsModal";
 import { useState, useRef } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import DatePicker from "react-datepicker";
@@ -40,6 +41,7 @@ const mockImgs = [
 
 function Espaço() {
     const [currentPage, setCurrentPage] = useState(0);
+    const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
     const PhotosCarouselRef = useRef(null);
 
     const scrollPhotosCarousel = (direction) => {
@@ -196,9 +198,52 @@ function Espaço() {
                             </button>
                         </div>
                     </div>
+                    <div className="flex justify-center mt-8 mb-8">
+                        <button 
+                            onClick={() => setIsCommentsModalOpen(true)}
+                            className="bg-[#00A3FF] text-white px-6 py-2 rounded-lg text-sm font-medium hover:bg-[#0084CC] transition-colors"
+                        >
+                            Ver todos os comentários
+                        </button>
+                    </div>
                 </div>
             </div>
             <Footer />
+
+            <CommentsModal 
+                isOpen={isCommentsModalOpen}
+                onClose={() => setIsCommentsModalOpen(false)}
+                reviews={[
+                    {
+                        name: "Maria Oliveira",
+                        review: "Pode melhorar. O espaço é bom, mas a organização deixou a desejar. Tivemos problemas com a iluminação e atrasos na liberação do local. Não comprometeu a festa, mas esperava mais."
+                    },
+                    {
+                        name: "Ricardo Fernandes",
+                        review: "Experiência incrível! O espaço para festas superou todas as expectativas - amplo, bem organizado e exatamente como descrito. A estrutura é perfeita para eventos, com iluminação, som e conforto impecáveis. A comunicação com o anfitrião foi rápida e eficiente, garantindo que tudo saísse como planejado. Com certeza voltarei para futuras celebrações. Recomendo a todos!"
+                    },
+                    {
+                        name: "Clara Silva",
+                        review: "O espaço é bom, mas a organização deixou a desejar. Tivemos problemas com a iluminação e atrasos na liberação do local. Não comprometeu a festa, mas esperava mais."
+                    },
+                    {
+                        name: "Clara Silva",
+                        review: "O espaço é bom, mas a organização deixou a desejar. Tivemos problemas com a iluminação e atrasos na liberação do local. Não comprometeu a festa, mas esperava mais."
+                    },
+                    {
+                        name: "Maria Oliveira",
+                        review: "Pode melhorar. O espaço é bom, mas a organização deixou a desejar. Tivemos problemas com a iluminação e atrasos na liberação do local. Não comprometeu a festa, mas esperava mais."
+                    },
+                    {
+                        name: "Ricardo Fernandes",
+                        review: "Experiência incrível! O espaço para festas superou todas as expectativas - amplo, bem organizado e exatamente como descrito. A estrutura é perfeita para eventos, com iluminação, som e conforto impecáveis. A comunicação com o anfitrião foi rápida e eficiente, garantindo que tudo saísse como planejado. Com certeza voltarei para futuras celebrações. Recomendo a todos!"
+                    },
+                    {
+                        name: "Clara Silva",
+                        review: "O espaço é bom, mas a organização deixou a desejar. Tivemos problemas com a iluminação e atrasos na liberação do local. Não comprometeu a festa, mas esperava mais."
+                    }
+                ]}
+            />
         </div>
     )
 }

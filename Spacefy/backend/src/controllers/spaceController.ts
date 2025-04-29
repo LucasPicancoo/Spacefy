@@ -141,6 +141,12 @@ export const updateSpace = async (req: Request, res: Response) => {
 // Excluir um espaço por ID
 export const deleteSpace = async (req: Request, res: Response) => {
   try {
+    if (req.auth?.role !== "locatario" || "admin") {
+      return res
+        .status(403)
+        .json({ error: "Apenas locatários podem atualizar espaços." });
+    }
+
     const { id } = req.params;
     const deletedSpace = await SpaceModel.findByIdAndDelete(id);
 

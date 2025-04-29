@@ -25,7 +25,7 @@ const SpaceSchema: Schema = new Schema({
   }, // CPF ou CNPJ do proprietário (obrigatório)
   
   owner_phone: { type: String, required: true }, // Telefone do proprietário (obrigatório)
-  email: { type: String, required: true },
+  owner_email: { type: String, required: true },
   image_url: { type: String, required: true }, // URL da imagem do espaço (obrigatório)
 });
 

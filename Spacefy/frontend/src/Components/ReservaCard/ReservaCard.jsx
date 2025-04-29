@@ -3,6 +3,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale, setDefaultLocale } from "react-datepicker";
 import ptBR from 'date-fns/locale/pt-BR';
+import { useNavigate } from "react-router-dom";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
@@ -12,6 +13,8 @@ function ReservaCard() {
     const [checkOutDate, setCheckOutDate] = useState(null);
     const [checkInTime, setCheckInTime] = useState(null);
     const [checkOutTime, setCheckOutTime] = useState(null);
+
+    const navigate = useNavigate();
 
     const handleCheckInTimeChange = (time) => {
         if (time) {
@@ -42,43 +45,43 @@ function ReservaCard() {
     return (
         <div className="w-[340px] flex flex-col gap-6">
             {/* Card do locatário */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
+            <div className="bg-white border border-[#E3E3E3] rounded-lg shadow-lg p-6">
                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="w-14 h-14 bg-gray-200 rounded-lg overflow-hidden">
                         <img src="/user-icon.png" alt="Foto do perfil" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col">
                         <h3 className="text-xl font-medium">Zaylian Vortelli</h3>
                         <div className="flex items-center gap-1">
-                            <div className="flex">★★★★½</div>
+                            <div className="flex">★★★★★</div>
                             <span className="text-gray-600">(183)</span>
                         </div>
                     </div>
                 </div>
-                <button className="w-full mt-4 text-center text-[#00A3FF] hover:underline">
+                <button onClick={() => navigate('/Perfil_Locatario')} className="w-full mt-4 text-center text-[#00A3FF] hover:underline cursor-pointer">
                     Ver mais sobre o locatario
                 </button>
             </div>
 
             {/* Card de reserva */}
-            <div className="bg-white rounded-lg shadow-lg p-6">
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <div className="bg-white border border-[#E3E3E3] rounded-lg shadow-lg p-6">
+                <div className="border border-[#E3E3E3] rounded-lg overflow-hidden">
                     {/* Check-in */}
-                    <div className="p-4 border-b border-gray-200">
-                        <div className="flex justify-between">
+                    <div className="p-2 border-b border-[#E3E3E3]">
+                        <div className="grid grid-cols-[60%_40%] gap-4">
                             <div>
-                                <div className="text-gray-600 text-lg mb-1">Check-in</div>
+                                <div className="text-[#696868] font-medium text-lg mb-1">Check-in</div>
                                 <DatePicker
                                     selected={checkInDate}
                                     onChange={(date) => setCheckInDate(date)}
                                     dateFormat="dd/MM/yyyy"
                                     placeholderText="DD/MM/YYYY"
-                                    className="text-gray-900 text-lg font-medium focus:outline-none cursor-pointer"
+                                    className="text-lg font-medium focus:outline-none cursor-pointer w-full text-black placeholder:text-black placeholder:opacity-100"
                                     minDate={new Date()}
                                 />
                             </div>
-                            <div>
-                                <div className="text-gray-600 text-lg mb-1">Hora:</div>
+                            <div className="flex flex-col justify-start pl-7">
+                                <div className="text-[#696868] font-medium text-lg mb-1">Hora:</div>
                                 <DatePicker
                                     selected={checkInTime}
                                     onChange={handleCheckInTimeChange}
@@ -89,7 +92,7 @@ function ReservaCard() {
                                     dateFormat="HH:mm"
                                     timeFormat="HH:mm"
                                     placeholderText="HH:mm"
-                                    className="text-gray-900 text-lg font-medium focus:outline-none cursor-pointer w-24 text-center"
+                                    className="text-lg font-medium focus:outline-none cursor-pointer w-24 placeholder:text-black placeholder:opacity-100"
                                     popperPlacement="bottom-end"
                                 />
                             </div>
@@ -97,21 +100,21 @@ function ReservaCard() {
                     </div>
 
                     {/* Check-out */}
-                    <div className="p-4 border-b border-gray-200">
-                        <div className="flex justify-between">
+                    <div className="p-2 border-b border-gray-200">
+                        <div className="grid grid-cols-[60%_40%] gap-4">
                             <div>
-                                <div className="text-gray-600 text-lg mb-1">Check-out</div>
+                                <div className="text-[#696868] font-medium text-lg mb-1">Check-out</div>
                                 <DatePicker
                                     selected={checkOutDate}
                                     onChange={(date) => setCheckOutDate(date)}
                                     dateFormat="dd/MM/yyyy"
                                     placeholderText="DD/MM/YYYY"
-                                    className="text-gray-900 text-lg font-medium focus:outline-none cursor-pointer"
+                                    className="text-lg font-medium focus:outline-none cursor-pointer w-full text-black placeholder:text-black placeholder:opacity-100"
                                     minDate={checkInDate || new Date()}
                                 />
                             </div>
-                            <div>
-                                <div className="text-gray-600 text-lg mb-1">Hora:</div>
+                            <div className="flex flex-col justify-start pl-7">
+                                <div className="text-[#696868] font-medium text-lg mb-1">Hora:</div>
                                 <DatePicker
                                     selected={checkOutTime}
                                     onChange={handleCheckOutTimeChange}
@@ -122,7 +125,7 @@ function ReservaCard() {
                                     dateFormat="HH:mm"
                                     timeFormat="HH:mm"
                                     placeholderText="HH:mm"
-                                    className="text-gray-900 text-lg font-medium focus:outline-none cursor-pointer w-24 text-center"
+                                    className="text-gray-900 text-lg font-medium focus:outline-none cursor-pointer w-24 placeholder:text-black placeholder:opacity-100"
                                     popperPlacement="bottom-end"
                                 />
                             </div>

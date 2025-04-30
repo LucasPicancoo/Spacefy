@@ -76,26 +76,27 @@ export const createUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const { name, email, telephone, password, surname } = req.body;
 
-    if (updateData.password) {
-      return res
-        .status(400)
-        .json({ error: "A senha não pode ser atualizada por aqui." });
+    // Verificação de campos obrigatórios
+    if (!name || !email || !telephone || !password || !surname) {
+      return res.status(400).json({ error: "Preencha todos os campos obrigatórios." });
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(id, updateData, {
-      new: true,
-    }).select("-password");
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      id,
+      { name, email, telephone, password, surname },
+      { new: true }
+    ).select("-password");
 
     if (!updatedUser) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    res.status(200).json(updatedUser);
+    return res.status(200).json(updatedUser);
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
-    res.status(500).json({ error: "Erro ao atualizar usuário" });
+    return res.status(500).json({ error: "Erro ao atualizar usuário" });
   }
 };
 
@@ -105,6 +106,12 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
   const { spaceId } = req.body;
 
   try {
+    if (req.auth?.role !== "usuario") {
+      return res
+        .status(403)
+        .json({ error: "Apenas ususarios podem favoritar/desfavoritar  espaços." });
+    }
+
     if (!spaceId) {
       return res.status(400).json({ error: "O ID do espaço é obrigatório." });
     }
@@ -146,21 +153,31 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
   }
 };
 
+import mongoose from "mongoose";
+
+// Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    // Valida se o ID é um ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
     const deletedUser = await UserModel.findByIdAndDelete(id);
 
     if (!deletedUser) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    res.status(200).json({ message: "Usuário deletado com sucesso" });
+    return res.status(200).json({ message: "Usuário deletado com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar usuário:", error);
-    res.status(500).json({ error: "Erro ao deletar usuário" });
+    return res.status(500).json({ error: "Erro ao deletar usuário" });
   }
 };
+
 
 interface CustomError extends Error {
   code?: number;

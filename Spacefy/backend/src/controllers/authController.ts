@@ -11,34 +11,40 @@ export const login = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-     res.status(400).json({ error: "Preencha todos os campos" });
+      return res.status(400).json({ error: "Preencha todos os campos" }); // Adicionando o return aqui
     }
 
     const user = await UserModel.findOne({ email }) as IBaseUser;
 
     if (!user) {
-      res.status(401).json({ error: "E-mail ou senha inválidos" });
+      return res.status(401).json({ error: "E-mail ou senha inválidos" }); // Adicionando o return aqui
     }
 
     const isPasswordCorrect = await compare(password, user.password);
     if (!isPasswordCorrect) {
-       res.status(401).json({ error: "E-mail ou senha inválidos" });
+      return res.status(401).json({ error: "E-mail ou senha inválidos" }); // Adicionando o return aqui
     }
 
-    const authenticator = new Authenticator();
-    const token = authenticator.generateToken({ id: user._id.toString(), name: user.name, surname: user.surname, email: user.email, telephone: user.telephone, role: user.role });
+    const token = authenticator.generateToken({
+      id: user._id.toString(),
+      name: user.name,
+      surname: user.surname,
+      email: user.email,
+      telephone: user.telephone,
+      role: user.role,
+    });
 
-    res.status(200).json({
-      message: "Login realizado com sucesso", 
+    return res.status(200).json({
+      message: "Login realizado com sucesso",
       token,
       user: {
         id: user._id.toString(),
         name: user.name,
-        role: user.role
-      }
-    });
+        role: user.role,
+      },
+    }); // Adicionando o return aqui
   } catch (error) {
     console.error("Erro ao fazer login:", error);
-    res.status(500).json({ error: "Erro ao fazer login" });
+    return res.status(500).json({ error: "Erro ao fazer login" }); // Adicionando o return aqui
   }
 };

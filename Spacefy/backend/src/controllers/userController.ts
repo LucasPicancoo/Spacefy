@@ -78,25 +78,43 @@ export const updateUser = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { name, email, telephone, password, surname } = req.body;
 
+    // Validação de ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID de usuário inválido." });
+    }
+
     // Verificação de campos obrigatórios
     if (!name || !email || !telephone || !password || !surname) {
       return res.status(400).json({ error: "Preencha todos os campos obrigatórios." });
     }
 
+    // Verificar se o e-mail já existe em outro usuário
+    const emailExists = await UserModel.findOne({ email, _id: { $ne: id } });
+    if (emailExists) {
+      return res.status(409).json({ error: "Este e-mail já está em uso por outro usuário." });
+    }
+
+    // Atualização
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
       { name, email, telephone, password, surname },
-      { new: true }
+      { new: true, runValidators: true }
     ).select("-password");
 
     if (!updatedUser) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
+      return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
     return res.status(200).json(updatedUser);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Erro ao atualizar usuário:", error);
-    return res.status(500).json({ error: "Erro ao atualizar usuário" });
+
+    // Tratamento específico para erro de chave duplicada (caso escape da verificação manual)
+    if (error.code === 11000) {
+      return res.status(409).json({ error: "E-mail já cadastrado." });
+    }
+
+    return res.status(500).json({ error: "Erro ao atualizar usuário." });
   }
 };
 

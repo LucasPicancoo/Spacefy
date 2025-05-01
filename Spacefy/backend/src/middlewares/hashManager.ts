@@ -7,7 +7,6 @@ export const hash = async (s: string): Promise<string> => {
     return cypherText;
 }
 
-export const compare = async (s: string, hash: string) => {
-    const result = await bcrypt.compare(s, hash);
-    return result;
+export const compare = async (s: string, hash: string): Promise<boolean> => {
+    return await bcrypt.compare(s, hash);
 }

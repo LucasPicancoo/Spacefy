@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import UserModel from "../models/userModel";
-
+import mongoose from "mongoose";
+import { hash } from "../middlewares/hashManager";
 // Deixando aqui algumas importações caso necessário
 // import { ObjectId } from "mongoose";
 // import { IBaseUser } from "../types/user";
@@ -76,91 +77,131 @@ export const createUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const { name, email, telephone, password, surname } = req.body;
 
-    if (updateData.password) {
-      return res
-        .status(400)
-        .json({ error: "A senha não pode ser atualizada por aqui." });
+    // Validação de ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID de usuário inválido." });
     }
 
-    const updatedUser = await UserModel.findByIdAndUpdate(id, updateData, {
-      new: true,
-    }).select("-password");
+    // Verificação de campos obrigatórios
+    if (!name || !email || !telephone || !password || !surname) {
+      return res.status(400).json({ error: "Preencha todos os campos obrigatórios." });
+    }
+
+    // Verificar se o e-mail já existe em outro usuário
+    const emailExists = await UserModel.findOne({ email, _id: { $ne: id } });
+    if (emailExists) {
+      return res.status(409).json({ error: "Este e-mail já está em uso por outro usuário." });
+    }
+
+    // Criptografa a senha antes de atualizar
+    const hashedPassword = await hash(password);
+
+    // Atualização
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      id,
+      { name, email, telephone, password: hashedPassword, surname },
+      { new: true, runValidators: true }
+    ).select("-password");
 
     if (!updatedUser) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
-    }
-
-    res.status(200).json(updatedUser);
-  } catch (error) {
-    console.error("Erro ao atualizar usuário:", error);
-    res.status(500).json({ error: "Erro ao atualizar usuário" });
-  }
-};
-
-// Favoritar ou desfavoritar um espaço
-export const toggleFavoriteSpace = async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { spaceId } = req.body;
-
-  try {
-    if (!spaceId) {
-      return res.status(400).json({ error: "O ID do espaço é obrigatório." });
-    }
-
-    // Converte o spaceId para ObjectId (se necessário)
-    const objectIdSpace = new ObjectId(spaceId);
-
-    const user = await UserModel.findById(userId);
-
-    if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
 
-    const alreadyFavorited = user.favorites?.some(
-      (id) => id.toString() === objectIdSpace.toString()
-    );
+    return res.status(200).json(updatedUser);
+  } catch (error: any) {
+    console.error("Erro ao atualizar usuário:", error);
 
-    if (alreadyFavorited) {
-      // Remove o espaço dos favoritos
-      user.favorites = user.favorites.filter(
-        (id) => id.toString() !== objectIdSpace.toString()
-      );
-    } else {
-      // Adiciona o espaço aos favoritos
-      user.favorites = [...(user.favorites || []), objectIdSpace];
+    // Tratamento específico para erro de chave duplicada (caso escape da verificação manual)
+    if (error.code === 11000) {
+      return res.status(409).json({ error: "E-mail já cadastrado." });
     }
 
-    await user.save();
-
-    res.status(200).json({
-      message: alreadyFavorited
-        ? "Espaço removido dos favoritos."
-        : "Espaço adicionado aos favoritos.",
-      favorites: user.favorites,
-    });
-  } catch (error) {
-    console.error("Erro ao favoritar/desfavoritar espaço:", error);
-    res.status(500).json({ error: "Erro ao atualizar favoritos." });
+    return res.status(500).json({ error: "Erro ao atualizar usuário." });
   }
 };
 
+// export const toggleFavoriteSpace = async (req: Request, res: Response) => {
+//   const { userId } = req.params;
+//   const { spaceId } = req.body;
+
+//   try {
+//     // 1. Verifica se o usuário tem permissão
+//     if (req.auth?.role !== "usuario") {
+//       return res.status(403).json({
+//         error: "Apenas usuários podem favoritar ou desfavoritar espaços.",
+//       });
+//     }
+
+//     // 2. Verifica se spaceId foi enviado
+//     if (!spaceId) {
+//       return res.status(400).json({ error: "O ID do espaço é obrigatório." });
+//     }
+
+//     // 3. Verifica se userId e spaceId são ObjectIds válidos
+//     if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(spaceId)) {
+//       return res.status(400).json({ error: "ID inválido." });
+//     }
+
+//     // 4. Encontra o usuário
+//     const user = await UserModel.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ error: "Usuário não encontrado." });
+//     }
+
+//     // 5. Verifica se o espaço já está nos favoritos
+//     const alreadyFavorited = user.favorites?.some(
+//       (id) => id.toString() === spaceId
+//     );
+
+//     // 6. Adiciona ou remove dos favoritos
+//     if (alreadyFavorited) {
+//       user.favorites = user.favorites.filter(
+//         (id) => id.toString() !== spaceId
+//       );
+//     } else {
+//       user.favorites = [...(user.favorites || []), new mongoose.Types.ObjectId(spaceId)];
+//     }
+
+//     await user.save();
+
+//     return res.status(200).json({
+//       message: alreadyFavorited
+//         ? "Espaço removido dos favoritos."
+//         : "Espaço adicionado aos favoritos.",
+//       favorites: user.favorites,
+//     });
+//   } catch (error) {
+//     console.error("Erro ao favoritar/desfavoritar espaço:", error);
+//     return res.status(500).json({ error: "Erro interno ao atualizar favoritos." });
+//   }
+// };
+
+
+// Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    // Valida se o ID é um ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
     const deletedUser = await UserModel.findByIdAndDelete(id);
 
     if (!deletedUser) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    res.status(200).json({ message: "Usuário deletado com sucesso" });
+    return res.status(200).json({ message: "Usuário deletado com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar usuário:", error);
-    res.status(500).json({ error: "Erro ao deletar usuário" });
+    return res.status(500).json({ error: "Erro ao deletar usuário" });
   }
 };
+
 
 interface CustomError extends Error {
   code?: number;

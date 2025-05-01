@@ -1,7 +1,8 @@
 import React, { useState, useRef } from "react";
-import Header from "../Components/Header/Header";
+import Header from "../../Components/Header/Header";
 import { FaHeart, FaStar, FaClock, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { useUser } from "../Contexts/userContext";
+import { useUser } from "../../Contexts/userContext";
+import { useNavigate } from "react-router-dom";
 
 const mockCards = [
   {
@@ -255,23 +256,19 @@ const Perfil = () => {
   const ratedCarouselRef = useRef(null);
   const rentedCarouselRef = useRef(null);
 
+  const navigate = useNavigate();
   const { user, isLoggedIn } = useUser();
 
   if (!isLoggedIn) {
-    return <div>Você precisa estar logado para ver o perfil.</div>; // corrigir futuramente (fazer o redirect para a landing page)
+    return <div>Você precisa estar logado para ver o perfil.</div>;
   }
 
   const formatPhoneNumber = (phoneNumber) => {
-    // Remove qualquer coisa que não seja número
     const cleaned = ("" + phoneNumber).replace(/\D/g, "");
-
-    // Verifica se o número tem 11 dígitos e formata
     if (cleaned.length === 11) {
-      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(
-        7
-      )}`;
+      return `(${cleaned.slice(0, 2)}) ${cleaned.slice(2, 7)}-${cleaned.slice(7)}`;
     }
-    return phoneNumber; // Retorna o número original caso não tenha 11 dígitos
+    return phoneNumber;
   };
 
   const scrollRecentCarousel = (direction) => {
@@ -341,33 +338,49 @@ const Perfil = () => {
       <main className="flex-1 w-full mx-auto py-8 overflow-hidden">
         <section className="flex gap-8 mb-8 px-4">
           {/* Card do Usuário */}
-          <section className="bg-white rounded-xl shadow-md p-6 w-72 flex flex-col items-center">
-        <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center text-4xl mb-2">
-          <span role="img" aria-label="avatar">
-            👤
-          </span>
-        </div>
-        <div className="text-center mb-2">
-          <div className="font-semibold">{user?.name}</div>
-          <div className="text-xs text-gray-500"></div>
-        </div>
-        <button className="bg-[#00A3FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#0084CC] transition-colors">
-          Editar Perfil
-        </button>
-        <div className="mt-4 text-left w-full bg-gray-50 rounded-lg p-3 text-xs">
-          <div className="font-bold mb-1">Sobre o usuário</div>
-          <div>
-            <b>Nome:</b> {user?.name} {user?.surname}
-          </div>
-          <div>
-            <b>E-mail:</b> {user?.email || "Não informado"}
-          </div>
-          <div>
-            <b>Telefone:</b>{" "}
-            {formatPhoneNumber(user?.telephone) || "Não informado"}
-          </div>
-        </div>
-      </section>
+          <aside className="w-70 self-start sticky top-4">
+            <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                  <span role="img" aria-label="avatar" className="text-3xl">👤</span>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">{user?.name} {user?.surname}</h2>
+                  <p className="text-gray-600 text-sm">Usuário</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => navigate('/EditarPerfilUsuario')} 
+                className="w-full bg-[#00A3FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#0084CC] transition-colors cursor-pointer"
+              >
+                Editar Perfil
+              </button>
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-bold mb-4">Sobre o usuário</h3>
+              <div className="space-y-4">
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="text-sm">{user?.name} {user?.surname}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-sm">{user?.email || "Não informado"}</span>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                  </svg>
+                  <span className="text-sm">{formatPhoneNumber(user?.telephone) || "Não informado"}</span>
+                </div>
+              </div>
+            </div>
+          </aside>
 
           {/* Conteúdo principal */}
           <section className="flex-1 flex flex-col gap-8 overflow-hidden">

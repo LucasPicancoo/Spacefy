@@ -11,13 +11,16 @@ import Etapa7 from './Etapas/Etapa7';
 
 const CadastrarEspaco = () => {
     const navigate = useNavigate();
-    const [etapaAtual, setEtapaAtual] = useState(0); // 0 = título, 1-7 = etapas
+    const [etapaAtual, setEtapaAtual] = useState(0);
+
+    const iniciarCadastro = () => {
+        setEtapaAtual(1);
+    };
 
     const proximaEtapa = () => {
         if (etapaAtual < 7) {
             setEtapaAtual(etapaAtual + 1);
         } else {
-            // Quando finalizar, redireciona para a página de informações do espaço
             navigate('/Espaço');
         }
     };
@@ -50,43 +53,60 @@ const CadastrarEspaco = () => {
                 return <Etapa7 isOpen={true} onClose={fecharModal} />;
             default:
                 return (
-                    <h1 className="text-3xl font-bold text-gray-800 mb-4 text-center">
-                        Página de Cadastro de Espaço
-                    </h1>
+                    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full">
+                        <div className="text-center w-full max-w-3xl px-4">
+                            <h1 className="text-5xl font-bold text-gray-900 mb-8">
+                                Cadastre seu espaço e alcance mais locatários!
+                            </h1>
+                            <div className="space-y-6 mb-12">
+                                <p className="text-xl text-gray-700">
+                                    Tem uma sala de reunião, auditório ou espaço para eventos disponível?
+                                </p>
+                                <p className="text-xl text-gray-700">
+                                    Cadastre-se na nossa plataforma e conecte-se com pessoas que precisam de um local como o seu!
+                                </p>
+                                <p className="text-xl text-gray-700">
+                                    Preencha os detalhes abaixo e comece a alugar seu espaço de forma prática e segura!
+                                </p>
+                            </div>
+                            <button
+                                onClick={iniciarCadastro}
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5 px-12 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105"
+                            >
+                                Iniciar Cadastro
+                            </button>
+                        </div>
+                    </div>
                 );
         }
-    };
-
-    const getBotaoTexto = () => {
-        if (etapaAtual === 0) return "Ver Mensagem";
-        if (etapaAtual === 7) return "Finalizar";
-        return "Próximo";
     };
 
     return (
         <>
             <Header />
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6">
-                <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 mb-8">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+                <div className="w-full h-full bg-white p-8">
                     {renderizarEtapa()}
                 </div>
 
-                <div className="flex gap-4">
-                    {etapaAtual > 1 && (
+                {etapaAtual > 0 && (
+                    <div className="fixed bottom-8 flex gap-4">
+                        {etapaAtual > 1 && (
+                            <button 
+                                onClick={etapaAnterior}
+                                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                            >
+                                Voltar
+                            </button>
+                        )}
                         <button 
-                            onClick={etapaAnterior}
-                            className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                            onClick={proximaEtapa}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
                         >
-                            Voltar
+                            {etapaAtual === 7 ? "Finalizar" : "Próximo"}
                         </button>
-                    )}
-                    <button 
-                        onClick={proximaEtapa}
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
-                    >
-                        {getBotaoTexto()}
-                    </button>
-                </div>
+                    </div>
+                )}
             </div>
         </>
     );

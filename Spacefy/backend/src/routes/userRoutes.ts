@@ -24,6 +24,6 @@ userRouter.put("/updateUser/:id", updateUser);
 userRouter.delete("/deleteUser/:id", deleteUser);
 
 // Rota para favoritar ou desfavoritar um espaço
-userRouter.patch("/:userId/favorites", toggleFavoriteSpace);
+//userRouter.patch("/:userId/favorites", toggleFavoriteSpace);
 
 export default userRouter;

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import UserModel from "../models/userModel";
-
+import mongoose from "mongoose";
 // Deixando aqui algumas importações caso necessário
 // import { ObjectId } from "mongoose";
 // import { IBaseUser } from "../types/user";
@@ -118,60 +118,62 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-// Favoritar ou desfavoritar um espaço
-export const toggleFavoriteSpace = async (req: Request, res: Response) => {
-  const { userId } = req.params;
-  const { spaceId } = req.body;
+// export const toggleFavoriteSpace = async (req: Request, res: Response) => {
+//   const { userId } = req.params;
+//   const { spaceId } = req.body;
 
-  try {
-    if (req.auth?.role !== "usuario") {
-      return res
-        .status(403)
-        .json({ error: "Apenas ususarios podem favoritar/desfavoritar  espaços." });
-    }
+//   try {
+//     // 1. Verifica se o usuário tem permissão
+//     if (req.auth?.role !== "usuario") {
+//       return res.status(403).json({
+//         error: "Apenas usuários podem favoritar ou desfavoritar espaços.",
+//       });
+//     }
 
-    if (!spaceId) {
-      return res.status(400).json({ error: "O ID do espaço é obrigatório." });
-    }
+//     // 2. Verifica se spaceId foi enviado
+//     if (!spaceId) {
+//       return res.status(400).json({ error: "O ID do espaço é obrigatório." });
+//     }
 
-    // Converte o spaceId para ObjectId (se necessário)
-    const objectIdSpace = new ObjectId(spaceId);
+//     // 3. Verifica se userId e spaceId são ObjectIds válidos
+//     if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(spaceId)) {
+//       return res.status(400).json({ error: "ID inválido." });
+//     }
 
-    const user = await UserModel.findById(userId);
+//     // 4. Encontra o usuário
+//     const user = await UserModel.findById(userId);
+//     if (!user) {
+//       return res.status(404).json({ error: "Usuário não encontrado." });
+//     }
 
-    if (!user) {
-      return res.status(404).json({ error: "Usuário não encontrado." });
-    }
+//     // 5. Verifica se o espaço já está nos favoritos
+//     const alreadyFavorited = user.favorites?.some(
+//       (id) => id.toString() === spaceId
+//     );
 
-    const alreadyFavorited = user.favorites?.some(
-      (id) => id.toString() === objectIdSpace.toString()
-    );
+//     // 6. Adiciona ou remove dos favoritos
+//     if (alreadyFavorited) {
+//       user.favorites = user.favorites.filter(
+//         (id) => id.toString() !== spaceId
+//       );
+//     } else {
+//       user.favorites = [...(user.favorites || []), new mongoose.Types.ObjectId(spaceId)];
+//     }
 
-    if (alreadyFavorited) {
-      // Remove o espaço dos favoritos
-      user.favorites = user.favorites.filter(
-        (id) => id.toString() !== objectIdSpace.toString()
-      );
-    } else {
-      // Adiciona o espaço aos favoritos
-      user.favorites = [...(user.favorites || []), objectIdSpace];
-    }
+//     await user.save();
 
-    await user.save();
+//     return res.status(200).json({
+//       message: alreadyFavorited
+//         ? "Espaço removido dos favoritos."
+//         : "Espaço adicionado aos favoritos.",
+//       favorites: user.favorites,
+//     });
+//   } catch (error) {
+//     console.error("Erro ao favoritar/desfavoritar espaço:", error);
+//     return res.status(500).json({ error: "Erro interno ao atualizar favoritos." });
+//   }
+// };
 
-    res.status(200).json({
-      message: alreadyFavorited
-        ? "Espaço removido dos favoritos."
-        : "Espaço adicionado aos favoritos.",
-      favorites: user.favorites,
-    });
-  } catch (error) {
-    console.error("Erro ao favoritar/desfavoritar espaço:", error);
-    res.status(500).json({ error: "Erro ao atualizar favoritos." });
-  }
-};
-
-import mongoose from "mongoose";
 
 // Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {

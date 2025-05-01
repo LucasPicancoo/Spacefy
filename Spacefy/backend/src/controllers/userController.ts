@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import UserModel from "../models/userModel";
 import mongoose from "mongoose";
+import { hash } from "../middlewares/hashManager";
 // Deixando aqui algumas importações caso necessário
 // import { ObjectId } from "mongoose";
 // import { IBaseUser } from "../types/user";
@@ -94,10 +95,13 @@ export const updateUser = async (req: Request, res: Response) => {
       return res.status(409).json({ error: "Este e-mail já está em uso por outro usuário." });
     }
 
+    // Criptografa a senha antes de atualizar
+    const hashedPassword = await hash(password);
+
     // Atualização
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
-      { name, email, telephone, password, surname },
+      { name, email, telephone, password: hashedPassword, surname },
       { new: true, runValidators: true }
     ).select("-password");
 

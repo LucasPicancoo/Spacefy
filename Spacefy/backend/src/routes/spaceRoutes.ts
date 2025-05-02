@@ -20,9 +20,9 @@ spaceRouter.get("/getSpaceById/:id", validateAndGetTokenData, getSpaceById);
 spaceRouter.post("/createSpace", validateAndGetTokenData, createSpace);
 
 // Rota para atualizar um espaço por ID
-spaceRouter.put("/updateSpace", validateAndGetTokenData, updateSpace);
+spaceRouter.put("/updateSpace/:id", validateAndGetTokenData, updateSpace);
 
 // Rota para excluir um espaço por ID
-spaceRouter.delete("/deleteSpace", validateAndGetTokenData, deleteSpace);
+spaceRouter.delete("/deleteSpace/:id", validateAndGetTokenData, deleteSpace);
 
 export default spaceRouter;

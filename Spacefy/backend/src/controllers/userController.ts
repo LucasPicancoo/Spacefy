@@ -189,7 +189,7 @@ export const deleteUser = async (req: Request, res: Response) => {
       return res
         .status(403)
         .json({
-          error: "Apenas locatários e administradores podem excluir espaços.",
+          error: "Apenas usuários podem deletar suas contas.",
         });
     }
 

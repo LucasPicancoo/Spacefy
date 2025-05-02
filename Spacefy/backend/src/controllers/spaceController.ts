@@ -116,25 +116,56 @@ export const updateSpace = async (req: Request, res: Response) => {
         .json({ error: "Apenas locatários podem atualizar espaços." });
     }
 
+    const {
+      space_name,
+      max_people,
+      location,
+      space_type,
+      price_per_hour,
+      owner_name,
+      document_number,
+      owner_phone,
+      owner_email,
+      image_url,
+    } = req.body;
+
+    // Verifica se todos os campos obrigatórios foram enviados
+    if (
+      !space_name ||
+      !max_people ||
+      !location ||
+      !space_type ||
+      !price_per_hour ||
+      !owner_name ||
+      !document_number ||
+      !owner_phone ||
+      !owner_email ||
+      !image_url
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+    }
+
     const { id } = req.params;
     const updatedSpace = await SpaceModel.findByIdAndUpdate(id, req.body, {
       new: true,
     });
 
     if (!updatedSpace) {
-      res.status(404).json({ error: "Espaço não encontrado" });
+      return res.status(404).json({ error: "Espaço não encontrado" });
     }
 
-    res.status(200).json(updatedSpace);
+    return res.status(200).json(updatedSpace);
   } catch (error) {
     console.error("Erro ao atualizar espaço:", error);
 
-    // Verifica se o erro é de validação
+    // Verifica se o erro é de validação do Mongoose
     if (error instanceof Error && error.name === "ValidationError") {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: "Erro ao atualizar espaço" });
+    return res.status(500).json({ error: "Erro ao atualizar espaço" });
   }
 };
 

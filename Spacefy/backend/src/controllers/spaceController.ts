@@ -172,22 +172,29 @@ export const updateSpace = async (req: Request, res: Response) => {
 // Excluir um espaço por ID
 export const deleteSpace = async (req: Request, res: Response) => {
   try {
-    if (req.auth?.role !== "locatario" || "admin") {
-      return res
-        .status(403)
-        .json({ error: "Apenas locatários/admin podem excluir espaços." });
+    // Verificação correta das roles permitidas
+    if (!req.auth || !["locatario", "admin"].includes(req.auth.role)) {
+      return res.status(403).json({
+        error: "Apenas locatários ou administradores podem excluir espaços."
+      });
     }
 
     const { id } = req.params;
     const deletedSpace = await SpaceModel.findByIdAndDelete(id);
 
     if (!deletedSpace) {
-      res.status(404).json({ error: "Espaço não encontrado" });
+      return res.status(404).json({ error: "Espaço não encontrado" });
     }
 
-    res.status(200).json({ message: "Espaço excluído com sucesso" });
+    return res.status(200).json({
+      message: "Espaço excluído com sucesso",
+      deletedSpace
+    });
   } catch (error) {
     console.error("Erro ao excluir espaço:", error);
-    res.status(500).json({ error: "Erro ao excluir espaço" });
+    return res.status(500).json({
+      error: "Erro ao excluir espaço",
+      details: error instanceof Error ? error.message : "Erro desconhecido"
+    });
   }
 };

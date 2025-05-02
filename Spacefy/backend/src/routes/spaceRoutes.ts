@@ -13,7 +13,7 @@ const spaceRouter = express.Router();
 spaceRouter.get("/getAllSpaces", getAllSpaces);
 
 // Rota para obter um espaço por ID
-spaceRouter.get("/getSpaceById", getSpaceById);
+spaceRouter.get("/getSpaceById/:id", getSpaceById);
 
 // Rota para criar um novo espaço
 spaceRouter.post("/createSpace", createSpace);

@@ -26,13 +26,13 @@ export const getSpaceById = async (req: Request, res: Response) => {
     const space = await SpaceModel.findById(id);
 
     if (!space) {
-      res.status(404).json({ error: "Espaço não encontrado" });
+      return res.status(404).json({ error: "Espaço não encontrado" });
     }
 
-    res.status(200).json(space);
+    return res.status(200).json(space);
   } catch (error) {
     console.error("Erro ao buscar espaço:", error);
-    res.status(500).json({ error: "Erro ao buscar espaço" });
+    return res.status(500).json({ error: "Erro ao buscar espaço" });
   }
 };
 
@@ -144,7 +144,7 @@ export const deleteSpace = async (req: Request, res: Response) => {
     if (req.auth?.role !== "locatario" || "admin") {
       return res
         .status(403)
-        .json({ error: "Apenas locatários podem atualizar espaços." });
+        .json({ error: "Apenas locatários/admin podem excluir espaços." });
     }
 
     const { id } = req.params;

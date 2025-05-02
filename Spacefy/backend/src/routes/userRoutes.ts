@@ -4,7 +4,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
-  toggleFavoriteSpace,
+  // toggleFavoriteSpace,
 } from "../controllers/userController";
 
 import { validateAndGetTokenData } from "../middlewares/token";
@@ -24,6 +24,6 @@ userRouter.put("/updateUser/:id", updateUser);
 userRouter.delete("/deleteUser/:id", deleteUser);
 
 // Rota para favoritar ou desfavoritar um espaço
-//userRouter.patch("/:userId/favorites", toggleFavoriteSpace);
+//userRouter.patch("/:userId/favorites", validateAndGetTokenData, toggleFavoriteSpace);
 
 export default userRouter;

@@ -86,13 +86,17 @@ export const updateUser = async (req: Request, res: Response) => {
 
     // Verificação de campos obrigatórios
     if (!name || !email || !telephone || !password || !surname) {
-      return res.status(400).json({ error: "Preencha todos os campos obrigatórios." });
+      return res
+        .status(400)
+        .json({ error: "Preencha todos os campos obrigatórios." });
     }
 
     // Verificar se o e-mail já existe em outro usuário
     const emailExists = await UserModel.findOne({ email, _id: { $ne: id } });
     if (emailExists) {
-      return res.status(409).json({ error: "Este e-mail já está em uso por outro usuário." });
+      return res
+        .status(409)
+        .json({ error: "Este e-mail já está em uso por outro usuário." });
     }
 
     // Criptografa a senha antes de atualizar
@@ -178,10 +182,17 @@ export const updateUser = async (req: Request, res: Response) => {
 //   }
 // };
 
-
 // Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {
+    if (req.auth?.role !== "usuario" || "admin") {
+      return res
+        .status(403)
+        .json({
+          error: "Apenas locatários e administradores podem excluir espaços.",
+        });
+    }
+
     const { id } = req.params;
 
     // Valida se o ID é um ObjectId válido
@@ -201,7 +212,6 @@ export const deleteUser = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "Erro ao deletar usuário" });
   }
 };
-
 
 interface CustomError extends Error {
   code?: number;

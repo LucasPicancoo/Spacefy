@@ -26,13 +26,13 @@ export const getSpaceById = async (req: Request, res: Response) => {
     const space = await SpaceModel.findById(id);
 
     if (!space) {
-      res.status(404).json({ error: "Espaço não encontrado" });
+      return res.status(404).json({ error: "Espaço não encontrado" });
     }
 
-    res.status(200).json(space);
+    return res.status(200).json(space);
   } catch (error) {
     console.error("Erro ao buscar espaço:", error);
-    res.status(500).json({ error: "Erro ao buscar espaço" });
+    return res.status(500).json({ error: "Erro ao buscar espaço" });
   }
 };
 
@@ -116,47 +116,85 @@ export const updateSpace = async (req: Request, res: Response) => {
         .json({ error: "Apenas locatários podem atualizar espaços." });
     }
 
+    const {
+      space_name,
+      max_people,
+      location,
+      space_type,
+      price_per_hour,
+      owner_name,
+      document_number,
+      owner_phone,
+      owner_email,
+      image_url,
+    } = req.body;
+
+    // Verifica se todos os campos obrigatórios foram enviados
+    if (
+      !space_name ||
+      !max_people ||
+      !location ||
+      !space_type ||
+      !price_per_hour ||
+      !owner_name ||
+      !document_number ||
+      !owner_phone ||
+      !owner_email ||
+      !image_url
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+    }
+
     const { id } = req.params;
     const updatedSpace = await SpaceModel.findByIdAndUpdate(id, req.body, {
       new: true,
     });
 
     if (!updatedSpace) {
-      res.status(404).json({ error: "Espaço não encontrado" });
+      return res.status(404).json({ error: "Espaço não encontrado" });
     }
 
-    res.status(200).json(updatedSpace);
+    return res.status(200).json(updatedSpace);
   } catch (error) {
     console.error("Erro ao atualizar espaço:", error);
 
-    // Verifica se o erro é de validação
+    // Verifica se o erro é de validação do Mongoose
     if (error instanceof Error && error.name === "ValidationError") {
-      res.status(400).json({ error: error.message });
+      return res.status(400).json({ error: error.message });
     }
 
-    res.status(500).json({ error: "Erro ao atualizar espaço" });
+    return res.status(500).json({ error: "Erro ao atualizar espaço" });
   }
 };
 
 // Excluir um espaço por ID
 export const deleteSpace = async (req: Request, res: Response) => {
   try {
-    if (req.auth?.role !== "locatario" || "admin") {
-      return res
-        .status(403)
-        .json({ error: "Apenas locatários podem atualizar espaços." });
+    // Verificação correta das roles permitidas
+    if (!req.auth || !["locatario", "admin"].includes(req.auth.role)) {
+      return res.status(403).json({
+        error: "Apenas locatários ou administradores podem excluir espaços."
+      });
     }
 
     const { id } = req.params;
     const deletedSpace = await SpaceModel.findByIdAndDelete(id);
 
     if (!deletedSpace) {
-      res.status(404).json({ error: "Espaço não encontrado" });
+      return res.status(404).json({ error: "Espaço não encontrado" });
     }
 
-    res.status(200).json({ message: "Espaço excluído com sucesso" });
+    return res.status(200).json({
+      message: "Espaço excluído com sucesso",
+      deletedSpace
+    });
   } catch (error) {
     console.error("Erro ao excluir espaço:", error);
-    res.status(500).json({ error: "Erro ao excluir espaço" });
+    return res.status(500).json({
+      error: "Erro ao excluir espaço",
+      details: error instanceof Error ? error.message : "Erro desconhecido"
+    });
   }
 };

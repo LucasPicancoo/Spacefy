@@ -24,6 +24,7 @@ const UserSchema: Schema = new Schema({
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "space", // Substitua se seu model tiver outro nome
+      default: [], // Inicializa como um array vazio
     },
   ],
 });

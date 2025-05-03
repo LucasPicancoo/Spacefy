@@ -170,9 +170,10 @@ export const updateSpace = async (req: Request, res: Response) => {
 };
 
 // Excluir um espaço por ID
+import mongoose from 'mongoose';
+
 export const deleteSpace = async (req: Request, res: Response) => {
   try {
-    // Verificação correta das roles permitidas
     if (!req.auth || !["locatario", "admin"].includes(req.auth.role)) {
       return res.status(403).json({
         error: "Apenas locatários ou administradores podem excluir espaços."
@@ -180,6 +181,12 @@ export const deleteSpace = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
+
+    // Add validation for ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
     const deletedSpace = await SpaceModel.findByIdAndDelete(id);
 
     if (!deletedSpace) {
@@ -197,4 +204,4 @@ export const deleteSpace = async (req: Request, res: Response) => {
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
   }
-};
+}

@@ -126,90 +126,106 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
-// export const toggleFavoriteSpace = async (req: Request, res: Response) => {
-//   const { userId } = req.params;
-//   const { spaceId } = req.body;
+export const toggleFavoriteSpace = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { spaceId } = req.body;
 
-//   try {
-//     // 1. Verifica se o usuário tem permissão
-//     if (req.auth?.role !== "usuario") {
-//       return res.status(403).json({
-//         error: "Apenas usuários podem favoritar ou desfavoritar espaços.",
-//       });
-//     }
+  try {
+    // 1. Verifica se o usuário tem permissão
+    if (req.auth?.role !== "usuario") {
+      return res.status(403).json({
+        error: "Apenas usuários podem favoritar ou desfavoritar espaços.",
+      });
+    }
 
-//     // 2. Verifica se spaceId foi enviado
-//     if (!spaceId) {
-//       return res.status(400).json({ error: "O ID do espaço é obrigatório." });
-//     }
+    // 2. Verifica se spaceId foi enviado
+    if (!spaceId) {
+      return res.status(400).json({ error: "O ID do espaço é obrigatório." });
+    }
 
-//     // 3. Verifica se userId e spaceId são ObjectIds válidos
-//     if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(spaceId)) {
-//       return res.status(400).json({ error: "ID inválido." });
-//     }
+    // 3. Verifica se userId e spaceId são ObjectIds válidos
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(spaceId)) {
+      return res.status(400).json({ error: "ID inválido." });
+    }
 
-//     // 4. Encontra o usuário
-//     const user = await UserModel.findById(userId);
-//     if (!user) {
-//       return res.status(404).json({ error: "Usuário não encontrado." });
-//     }
+    // 4. Encontra o usuário
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+    // 5. Verifica se o espaço já está nos favoritos
+    const alreadyFavorited = (user.favorites ?? []).some(
+      (id) => id.toString() === spaceId
+    );
 
-//     // 5. Verifica se o espaço já está nos favoritos
-//     const alreadyFavorited = user.favorites?.some(
-//       (id) => id.toString() === spaceId
-//     );
+    // 6. Adiciona ou remove dos favoritos
+    if (alreadyFavorited) {
+      user.favorites = (user.favorites ?? []).filter(
+        (id) => id.toString() !== spaceId
+      );
+    } else {
+      user.favorites = [...(user.favorites ?? []), (spaceId)];
+    }
 
-//     // 6. Adiciona ou remove dos favoritos
-//     if (alreadyFavorited) {
-//       user.favorites = user.favorites.filter(
-//         (id) => id.toString() !== spaceId
-//       );
-//     } else {
-//       user.favorites = [...(user.favorites || []), new mongoose.Types.ObjectId(spaceId)];
-//     }
+    await user.save();
 
-//     await user.save();
-
-//     return res.status(200).json({
-//       message: alreadyFavorited
-//         ? "Espaço removido dos favoritos."
-//         : "Espaço adicionado aos favoritos.",
-//       favorites: user.favorites,
-//     });
-//   } catch (error) {
-//     console.error("Erro ao favoritar/desfavoritar espaço:", error);
-//     return res.status(500).json({ error: "Erro interno ao atualizar favoritos." });
-//   }
-// };
-
+    return res.status(200).json({
+      message: alreadyFavorited
+        ? "Espaço removido dos favoritos."
+        : "Espaço adicionado aos favoritos.",
+      favorites: user.favorites,
+    });
+  } catch (error) {
+    console.error("Erro ao favoritar/desfavoritar espaço:", error);
+    return res.status(500).json({ error: "Erro interno ao atualizar favoritos." });
+  }
+};
 // Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {
-    if (req.auth?.role !== "usuario" || "admin") {
-      return res
-        .status(403)
-        .json({
-          error: "Apenas locatários e administradores podem excluir espaços.",
-        });
+    // Verificação mais robusta da autenticação e autorização
+    if (!req.auth) {
+      return res.status(401).json({ error: "Autenticação necessária" });
     }
 
     const { id } = req.params;
+    const { role, id: userId } = req.auth;
 
-    // Valida se o ID é um ObjectId válido
+    // Lista de roles permitidas para deletar contas
+    const allowedRoles = ["usuario", "locatario", "admin"];
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({
+        error: "Apenas usuários, locatários ou administradores podem deletar contas"
+      });
+    }
+
+    // Validação do ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: "ID inválido" });
     }
 
+    // Verificação de propriedade da conta
+    if (role !== "admin" && userId !== id) {
+      return res.status(403).json({
+        error: "Você só pode deletar sua própria conta"
+      });
+    }
+
+    // Operação de deleção
     const deletedUser = await UserModel.findByIdAndDelete(id);
 
     if (!deletedUser) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    return res.status(200).json({ message: "Usuário deletado com sucesso" });
+    return res.status(200).json({ message: "Conta deletada com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar usuário:", error);
-    return res.status(500).json({ error: "Erro ao deletar usuário" });
+    return res.status(500).json({
+      error: "Erro interno no servidor ao deletar usuário",
+      details: error.message
+    });
   }
 };
 

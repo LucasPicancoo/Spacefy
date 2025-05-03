@@ -21,7 +21,7 @@ userRouter.post("/createUser", createUser);
 userRouter.put("/updateUser/:id", updateUser);
 
 //Rota para deletar o usuario pelo ID
-userRouter.delete("/deleteUser/:id", deleteUser);
+userRouter.delete("/deleteUser/:id", validateAndGetTokenData, deleteUser);
 
 //Rota para favoritar ou desfavoritar um espaço
 userRouter.post("/:userId/favorites", validateAndGetTokenData, toggleFavoriteSpace);

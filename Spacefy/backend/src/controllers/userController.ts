@@ -183,31 +183,49 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
 // Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {
-    if (req.auth?.role !== "usuario" || "admin") {
-      return res
-        .status(403)
-        .json({
-          error: "Apenas usuários podem deletar suas contas.",
-        });
+    // Verificação mais robusta da autenticação e autorização
+    if (!req.auth) {
+      return res.status(401).json({ error: "Autenticação necessária" });
     }
 
     const { id } = req.params;
+    const { role, id: userId } = req.auth;
 
-    // Valida se o ID é um ObjectId válido
+    // Lista de roles permitidas para deletar contas
+    const allowedRoles = ["usuario", "locatario", "admin"];
+
+    if (!allowedRoles.includes(role)) {
+      return res.status(403).json({
+        error: "Apenas usuários, locatários ou administradores podem deletar contas"
+      });
+    }
+
+    // Validação do ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: "ID inválido" });
     }
 
+    // Verificação de propriedade da conta
+    if (role !== "admin" && userId !== id) {
+      return res.status(403).json({
+        error: "Você só pode deletar sua própria conta"
+      });
+    }
+
+    // Operação de deleção
     const deletedUser = await UserModel.findByIdAndDelete(id);
 
     if (!deletedUser) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
-    return res.status(200).json({ message: "Usuário deletado com sucesso" });
+    return res.status(200).json({ message: "Conta deletada com sucesso" });
   } catch (error) {
     console.error("Erro ao deletar usuário:", error);
-    return res.status(500).json({ error: "Erro ao deletar usuário" });
+    return res.status(500).json({
+      error: "Erro interno no servidor ao deletar usuário",
+      details: error.message
+    });
   }
 };
 

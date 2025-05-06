@@ -1,165 +1,188 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const Etapa6 = ({ formData, onUpdate }) => {
+    const [documentPreview, setDocumentPreview] = useState(formData.documentoUrl ? [formData.documentoUrl] : []);
+
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        onUpdate({ [name]: type === 'checkbox' ? checked : value });
+        const { name, value } = e.target;
+        onUpdate({ [name]: value });
     };
 
-    const metodosPagamento = [
-        { id: 'pix', label: 'PIX' },
-        { id: 'cartao_credito', label: 'Cartão de Crédito' },
-        { id: 'cartao_debito', label: 'Cartão de Débito' },
-        { id: 'dinheiro', label: 'Dinheiro' },
-        { id: 'transferencia', label: 'Transferência Bancária' }
-    ];
+    const handleDocumentChange = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        // Aceita imagem ou PDF
+        if (!['image/png', 'image/jpeg', 'image/jpg', 'application/pdf'].includes(file.type)) {
+            alert('Apenas imagens (PNG, JPG) ou PDF são permitidos.');
+            return;
+        }
+        // Limita a 1 arquivo
+        setDocumentPreview([file]);
+        onUpdate({ documento: file });
+    };
+
+    const removeDocument = () => {
+        setDocumentPreview([]);
+        onUpdate({ documento: null });
+    };
 
     return (
         <div className="space-y-8">
             <div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-                    Métodos de Pagamento
+                    Dados do Proprietário
                 </h3>
-                <p className="text-gray-600 mb-6">
-                    Configure os métodos de pagamento aceitos no seu espaço.
-                </p>
             </div>
-
-            <div className="space-y-6">
-                <div>
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">
-                        Métodos de Pagamento Aceitos
-                    </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {metodosPagamento.map((metodo) => (
-                            <div key={metodo.id} className="flex items-start">
-                                <div className="flex items-center h-5">
-                                    <input
-                                        type="checkbox"
-                                        id={metodo.id}
-                                        name={`metodos_pagamento.${metodo.id}`}
-                                        checked={formData.metodos_pagamento?.[metodo.id] || false}
-                                        onChange={handleChange}
-                                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                                    />
-                                </div>
-                                <div className="ml-3 text-sm">
-                                    <label
-                                        htmlFor={metodo.id}
-                                        className="font-medium text-gray-700"
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-8">
+                    <div>
+                        <label htmlFor="nome_proprietario" className="block text-base font-medium text-gray-700">
+                            Nome do Proprietário ou Empresa <span className="text-xs text-gray-400">(Nome Fantasia)</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="nome_proprietario"
+                            name="nome_proprietario"
+                            value={formData.nome_proprietario || ''}
+                            onChange={handleChange}
+                            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="cpf_cnpj" className="block text-base font-medium text-gray-700">
+                            CPF / CNPJ
+                        </label>
+                        <input
+                            type="text"
+                            id="cpf_cnpj"
+                            name="cpf_cnpj"
+                            value={formData.cpf_cnpj || ''}
+                            onChange={handleChange}
+                            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+                        />
+                    </div>
+                </div>
+                <div className="space-y-8">
+                    <div>
+                        <label htmlFor="telefone" className="block text-base font-medium text-gray-700">
+                            Telefone <span className="text-xs text-gray-400">(xx) xxxx-xxxx</span>
+                        </label>
+                        <input
+                            type="text"
+                            id="telefone"
+                            name="telefone"
+                            value={formData.telefone || ''}
+                            onChange={handleChange}
+                            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+                        />
+                    </div>
+                    <div>
+                        <label htmlFor="email" className="block text-base font-medium text-gray-700">
+                            E-mail
+                        </label>
+                        <input
+                            type="email"
+                            id="email"
+                            name="email"
+                            value={formData.email || ''}
+                            onChange={handleChange}
+                            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+                        />
+                    </div>
+                </div>
+            </div>
+            {/* Upload do documento do proprietário */}
+            <div className="grid grid-cols-1 gap-6 mt-8">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                    <div className="text-center">
+                        <svg
+                            className="mx-auto h-12 w-12 text-gray-400"
+                            stroke="currentColor"
+                            fill="none"
+                            viewBox="0 0 48 48"
+                            aria-hidden="true"
+                        >
+                            <path
+                                d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        </svg>
+                        <div className="mt-4 flex text-sm text-gray-600 justify-center">
+                            <label
+                                htmlFor="document-upload"
+                                className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                            >
+                                <span>Adicionar documento</span>
+                                <input
+                                    id="document-upload"
+                                    name="document-upload"
+                                    type="file"
+                                    className="sr-only"
+                                    accept="image/*,application/pdf"
+                                    onChange={handleDocumentChange}
+                                />
+                            </label>
+                            <p className="pl-1">ou arraste e solte</p>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                            PNG, JPG, PDF até 10MB
+                        </p>
+                    </div>
+                </div>
+                {documentPreview.length > 0 && (
+                    <div className="flex justify-center mt-4">
+                        {documentPreview.map((file, index) => {
+                            let url = '';
+                            let isImage = false;
+                            if (file instanceof File) {
+                                url = file.type.startsWith('image') ? URL.createObjectURL(file) : '';
+                                isImage = file.type.startsWith('image');
+                            } else if (typeof file === 'string') {
+                                url = file;
+                                isImage = file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg');
+                            }
+                            return (
+                                <div key={index} className="relative group">
+                                    {isImage && url ? (
+                                        <img
+                                            src={url}
+                                            alt={`Documento ${index + 1}`}
+                                            className="h-32 w-auto object-contain rounded-lg border"
+                                        />
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center h-32 w-32 bg-gray-100 rounded-lg border">
+                                            <svg className="h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7v10M17 7v10M7 7h10M7 17h10" />
+                                            </svg>
+                                            <span className="text-xs text-gray-700 text-center break-all">{file.name || 'Documento.pdf'}</span>
+                                        </div>
+                                    )}
+                                    <button
+                                        type="button"
+                                        onClick={removeDocument}
+                                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
-                                        {metodo.label}
-                                    </label>
+                                        <svg
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="2"
+                                                d="M6 18L18 6M6 6l12 12"
+                                            />
+                                        </svg>
+                                    </button>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
-                </div>
-
-                <div>
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">
-                        Configurações de Pagamento
-                    </h4>
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="taxa_servico" className="block text-sm font-medium text-gray-700">
-                                Taxa de Serviço (%)
-                            </label>
-                            <input
-                                type="number"
-                                id="taxa_servico"
-                                name="taxa_servico"
-                                value={formData.taxa_servico || ''}
-                                onChange={handleChange}
-                                min="0"
-                                max="100"
-                                step="0.01"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="desconto_antecipado" className="block text-sm font-medium text-gray-700">
-                                Desconto para Pagamento Antecipado (%)
-                            </label>
-                            <input
-                                type="number"
-                                id="desconto_antecipado"
-                                name="desconto_antecipado"
-                                value={formData.desconto_antecipado || ''}
-                                onChange={handleChange}
-                                min="0"
-                                max="100"
-                                step="0.01"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="dias_antecipacao" className="block text-sm font-medium text-gray-700">
-                                Dias de Antecedência para Desconto
-                            </label>
-                            <input
-                                type="number"
-                                id="dias_antecipacao"
-                                name="dias_antecipacao"
-                                value={formData.dias_antecipacao || ''}
-                                onChange={handleChange}
-                                min="1"
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">
-                        Informações Bancárias
-                    </h4>
-                    <div className="space-y-4">
-                        <div>
-                            <label htmlFor="banco" className="block text-sm font-medium text-gray-700">
-                                Banco
-                            </label>
-                            <input
-                                type="text"
-                                id="banco"
-                                name="banco"
-                                value={formData.banco || ''}
-                                onChange={handleChange}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="agencia" className="block text-sm font-medium text-gray-700">
-                                Agência
-                            </label>
-                            <input
-                                type="text"
-                                id="agencia"
-                                name="agencia"
-                                value={formData.agencia || ''}
-                                onChange={handleChange}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="conta" className="block text-sm font-medium text-gray-700">
-                                Conta
-                            </label>
-                            <input
-                                type="text"
-                                id="conta"
-                                name="conta"
-                                value={formData.conta || ''}
-                                onChange={handleChange}
-                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            />
-                        </div>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );

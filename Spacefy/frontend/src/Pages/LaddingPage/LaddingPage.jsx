@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-// import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Header from "../../Components/Header/Header";
 import SearchBarLaddingPage from "../../Components/SearchBar/SearchBarLaddingPage.jsx";
 import banner from "../../assets/Banner.svg";
@@ -13,7 +13,7 @@ import Footer from "../../Components/Footer/Footer";
 import { useUser } from "../../Contexts/userContext.jsx";
 
 const Landing = () => {
-  // const navigate = useNavigate();  //Vai ser ustilizado nas divs abaixo
+  const navigate = useNavigate();  //Vai ser ustilizado nas divs abaixo
   const [selectedAmenity, setSelectedAmenity] = useState('parking');
   const [currentPage, setCurrentPage] = useState(0);
   const [ratedPage, setRatedPage] = useState(0);
@@ -168,7 +168,7 @@ const Landing = () => {
                 Faça login e receba ofertas exclusivas, descontos e novidades sobre os melhores espaços!
               </p>
             </div>
-            <button className="bg-[#00A3FF] text-white px-6 py-2 rounded-lg hover:bg-[#0084CC] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] focus:ring-opacity-50">
+            <button onClick={() => navigate("/Login")} className="bg-[#00A3FF] text-white px-6 py-2 rounded-lg hover:bg-[#0084CC] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] focus:ring-opacity-50">
               Fazer Login
             </button>
           </div>

@@ -102,37 +102,6 @@ const Etapa3 = ({ formData, onUpdate }) => {
                     />
                 </div>
 
-                <div>
-                    <label htmlFor="tempo_maximo" className="block text-sm font-medium text-gray-700">
-                        Tempo Máximo de Locação (horas)
-                    </label>
-                    <input
-                        type="number"
-                        name="tempo_maximo"
-                        id="tempo_maximo"
-                        value={formData.tempo_maximo || ''}
-                        onChange={handleChange}
-                        min="1"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-
-                <div>
-                    <label htmlFor="intervalo_minimo" className="block text-sm font-medium text-gray-700">
-                        Intervalo Mínimo entre Reservas (horas)
-                    </label>
-                    <input
-                        type="number"
-                        name="intervalo_minimo"
-                        id="intervalo_minimo"
-                        value={formData.intervalo_minimo || ''}
-                        onChange={handleChange}
-                        min="0"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        required
-                    />
-                </div>
             </div>
         </div>
     );

@@ -1,6 +1,4 @@
 import React from "react";
-import SidebarDashboardLocatario from "../../Components/SidebarDashboardLocatario";
-import Header from "../../Components/Header/Header";
 
 export default function Dashboard_Reservas() {
   // Dados mockados para exibição
@@ -176,41 +174,35 @@ export default function Dashboard_Reservas() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#1BAAE9] to-[#093C6B]">
-      <Header />
-      <div className="flex flex-1">
-        <SidebarDashboardLocatario />
-        <main className="flex-1 p-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-8xl mx-auto">
-            <div className="flex flex-col">
-              <div className="grid grid-cols-12 font-bold text-lg pb-2 border-b border-gray-200">
-                <div className="col-span-1 pl-4">ID</div>
-                <div className="col-span-3 pl-2">Usuário</div>
-                <div className="col-span-3">Data Alugada</div>
-                <div className="col-span-2 -ml-1">Valor</div>
-                <div className="col-span-3 -ml-3">Data</div>
-              </div>
-              <div className="flex flex-col gap-4 mt-4 max-h-[calc(100vh-240px)] overflow-y-auto">
-                {reservas.map((reserva) => (
-                  <div
-                    key={reserva.id}
-                    className="grid grid-cols-12 items-center bg-white rounded-lg shadow border border-gray-200 px-4 py-3 hover:shadow-md transition-all"
-                  >
-                    <div className="col-span-1 font-medium">{reserva.id}</div>
-                    <div className="col-span-3">{reserva.usuario}</div>
-                    <div className="col-span-3 flex flex-col text-sm text-gray-700">
-                      {reserva.dataAlugada.map((d, i) => (
-                        <span key={i}>{d}</span>
-                      ))}
-                    </div>
-                    <div className="col-span-2 font-bold">{reserva.valor}</div>
-                    <div className="col-span-3">{reserva.data}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+    <div className="p-8">
+      <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-8xl mx-auto">
+        <div className="flex flex-col">
+          <div className="grid grid-cols-12 font-bold text-lg pb-2 border-b border-gray-200">
+            <div className="col-span-1 pl-4">ID</div>
+            <div className="col-span-3 pl-2">Usuário</div>
+            <div className="col-span-3">Data Alugada</div>
+            <div className="col-span-2 -ml-1">Valor</div>
+            <div className="col-span-3 -ml-3">Data</div>
           </div>
-        </main>
+          <div className="flex flex-col gap-4 mt-4 max-h-[calc(100vh-240px)] overflow-y-auto">
+            {reservas.map((reserva) => (
+              <div
+                key={reserva.id}
+                className="grid grid-cols-12 items-center bg-white rounded-lg shadow border border-gray-200 px-4 py-3 hover:shadow-md transition-all"
+              >
+                <div className="col-span-1 font-medium">{reserva.id}</div>
+                <div className="col-span-3">{reserva.usuario}</div>
+                <div className="col-span-3 flex flex-col text-sm text-gray-700">
+                  {reserva.dataAlugada.map((d, i) => (
+                    <span key={i}>{d}</span>
+                  ))}
+                </div>
+                <div className="col-span-2 font-bold">{reserva.valor}</div>
+                <div className="col-span-3">{reserva.data}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

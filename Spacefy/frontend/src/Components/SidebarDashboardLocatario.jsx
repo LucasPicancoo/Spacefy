@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { MdOutlineKeyboardArrowDown, MdOutlineKeyboardArrowUp } from "react-icons/md";
+import { useNavigate } from "react-router-dom";
+import Header from "./Header/Header";
 
 export default function SidebarDashboardLocatario({ espacos: espacosProp }) {
   // Estado local para os nomes dos espaços
   const [espacos, setEspacos] = useState(espacosProp || []);
   const [open, setOpen] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Substituir este bloco pelo fetch/axios
@@ -22,7 +25,7 @@ export default function SidebarDashboardLocatario({ espacos: espacosProp }) {
   return (
     <nav className="w-60 bg-white border-r border-gray-200 flex flex-col py-6 px-4" aria-label="Menu lateral do dashboard">
       <div className="mb-3">
-        <button className="w-full flex items-center px-3 py-3 rounded bg-[#1486B8] hover:bg-[#0f6a94] text-white font-semibold text-lg text-left transition-colors cursor-pointer">
+        <button onClick={() => navigate('/DashboardLocatario/Home')} className="w-full flex items-center px-3 py-3 rounded bg-[#1486B8] hover:bg-[#0f6a94] text-white font-semibold text-lg text-left transition-colors cursor-pointer">
           Home
         </button>
       </div>
@@ -55,7 +58,7 @@ export default function SidebarDashboardLocatario({ espacos: espacosProp }) {
       </div>
       <div className="mt-1 flex flex-col gap-1">
         <button className="text-left px-3 py-3 rounded hover:bg-gray-100 text-lg cursor-pointer font-semibold">Avaliações</button>
-        <button className="text-left px-3 py-3 rounded hover:bg-gray-100 text-lg cursor-pointer font-semibold">Reservas</button>
+        <button onClick={() => navigate('/DashboardLocatario/Reservas')} className="text-left px-3 py-3 rounded hover:bg-gray-100 text-lg cursor-pointer font-semibold">Reservas</button>
         <button className="text-left px-3 py-3 rounded hover:bg-gray-100 text-lg cursor-pointer font-semibold">Mensagens</button>
         <button className="text-left px-3 py-3 rounded hover:bg-gray-100 text-lg cursor-pointer font-semibold">Perfil</button>
       </div>

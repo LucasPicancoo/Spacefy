@@ -12,6 +12,7 @@ import Etapa7 from './Etapas/Etapa7';
 const CadastrarEspaco = () => {
     const navigate = useNavigate();
     const [etapaAtual, setEtapaAtual] = useState(0);
+    const [formData, setFormData] = useState({});
 
     const iniciarCadastro = () => {
         setEtapaAtual(1);
@@ -21,6 +22,7 @@ const CadastrarEspaco = () => {
         if (etapaAtual < 7) {
             setEtapaAtual(etapaAtual + 1);
         } else {
+            // Aqui você pode adicionar a lógica para enviar os dados para o backend
             navigate('/Espaço');
         }
     };
@@ -31,30 +33,30 @@ const CadastrarEspaco = () => {
         }
     };
 
-    const fecharModal = () => {
-        setEtapaAtual(0);
+    const atualizarFormData = (dados) => {
+        setFormData(prev => ({ ...prev, ...dados }));
     };
 
     const renderizarEtapa = () => {
         switch (etapaAtual) {
             case 1:
-                return <Etapa1 isOpen={true} onClose={fecharModal} />;
+                return <Etapa1 formData={formData} onUpdate={atualizarFormData} />;
             case 2:
-                return <Etapa2 isOpen={true} onClose={fecharModal} />;
+                return <Etapa2 formData={formData} onUpdate={atualizarFormData} />;
             case 3:
-                return <Etapa3 isOpen={true} onClose={fecharModal} />;
+                return <Etapa3 formData={formData} onUpdate={atualizarFormData} />;
             case 4:
-                return <Etapa4 isOpen={true} onClose={fecharModal} />;
+                return <Etapa4 formData={formData} onUpdate={atualizarFormData} />;
             case 5:
-                return <Etapa5 isOpen={true} onClose={fecharModal} />;
+                return <Etapa5 formData={formData} onUpdate={atualizarFormData} />;
             case 6:
-                return <Etapa6 isOpen={true} onClose={fecharModal} />;
+                return <Etapa6 formData={formData} onUpdate={atualizarFormData} />;
             case 7:
-                return <Etapa7 isOpen={true} onClose={fecharModal} />;
+                return <Etapa7 formData={formData} onUpdate={atualizarFormData} />;
             default:
                 return (
-                    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full">
-                        <div className="text-center w-full max-w-3xl px-4">
+                    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full bg-white">
+                        <div className="max-w-4xl text-center">
                             <h1 className="text-5xl font-bold text-gray-900 mb-8">
                                 Cadastre seu espaço e alcance mais locatários!
                             </h1>
@@ -84,32 +86,54 @@ const CadastrarEspaco = () => {
     return (
         <>
             <Header />
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-                <div className="w-full h-full bg-white p-8">
+            {etapaAtual === 0 ? (
+                <div className="w-full min-h-[calc(100vh-80px)] bg-white flex items-center justify-center">
                     {renderizarEtapa()}
                 </div>
-
-                {etapaAtual > 0 && (
-                    <div className="fixed bottom-8 flex gap-4">
-                        {etapaAtual > 1 && (
-                            <button 
-                                onClick={etapaAnterior}
-                                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
-                            >
-                                Voltar
-                            </button>
+            ) : (
+                <div className="min-h-screen bg-gray-50">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                        {etapaAtual > 0 && (
+                            <div className="mb-8">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-2xl font-bold text-gray-900">
+                                        Cadastro de Espaço - Etapa {etapaAtual} de 7
+                                    </h2>
+                                    <div className="flex gap-4">
+                                        {etapaAtual > 1 && (
+                                            <button 
+                                                onClick={etapaAnterior}
+                                                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                                            >
+                                                Voltar
+                                            </button>
+                                        )}
+                                        <button 
+                                            onClick={proximaEtapa}
+                                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                                        >
+                                            {etapaAtual === 7 ? "Finalizar" : "Próximo"}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="mt-4">
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                        <div 
+                                            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                                            style={{ width: `${(etapaAtual / 7) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
                         )}
-                        <button 
-                            onClick={proximaEtapa}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
-                        >
-                            {etapaAtual === 7 ? "Finalizar" : "Próximo"}
-                        </button>
+                        <div className="bg-white rounded-lg shadow-lg p-8">
+                            {renderizarEtapa()}
+                        </div>
                     </div>
-                )}
-            </div>
+                </div>
+            )}
         </>
     );
 };
 
-export default CadastrarEspaco;
+export default CadastrarEspaco; 

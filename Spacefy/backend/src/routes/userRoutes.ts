@@ -5,6 +5,7 @@ import {
   updateUser,
   deleteUser,
   toggleFavoriteSpace,
+  getUserById
 } from "../controllers/userController";
 
 import { validateAndGetTokenData } from "../middlewares/token";
@@ -14,11 +15,14 @@ const userRouter = express.Router();
 // Rota para listar usuários
 userRouter.get("/getAllUsers", validateAndGetTokenData, getAllUsers);
 
+// Rota para buscar usuário pelo ID
+userRouter.get("/getUserById/:id", validateAndGetTokenData, getUserById);
+
 // Rota para criar um novo usuário
 userRouter.post("/createUser", createUser);
 
 //Rota para atualizar o usuario pelo ID
-userRouter.put("/updateUser/:id", updateUser);
+userRouter.put("/updateUser/:id", validateAndGetTokenData, updateUser);
 
 //Rota para deletar o usuario pelo ID
 userRouter.delete("/deleteUser/:id", validateAndGetTokenData, deleteUser);

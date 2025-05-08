@@ -27,6 +27,30 @@ export const getAllUsers = async (req: Request, res: Response) => {
   }
 };
 
+//Busca usuário pelo ID
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    // Verifica se o ID é válido
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "ID inválido" });
+    }
+
+    // Busca o usuário pelo ID
+    const user = await UserModel.findById(id).select("-password"); // Exclui o campo "password" da resposta
+
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Erro ao buscar usuário:", error);
+    res.status(500).json({ error: "Erro ao buscar usuário" });
+  }
+};
+
 // Criar um novo usuário
 export const createUser = async (req: Request, res: Response) => {
   try {

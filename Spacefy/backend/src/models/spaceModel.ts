@@ -7,6 +7,7 @@ const SpaceSchema: Schema = new Schema({
   location: { type: String, required: true }, // Localização do espaço (obrigatório)
   space_type: { type: String, required: true }, // Tipo do espaço (obrigatório)
   space_description: { type: String, maxlength: 500 }, // Descrição do espaço (opcional, máximo de 500 caracteres)}, // Descrição do espaço (opcional)
+  space_amenities: { type: [String], required: true },
   price_per_hour: { type: Number, required: true }, // Preço por hora do aluguel (obrigatório)
   owner_name: { type: String, required: true }, // Nome do proprietário (obrigatório)
   document_number: { 
@@ -52,6 +53,10 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
 
   if (!this.document_number) {
     throw new Error("O campo CPF/CNPJ é obrigatório.");
+  }
+
+  if (!this.space_amenities){
+    throw new Error("Selecione pelo menos uma comodidade.")
   }
 
   const isCPF = this.document_number.length === 11 && /^\d{11}$/.test(this.document_number);

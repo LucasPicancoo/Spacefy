@@ -9,6 +9,7 @@ export interface ISpace extends Document {
   location: string; // Localização do espaço
   space_type: string; // Tipo do espaço (ex.: quadra, salão, auditório)
   space_description: string; // Descrição opcional do espaço
+  space_amenities: string[]; // Comodidades do espaço
   price_per_hour: number; // Preço por hora do aluguel
   owner_name: string; // Nome do proprietário
   document_number: string; // CPF ou CNPJ do proprietário

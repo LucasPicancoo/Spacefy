@@ -27,12 +27,6 @@ const UserSchema: Schema = new Schema({
       default: [], // Inicializa como um array vazio
     },
   ],
-  recentlyViewed: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "space",
-    },
-  ],
 });
 
 UserSchema.pre<IBaseUser>("save", async function (this: any, next) {

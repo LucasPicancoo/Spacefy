@@ -168,7 +168,10 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
     }
 
     // 3. Verifica se userId e spaceId são ObjectIds válidos
-    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(spaceId)) {
+    if (
+      !mongoose.Types.ObjectId.isValid(userId) ||
+      !mongoose.Types.ObjectId.isValid(spaceId)
+    ) {
       return res.status(400).json({ error: "ID inválido." });
     }
 
@@ -188,7 +191,7 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
         (id) => id.toString() !== spaceId
       );
     } else {
-      user.favorites = [...(user.favorites ?? []), (spaceId)];
+      user.favorites = [...(user.favorites ?? []), spaceId];
     }
 
     await user.save();
@@ -201,7 +204,9 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error("Erro ao favoritar/desfavoritar espaço:", error);
-    return res.status(500).json({ error: "Erro interno ao atualizar favoritos." });
+    return res
+      .status(500)
+      .json({ error: "Erro interno ao atualizar favoritos." });
   }
 };
 // Deletar um usuário
@@ -220,7 +225,8 @@ export const deleteUser = async (req: Request, res: Response) => {
 
     if (!allowedRoles.includes(role)) {
       return res.status(403).json({
-        error: "Apenas usuários, locatários ou administradores podem deletar contas"
+        error:
+          "Apenas usuários, locatários ou administradores podem deletar contas",
       });
     }
 
@@ -232,7 +238,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     // Verificação de propriedade da conta
     if (role !== "admin" && userId !== id) {
       return res.status(403).json({
-        error: "Você só pode deletar sua própria conta"
+        error: "Você só pode deletar sua própria conta",
       });
     }
 
@@ -248,7 +254,7 @@ export const deleteUser = async (req: Request, res: Response) => {
     console.error("Erro ao deletar usuário:", error);
     return res.status(500).json({
       error: "Erro interno no servidor ao deletar usuário",
-      details: error.message
+      details: error.message,
     });
   }
 };

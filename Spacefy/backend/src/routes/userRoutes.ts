@@ -7,7 +7,6 @@ import {
   toggleFavoriteSpace,
   getUserById,
 } from "../controllers/userController";
-import { addRecentlyViewedSpace } from "../controllers/userController";
 
 import { validateAndGetTokenData } from "../middlewares/token";
 
@@ -33,13 +32,6 @@ userRouter.post(
   "/:userId/favorites",
   validateAndGetTokenData,
   toggleFavoriteSpace
-);
-
-// Rota para adicionar um espaço à lista de recentemente visualizados
-userRouter.patch(
-  "/:userId/recentlyViewed",
-  validateAndGetTokenData,
-  addRecentlyViewedSpace
 );
 
 export default userRouter;

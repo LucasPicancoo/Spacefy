@@ -5,8 +5,9 @@ import {
   updateUser,
   deleteUser,
   toggleFavoriteSpace,
-  getUserById
+  getUserById,
 } from "../controllers/userController";
+import { addRecentlyViewedSpace } from "../controllers/userController";
 
 import { validateAndGetTokenData } from "../middlewares/token";
 
@@ -28,6 +29,17 @@ userRouter.put("/updateUser/:id", validateAndGetTokenData, updateUser);
 userRouter.delete("/deleteUser/:id", validateAndGetTokenData, deleteUser);
 
 //Rota para favoritar ou desfavoritar um espaço
-userRouter.post("/:userId/favorites", validateAndGetTokenData, toggleFavoriteSpace);
+userRouter.post(
+  "/:userId/favorites",
+  validateAndGetTokenData,
+  toggleFavoriteSpace
+);
+
+// Rota para adicionar um espaço à lista de recentemente visualizados
+userRouter.patch(
+  "/:userId/recentlyViewed",
+  validateAndGetTokenData,
+  addRecentlyViewedSpace
+);
 
 export default userRouter;

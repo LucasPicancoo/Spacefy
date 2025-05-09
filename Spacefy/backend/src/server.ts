@@ -6,6 +6,7 @@ import spaceRouter from "./routes/spaceRoutes";
 import authRoutes from "./routes/authRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import viewHistoryRouter from "./routes/viewhistoryRoutes";
+import assessmentRouter from "./routes/assessmentRoutes";
 import cors from "cors";
 
 
@@ -20,6 +21,7 @@ app.use("/spaces", spaceRouter); // Rotas de espaços
 app.use("/auth", authRoutes); // Rotas de autenticação
 app.use("/payments", paymentRoutes);// Rotas de Pagamento Seguro
 app.use("/view-history", viewHistoryRouter);
+app.use("/assessment", assessmentRouter);
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;

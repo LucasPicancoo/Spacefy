@@ -18,15 +18,16 @@ const registerViewHistory = (req, res) => __awaiter(void 0, void 0, void 0, func
     try {
         const { user_id, space_id } = req.body;
         if (!user_id || !space_id) {
-            res.status(400).json({ error: "user_id e space_id são obrigatórios." });
+            return res
+                .status(400)
+                .json({ error: "Os campos 'user_id' e 'space_id' são obrigatórios." });
         }
-        const newViewHistory = new viewhistoryModel_1.default({ user_id, space_id });
-        yield newViewHistory.save();
-        res.status(201).json(newViewHistory);
+        const history = yield viewhistoryModel_1.default.findOneAndUpdate({ user_id, space_id }, { $set: { createdAt: new Date() } }, { upsert: true, new: true });
+        res.status(201).json(history);
     }
     catch (error) {
         console.error("Erro ao registrar visualização:", error);
-        res.status(500).json({ error: "Erro ao registrar visualização" });
+        res.status(500).json({ error: "Erro ao registrar visualização." });
     }
 });
 exports.registerViewHistory = registerViewHistory;
@@ -34,7 +35,7 @@ const getViewHistoryByUser = (req, res) => __awaiter(void 0, void 0, void 0, fun
     try {
         const { user_id } = req.params;
         if (!user_id) {
-            res.status(400).json({ error: "user_id é obrigatório." });
+            return res.status(400).json({ error: "user_id é obrigatório." });
         }
         const history = yield viewhistoryModel_1.default
             .find({ user_id })
@@ -43,7 +44,9 @@ const getViewHistoryByUser = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
     catch (error) {
         console.error("Erro ao buscar histórico:", error);
-        res.status(500).json({ error: "Erro ao buscar histórico de visualizações." });
+        res
+            .status(500)
+            .json({ error: "Erro ao buscar histórico de visualizações." });
     }
 });
 exports.getViewHistoryByUser = getViewHistoryByUser;

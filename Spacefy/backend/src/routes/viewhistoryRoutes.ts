@@ -1,5 +1,8 @@
 import express from "express";
-import { registerViewHistory, getViewHistoryByUser } from "../controllers/viewhistoryController";
+import {
+  registerViewHistory,
+  getViewHistoryByUser,
+} from "../controllers/viewhistoryController";
 
 const viewHistoryRouter = express.Router();
 

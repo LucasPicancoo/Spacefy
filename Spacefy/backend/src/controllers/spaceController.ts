@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import SpaceModel from "../models/spaceModel";
+import { AMENITIES, ALLOWED_AMENITIES } from "../constants/amenities";
+import { ALLOWED_RULES } from "../constants/spaceRules";
 
 // import { AuthenticationData } from "../types/auth";
 
@@ -55,6 +57,7 @@ export const createSpace = async (req: Request, res: Response) => {
       week_days,
       opening_time,
       closing_time,
+      space_rules,
       price_per_hour,
       owner_name,
       document_number,
@@ -80,9 +83,35 @@ export const createSpace = async (req: Request, res: Response) => {
       !owner_email ||
       !image_url
     ) {
-      res
+      return res
         .status(400)
         .json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+    }
+
+    // Verifica se todas as comodidades são permitidas
+    const invalidAmenities = space_amenities.filter(
+      (amenity: string) => !ALLOWED_AMENITIES.includes(amenity)
+    );
+
+    if (invalidAmenities.length > 0) {
+      return res.status(400).json({
+        error: "Comodidades inválidas encontradas",
+        invalidAmenities
+      });
+    }
+
+    // Verifica se todas as regras são permitidas (apenas se foram fornecidas)
+    if (space_rules && space_rules.length > 0) {
+      const invalidRules = space_rules.filter(
+        (rule: string) => !ALLOWED_RULES.includes(rule)
+      );
+
+      if (invalidRules.length > 0) {
+        return res.status(400).json({
+          error: "Regras inválidas encontradas",
+          invalidRules
+        });
+      }
     }
 
     // Cria um novo espaço
@@ -96,6 +125,7 @@ export const createSpace = async (req: Request, res: Response) => {
       week_days,
       opening_time,
       closing_time,
+      space_rules,
       price_per_hour,
       owner_name,
       document_number,
@@ -111,10 +141,10 @@ export const createSpace = async (req: Request, res: Response) => {
 
     // Verifica se o erro é de validação
     if (error instanceof Error && error.name === "ValidationError") {
-      res.status(400).json({ error: "Erro de validação dos campos" });
+      return res.status(400).json({ error: "Erro de validação dos campos" });
     }
 
-    res.status(500).json({ error: "Erro ao criar espaço" });
+    return res.status(500).json({ error: "Erro ao criar espaço" });
   }
 };
 

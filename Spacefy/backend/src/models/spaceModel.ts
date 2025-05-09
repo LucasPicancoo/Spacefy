@@ -1,5 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 import { ISpace } from "../types/space"; // ajusta o caminho conforme a estrutura do seu projeto
+import { ALLOWED_AMENITIES } from "../constants/amenities";
+import { ALLOWED_RULES } from "../constants/spaceRules";
 
 const SpaceSchema: Schema = new Schema({
   space_name: { type: String, required: true }, // Nome do espaço (obrigatório)
@@ -7,11 +9,31 @@ const SpaceSchema: Schema = new Schema({
   location: { type: String, required: true }, // Localização do espaço (obrigatório)
   space_type: { type: String, required: true }, // Tipo do espaço (obrigatório)
   space_description: { type: String, maxlength: 500 }, // Descrição do espaço (opcional, máximo de 500 caracteres)}, // Descrição do espaço (opcional)
-  space_amenities: { type: [String], required: true },
+  space_amenities: { 
+    type: [String], 
+    required: true,
+    validate: {
+      validator: function(amenities: string[]) {
+        return amenities.every(amenity => ALLOWED_AMENITIES.includes(amenity));
+      },
+      message: "Uma ou mais comodidades não são permitidas."
+    }
+  },
   week_days: { type: [String], required: true },
   opening_time: { type: String, required: true },
-  closing_time: { type: String, required: true },
   price_per_hour: { type: Number, required: true }, // Preço por hora do aluguel (obrigatório)
+  closing_time: { type: String, required: true },
+  space_rules: { 
+    type: [String], 
+    required: false,
+    default: [],
+    validate: {
+      validator: function(rules: string[]) {
+        return rules.every(rule => ALLOWED_RULES.includes(rule));
+      },
+      message: "Uma ou mais regras não são permitidas."
+    }
+  },
   owner_name: { type: String, required: true }, // Nome do proprietário (obrigatório)
   document_number: { 
     type: String, 
@@ -23,7 +45,6 @@ const SpaceSchema: Schema = new Schema({
         const isCNPJ = value.length === 14 && /^\d{14}$/.test(value);
         return isCPF || isCNPJ;
       },
-
       message: "O campo CPF/CNPJ deve conter um CPF válido (11 dígitos) ou um CNPJ válido (14 dígitos)."
     }
   }, // CPF ou CNPJ do proprietário (obrigatório)

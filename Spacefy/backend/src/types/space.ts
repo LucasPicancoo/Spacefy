@@ -13,6 +13,7 @@ export interface ISpace extends Document {
   week_days: string[]; // Dias da semana que o espaço está disponível
   opening_time: string; // Horário de abertura do espaço (formato HH:mm)
   closing_time: string; // Horário de fechamento do espaço (formato HH:mm)
+  space_rules: string[]; // Regras do espaço
   price_per_hour: number; // Preço por hora do aluguel
   owner_name: string; // Nome do proprietário
   document_number: string; // CPF ou CNPJ do proprietário

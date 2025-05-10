@@ -101,7 +101,7 @@ const Etapa7 = ({ formData, onUpdate }) => {
                                     name="termos_aceitos"
                                     checked={formData.termos_aceitos || false}
                                     onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                     required
                                 />
                             </div>

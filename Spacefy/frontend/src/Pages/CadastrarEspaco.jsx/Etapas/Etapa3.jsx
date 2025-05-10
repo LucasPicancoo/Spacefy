@@ -3,7 +3,13 @@ import React from 'react';
 const Etapa3 = ({ formData, onUpdate }) => {
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        onUpdate({ [name]: type === 'checkbox' ? checked : value });
+        const fieldName = name.split('.')[1]; // Pega o nome do dia da semana
+        onUpdate({
+            disponibilidade: {
+                ...formData.disponibilidade,
+                [fieldName]: type === 'checkbox' ? checked : value
+            }
+        });
     };
 
     const diasSemana = [
@@ -18,6 +24,13 @@ const Etapa3 = ({ formData, onUpdate }) => {
 
     return (
         <div className="space-y-8">
+            <style>
+                {`
+                    input[type="time"]::-webkit-calendar-picker-indicator {
+                        cursor: pointer;
+                    }
+                `}
+            </style>
             <div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
                     Disponibilidade e Horários
@@ -39,9 +52,9 @@ const Etapa3 = ({ formData, onUpdate }) => {
                                     type="checkbox"
                                     id={dia.id}
                                     name={`disponibilidade.${dia.id}`}
-                                    checked={formData.disponibilidade?.[dia.id] || false}
+                                    checked={formData.disponibilidade?.[dia.id] ?? false}
                                     onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
                                 <label
                                     htmlFor={dia.id}
@@ -65,7 +78,7 @@ const Etapa3 = ({ formData, onUpdate }) => {
                             id="horario_inicio"
                             value={formData.horario_inicio || ''}
                             onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
                             required
                         />
                     </div>
@@ -80,7 +93,7 @@ const Etapa3 = ({ formData, onUpdate }) => {
                             id="horario_fim"
                             value={formData.horario_fim || ''}
                             onChange={handleChange}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
                             required
                         />
                     </div>

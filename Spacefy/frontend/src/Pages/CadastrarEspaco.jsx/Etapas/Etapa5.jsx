@@ -141,7 +141,7 @@ const Etapa5 = ({ formData, onUpdate }) => {
                       name={item.id}
                       checked={formData.equipamentosEServicos?.[item.id] || false}
                       onChange={handleChange}
-                      className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2"
+                      className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2 cursor-pointer"
                     />
                     <span className="text-gray-800 text-sm">{item.label}</span>
                   </label>

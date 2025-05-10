@@ -73,7 +73,7 @@ const CadastrarEspaco = () => {
                             </div>
                             <button
                                 onClick={iniciarCadastro}
-                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5 px-12 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105"
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5 px-12 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
                             >
                                 Iniciar Cadastro
                             </button>
@@ -103,14 +103,14 @@ const CadastrarEspaco = () => {
                                         {etapaAtual > 1 && (
                                             <button 
                                                 onClick={etapaAnterior}
-                                                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                                                className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
                                             >
                                                 Voltar
                                             </button>
                                         )}
                                         <button 
                                             onClick={proximaEtapa}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+                                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
                                         >
                                             {etapaAtual === 7 ? "Finalizar" : "Próximo"}
                                         </button>

@@ -31,7 +31,7 @@ const Etapa4 = ({ formData, onUpdate }) => {
                                     name="permite_animais"
                                     checked={formData.permite_animais || false}
                                     onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
                             </div>
                             <div className="ml-3 text-sm">
@@ -52,7 +52,7 @@ const Etapa4 = ({ formData, onUpdate }) => {
                                     name="permite_fumar"
                                     checked={formData.permite_fumar || false}
                                     onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
                             </div>
                             <div className="ml-3 text-sm">
@@ -73,7 +73,7 @@ const Etapa4 = ({ formData, onUpdate }) => {
                                     name="permite_bebidas"
                                     checked={formData.permite_bebidas || false}
                                     onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
                             </div>
                             <div className="ml-3 text-sm">

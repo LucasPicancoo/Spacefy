@@ -86,22 +86,6 @@ const Etapa3 = ({ formData, onUpdate }) => {
                     </div>
                 </div>
 
-                <div>
-                    <label htmlFor="tempo_minimo" className="block text-sm font-medium text-gray-700">
-                        Tempo Mínimo de Locação (horas)
-                    </label>
-                    <input
-                        type="number"
-                        name="tempo_minimo"
-                        id="tempo_minimo"
-                        value={formData.tempo_minimo || ''}
-                        onChange={handleChange}
-                        min="1"
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                        required
-                    />
-                </div>
-
             </div>
         </div>
     );

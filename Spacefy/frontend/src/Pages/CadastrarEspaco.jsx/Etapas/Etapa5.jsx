@@ -125,7 +125,7 @@ const Etapa5 = ({ formData, onUpdate }) => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-2xl shadow-md">
+    <div>
       <h2 className="text-3xl font-bold text-gray-900 mb-2">Infraestrutura e Serviços</h2>
       <h3 className="text-lg font-semibold text-gray-900 mb-6">Itens Disponíveis no Espaço</h3>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">

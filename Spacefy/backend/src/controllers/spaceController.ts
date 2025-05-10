@@ -61,6 +61,8 @@ export const createSpace = async (req: Request, res: Response) => {
       price_per_hour,
       owner_name,
       document_number,
+      document_photo,
+      space_document_photo,
       owner_phone,
       owner_email,
       image_url,
@@ -79,6 +81,8 @@ export const createSpace = async (req: Request, res: Response) => {
       !closing_time ||
       !owner_name ||
       !document_number ||
+      !document_photo ||
+      !space_document_photo ||
       !owner_phone ||
       !owner_email ||
       !image_url
@@ -129,6 +133,8 @@ export const createSpace = async (req: Request, res: Response) => {
       price_per_hour,
       owner_name,
       document_number,
+      document_photo,
+      space_document_photo,
       owner_phone,
       owner_email,
       image_url,

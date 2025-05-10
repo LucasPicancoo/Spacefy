@@ -48,7 +48,8 @@ const SpaceSchema: Schema = new Schema({
       message: "O campo CPF/CNPJ deve conter um CPF válido (11 dígitos) ou um CNPJ válido (14 dígitos)."
     }
   }, // CPF ou CNPJ do proprietário (obrigatório)
-  
+  document_photo: { type: String, required: true }, // Foto do documento do proprietário (obrigatório)
+  space_document_photo: { type: String, required: true }, // Foto do documento do espaço (obrigatório)
   owner_phone: { type: String, required: true }, // Telefone do proprietário (obrigatório)
   owner_email: { type: String, required: true },
   image_url: { type: String, required: true }, // URL da imagem do espaço (obrigatório)
@@ -104,6 +105,14 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
 
   if (!isCPF && !isCNPJ) {
     throw new Error("O CPF deve conter 11 dígitos ou o CNPJ deve conter 14 dígitos.");
+  }
+
+  if (!this.document_photo) {
+    throw new Error("A foto do documento do proprietário não foi informada.");
+  }
+
+  if (!this.space_document_photo) {
+    throw new Error("A foto do documento do espaço não foi informada.");
   }
 
   next();

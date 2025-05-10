@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Header from '../../Components/Header/Header';
 import Etapa1 from './Etapas/Etapa1';
 import Etapa2 from './Etapas/Etapa2';
@@ -13,17 +14,166 @@ const CadastrarEspaco = () => {
     const navigate = useNavigate();
     const [etapaAtual, setEtapaAtual] = useState(0);
     const [formData, setFormData] = useState({});
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
 
     const iniciarCadastro = () => {
         setEtapaAtual(1);
     };
 
-    const proximaEtapa = () => {
+    const enviarDadosParaBackend = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Log detalhado de todas as informações do formulário
+            console.log('=== INFORMAÇÕES COMPLETAS DO FORMULÁRIO ===');
+            console.log('Informações Básicas:', {
+                nome: formData.space_name,
+                capacidade: formData.max_people,
+                localizacao: formData.location,
+                tipo: formData.space_type,
+                descricao: formData.space_description
+            });
+            console.log('Equipamentos e Serviços:', formData.equipamentosEServicos);
+            console.log('Disponibilidade:', formData.disponibilidade);
+            console.log('Horários:', {
+                inicio: formData.horario_inicio,
+                fim: formData.horario_fim
+            });
+            console.log('Regras:', {
+                permite_animais: formData.permite_animais,
+                permite_fumar: formData.permite_fumar,
+                permite_bebidas: formData.permite_bebidas
+            });
+            console.log('Preço:', formData.price_per_hour);
+            console.log('Informações do Proprietário:', {
+                nome: formData.nome_proprietario,
+                cpf_cnpj: formData.cpf_cnpj,
+                telefone: formData.telefone,
+                email: formData.email
+            });
+            console.log('Documentos:', {
+                documento_proprietario: formData.documento,
+                documento_espaco: formData.documentoEspaco
+            });
+            console.log('Imagens:', formData.images);
+            console.log('=======================================');
+
+            // Obtém o token do localStorage
+            const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Usuário não autenticado');
+            }
+
+            // Validação dos campos obrigatórios
+            const camposObrigatorios = {
+                space_name: 'Nome do espaço',
+                max_people: 'Capacidade máxima',
+                location: 'Localização',
+                space_type: 'Tipo do espaço',
+                horario_inicio: 'Horário de início',
+                horario_fim: 'Horário de fim',
+                owner_name: 'Nome do proprietário',
+                document_number: 'CPF/CNPJ',
+                owner_phone: 'Telefone',
+                owner_email: 'Email'
+            };
+
+            const camposFaltantes = Object.entries(camposObrigatorios)
+                .filter(([key]) => !formData[key])
+                .map(([_, label]) => label);
+
+            if (camposFaltantes.length > 0) {
+                throw new Error(`Os seguintes campos são obrigatórios: ${camposFaltantes.join(', ')}`);
+            }
+
+            // Validação do preço
+            if (!formData.price_per_hour || isNaN(parseFloat(formData.price_per_hour))) {
+                throw new Error('O preço por hora deve ser um número válido');
+            }
+
+            // Validação dos documentos
+            if (!formData.documento || !formData.documentoEspaco) {
+                throw new Error('Os documentos do proprietário e do espaço são obrigatórios');
+            }
+
+            // Validação das imagens
+            if (!formData.images || formData.images.length === 0) {
+                throw new Error('Pelo menos uma imagem do espaço é obrigatória');
+            }
+
+            // Mapeia os dados do formulário para o formato esperado pelo backend
+            const dadosFormatados = {
+                space_name: formData.space_name,
+                max_people: parseInt(formData.max_people),
+                location: formData.location,
+                space_type: formData.space_type,
+                space_description: formData.space_description || '',
+                space_amenities: Object.entries(formData.equipamentosEServicos || {})
+                    .filter(([_, value]) => value === true)
+                    .map(([key]) => key),
+                week_days: Object.entries(formData.disponibilidade || {})
+                    .filter(([_, value]) => value === true)
+                    .map(([key]) => key),
+                opening_time: formData.horario_inicio,
+                closing_time: formData.horario_fim,
+                space_rules: [
+                    ...(formData.permite_animais ? ['animais'] : []),
+                    ...(formData.permite_fumar ? ['fumar'] : []),
+                    ...(formData.permite_bebidas ? ['bebidas'] : [])
+                ],
+                price_per_hour: parseFloat(formData.price_per_hour),
+                owner_name: formData.owner_name || formData.nome_proprietario,
+                document_number: formData.document_number || formData.cpf_cnpj,
+                document_photo: formData.documento,
+                space_document_photo: formData.documentoEspaco,
+                owner_phone: formData.owner_phone || formData.telefone,
+                owner_email: formData.owner_email || formData.email,
+                image_url: formData.images
+            };
+
+            // Log dos dados formatados exatamente como serão enviados para a API
+            console.log('=== DADOS FORMATADOS PARA API ===');
+            console.log(JSON.stringify(dadosFormatados, null, 2));
+            console.log('================================');
+
+            // Configura o cabeçalho com o token
+            const config = {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            // Envia os dados para o backend
+            const response = await axios.post('http://localhost:3000/spaces/createSpace', dadosFormatados, config);
+
+            if (response.status === 201) {
+                // Redireciona para a página de sucesso
+                console.log('Espaço cadastrado com sucesso!');
+            }
+        } catch (error) {
+            console.error('Erro ao cadastrar espaço:', error);
+            // Log mais detalhado do erro
+            if (error.response) {
+                console.error('Detalhes do erro:', {
+                    status: error.response.status,
+                    data: error.response.data,
+                    headers: error.response.headers
+                });
+            }
+            setError(error.response?.data?.error || error.message || 'Erro ao cadastrar espaço. Tente novamente.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const proximaEtapa = async () => {
         if (etapaAtual < 7) {
             setEtapaAtual(etapaAtual + 1);
         } else {
-            // Aqui você pode adicionar a lógica para enviar os dados para o backend
-            navigate('/Espaço');
+            await enviarDadosParaBackend();
         }
     };
 
@@ -110,9 +260,10 @@ const CadastrarEspaco = () => {
                                         )}
                                         <button 
                                             onClick={proximaEtapa}
-                                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
+                                            disabled={loading}
+                                            className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         >
-                                            {etapaAtual === 7 ? "Finalizar" : "Próximo"}
+                                            {loading ? 'Enviando...' : etapaAtual === 7 ? "Finalizar" : "Próximo"}
                                         </button>
                                     </div>
                                 </div>
@@ -124,6 +275,11 @@ const CadastrarEspaco = () => {
                                         ></div>
                                     </div>
                                 </div>
+                                {error && (
+                                    <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                                        {error}
+                                    </div>
+                                )}
                             </div>
                         )}
                         <div className="bg-white rounded-lg shadow-lg p-8">

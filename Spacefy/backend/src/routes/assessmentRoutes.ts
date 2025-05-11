@@ -3,6 +3,7 @@ import {
 createAssessment,
   updateAssessment,
   deleteAssessment,
+  getAssessmentsBySpace,
 } from "../controllers/assessmentController";
 
 const router = express.Router();
@@ -15,6 +16,9 @@ router.put("/:id", updateAssessment);
 
 // DELETE /reviews/:id - Excluir avaliação
 router.delete("/:id", deleteAssessment);
+
+// GET /assessment/space/:spaceId - Buscar avaliações de um espaço
+router.get("/space/:spaceId", getAssessmentsBySpace);
 
 
 export default router;

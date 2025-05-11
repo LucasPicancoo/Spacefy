@@ -1,48 +1,42 @@
 import mongoose, { Schema } from "mongoose";
-import { IAssessment } from "../types/assessment"; // importa o tipo
+import { IAssessment } from "../types/assessment";
 
 const AssessmentSchema: Schema = new Schema({
-  id_avaliacao: { type: Number, required: true, unique: true },
-  nota: { type: Number, required: true, min: 1, max: 5 },
-  comentario: { type: String, maxlength: 250 },
-  data_avaliacao: { type: Date, required: true, default: Date.now },
-  id_usuario: { type: Number, required: true },
-  id_espaco: { type: Number, required: true },
-  score: { 
-    type: Number, 
-    required: true, 
-    min: 1, 
-    max: 5 
-  }, // Nota da avaliação (obrigatória, entre 1 e 5)
-
-  comment: { 
-    type: String, 
-    maxlength: 500 
-  }, // Comentário opcional (máximo de 500 caracteres)
-
-  evaluation_date: { 
-    type: Date, 
-    required: true, 
-    default: Date.now 
-  }, // Data da avaliação (obrigatória, padrão: data atual)
-
-  user_id: { 
-    type: mongoose.Types.ObjectId, 
-    required: true 
-  }, // ID do usuário que fez a avaliação (ObjectId, obrigatório)
-  
-  space_id: { 
-    type: mongoose.Types.ObjectId, 
+  rating: {
+    type: Number,
     required: true,
-    ref: "Space" // Referência à coleção de espaços 
-  }, // ID do espaço avaliado (ObjectId, obrigatório)
+    min: 1,
+    max: 5,
+  }, // Nota da avaliação
+
+  comment: {
+    type: String,
+    maxlength: 500,
+  }, // Comentário opcional
+
+  evaluationDate: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  }, // Data da avaliação
+
+  userId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: "User",
+  }, // Referência ao usuário
+
+  spaceId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: "Space",
+  }, // Referência ao espaço
 });
 
 AssessmentSchema.pre<IAssessment>("save", async function (next) {
-  if (!this.score || this.score < 1 || this.score > 5) {
+  if (this.rating < 1 || this.rating > 5) {
     throw new Error("A nota deve estar entre 1 e 5.");
   }
-
   next();
 });
 

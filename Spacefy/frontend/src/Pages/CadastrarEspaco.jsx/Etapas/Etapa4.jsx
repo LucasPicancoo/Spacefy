@@ -1,10 +1,56 @@
 import React from 'react';
 
+// Array com as regras disponíveis para o espaço
+const REGRAS = [
+    {
+        id: 'animais',
+        label: 'Permite Animais',
+        descricao: 'Seu espaço permite a entrada de animais de estimação?'
+    },
+    {
+        id: 'fumar',
+        label: 'Permite Fumar',
+        descricao: 'Seu espaço permite o uso de tabaco?'
+    },
+    {
+        id: 'bebidas_alcoolicas',
+        label: 'Permite Bebidas Alcoólicas',
+        descricao: 'Seu espaço permite o consumo de bebidas alcoólicas?'
+    }
+];
+
+// Componente para checkbox de regra
+const CheckboxRegra = ({ regra, checked, onChange }) => (
+    <div className="flex items-start">
+        <div className="flex items-center h-5">
+            <input
+                type="checkbox"
+                id={regra.id}
+                name={regra.id}
+                checked={checked}
+                onChange={onChange}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+            />
+        </div>
+        <div className="ml-3 text-sm">
+            <label htmlFor={regra.id} className="font-medium text-gray-700">
+                {regra.label}
+            </label>
+            <p className="text-gray-500">
+                {regra.descricao}
+            </p>
+        </div>
+    </div>
+);
+
+// Componente principal da Etapa 4 - Regras e Políticas
 const Etapa4 = ({ formData, onUpdate }) => {
+    // Função para gerenciar mudanças nas regras
     const handleChange = (e) => {
         const { name, checked } = e.target;
         const currentRules = formData.space_rules || [];
         
+        // Adiciona ou remove regras da lista
         if (checked) {
             onUpdate({
                 ...formData,
@@ -20,6 +66,7 @@ const Etapa4 = ({ formData, onUpdate }) => {
 
     return (
         <div className="space-y-8">
+            {/* Cabeçalho da etapa */}
             <div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
                     Regras e Políticas
@@ -30,73 +77,20 @@ const Etapa4 = ({ formData, onUpdate }) => {
             </div>
 
             <div className="space-y-6">
+                {/* Seção de regras básicas */}
                 <div>
                     <h4 className="text-lg font-medium text-gray-900 mb-4">
                         Regras Básicas
                     </h4>
                     <div className="space-y-4">
-                        <div className="flex items-start">
-                            <div className="flex items-center h-5">
-                                <input
-                                    type="checkbox"
-                                    id="animais"
-                                    name="animais"
-                                    checked={formData.space_rules?.includes('animais') || false}
-                                    onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
-                                />
-                            </div>
-                            <div className="ml-3 text-sm">
-                                <label htmlFor="animais" className="font-medium text-gray-700">
-                                    Permite Animais
-                                </label>
-                                <p className="text-gray-500">
-                                    Seu espaço permite a entrada de animais de estimação?
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start">
-                            <div className="flex items-center h-5">
-                                <input
-                                    type="checkbox"
-                                    id="fumar"
-                                    name="fumar"
-                                    checked={formData.space_rules?.includes('fumar') || false}
-                                    onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
-                                />
-                            </div>
-                            <div className="ml-3 text-sm">
-                                <label htmlFor="fumar" className="font-medium text-gray-700">
-                                    Permite Fumar
-                                </label>
-                                <p className="text-gray-500">
-                                    Seu espaço permite o uso de tabaco?
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-start">
-                            <div className="flex items-center h-5">
-                                <input
-                                    type="checkbox"
-                                    id="bebidas_alcoolicas"
-                                    name="bebidas_alcoolicas"
-                                    checked={formData.space_rules?.includes('bebidas_alcoolicas') || false}
-                                    onChange={handleChange}
-                                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
-                                />
-                            </div>
-                            <div className="ml-3 text-sm">
-                                <label htmlFor="bebidas_alcoolicas" className="font-medium text-gray-700">
-                                    Permite Bebidas Alcoólicas
-                                </label>
-                                <p className="text-gray-500">
-                                    Seu espaço permite o consumo de bebidas alcoólicas?
-                                </p>
-                            </div>
-                        </div>
+                        {REGRAS.map((regra) => (
+                            <CheckboxRegra
+                                key={regra.id}
+                                regra={regra}
+                                checked={formData.space_rules?.includes(regra.id) || false}
+                                onChange={handleChange}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>

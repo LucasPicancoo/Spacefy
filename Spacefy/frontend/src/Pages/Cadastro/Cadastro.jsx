@@ -1,9 +1,10 @@
 import { useState } from "react";
-import axios from "axios";
 import Header from "../../Components/Header/Header";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { authService } from "../../services/authService";
+
 function CadastroUsuario() {
   const [formData, setFormData] = useState({
     name: "",
@@ -32,11 +33,10 @@ function CadastroUsuario() {
     if (formData.password !== formData.confirmPassword) {
       setSenhaInvalida(true);
       return;
-    } //INCREMENTAR VALIDAÇÃO NO BACKEND
+    }
 
     try {
-      await axios.post("http://localhost:3000/users/createUser", formData);
-      // setMensagem("Usuário cadastrado com sucesso!"); OPCIONAL
+      await authService.register(formData);
       setFormData({ name: "", surname: "", email: "", password: "", telephone: "", role: "" });
       toast.success("Usuário cadastrado com sucesso!");
     } catch (error) {

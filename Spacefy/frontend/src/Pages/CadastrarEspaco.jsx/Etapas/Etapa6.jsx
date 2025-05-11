@@ -78,9 +78,9 @@ const Etapa6 = ({ formData, onUpdate }) => {
                     <h4 className="text-lg font-medium text-gray-900 mb-4">Documento do Proprietário</h4>
                     <input
                         type="text"
-                        id="documento"
-                        name="documento"
-                        value={formData.documento || ''}
+                        id="document_photo"
+                        name="document_photo"
+                        value={formData.document_photo || ''}
                         onChange={handleChange}
                         placeholder="URL do documento"
                         className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
@@ -93,9 +93,9 @@ const Etapa6 = ({ formData, onUpdate }) => {
                     <h4 className="text-lg font-medium text-gray-900 mb-4">Documento do Espaço</h4>
                     <input
                         type="text"
-                        id="documentoEspaco"
-                        name="documentoEspaco"
-                        value={formData.documentoEspaco || ''}
+                        id="space_document_photo"
+                        name="space_document_photo"
+                        value={formData.space_document_photo || ''}
                         onChange={handleChange}
                         placeholder="URL do documento do espaço"
                         className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"

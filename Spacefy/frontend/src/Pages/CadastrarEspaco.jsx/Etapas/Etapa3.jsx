@@ -1,22 +1,10 @@
 import React from 'react';
 
 const Etapa3 = ({ formData, onUpdate }) => {
-    const formatarPreco = (valor) => {
-        // Remove tudo que não é número
-        const numero = valor.replace(/\D/g, '');
-        // Converte para centavos
-        const centavos = numero.padStart(3, '0');
-        // Formata o número com vírgula
-        const reais = centavos.slice(0, -2).replace(/^0+/, '') || '0';
-        const centavosFormatados = centavos.slice(-2);
-        return `${reais},${centavosFormatados}`;
-    };
-
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
         
-        // Se for um campo de horário
-        if (name === 'horario_inicio' || name === 'horario_fim') {
+        if (name === 'opening_time' || name === 'closing_time') {
             onUpdate({
                 ...formData,
                 [name]: value
@@ -24,29 +12,31 @@ const Etapa3 = ({ formData, onUpdate }) => {
             return;
         }
 
-        // Se for o campo de preço
-        if (name === 'preco_hora') {
-            const valorFormatado = formatarPreco(value);
-            // Converte o valor formatado para número inteiro (em centavos)
-            const valorNumerico = parseInt(valorFormatado.replace(/\D/g, '')) / 100;
-            
+        if (name === 'price_per_hour') {
             onUpdate({
                 ...formData,
-                [name]: valorFormatado,
-                price_per_hour: valorNumerico
+                [name]: parseFloat(value)
             });
             return;
         }
 
         // Se for um checkbox de disponibilidade
-        const fieldName = name.split('.')[1];
-        onUpdate({
-            ...formData,
-            disponibilidade: {
-                ...formData.disponibilidade,
-                [fieldName]: type === 'checkbox' ? checked : value
+        if (name.startsWith('week_days.')) {
+            const day = name.split('.')[1];
+            const currentDays = formData.week_days || [];
+            
+            if (checked) {
+                onUpdate({
+                    ...formData,
+                    week_days: [...currentDays, day]
+                });
+            } else {
+                onUpdate({
+                    ...formData,
+                    week_days: currentDays.filter(d => d !== day)
+                });
             }
-        });
+        }
     };
 
     const diasSemana = [
@@ -61,13 +51,6 @@ const Etapa3 = ({ formData, onUpdate }) => {
 
     return (
         <div className="space-y-8">
-            <style>
-                {`
-                    input[type="time"]::-webkit-calendar-picker-indicator {
-                        cursor: pointer;
-                    }
-                `}
-            </style>
             <div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
                     Disponibilidade e Horários
@@ -88,8 +71,8 @@ const Etapa3 = ({ formData, onUpdate }) => {
                                 <input
                                     type="checkbox"
                                     id={dia.id}
-                                    name={`disponibilidade.${dia.id}`}
-                                    checked={formData.disponibilidade?.[dia.id] ?? false}
+                                    name={`week_days.${dia.id}`}
+                                    checked={formData.week_days?.includes(dia.id) || false}
                                     onChange={handleChange}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
@@ -106,32 +89,30 @@ const Etapa3 = ({ formData, onUpdate }) => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
-                        <label htmlFor="horario_inicio" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="opening_time" className="block text-sm font-medium text-gray-700">
                             Horário de Abertura
                         </label>
                         <input
-                            type="text"
-                            name="horario_inicio"
-                            id="horario_inicio"
-                            value={formData.horario_inicio || ''}
+                            type="time"
+                            name="opening_time"
+                            id="opening_time"
+                            value={formData.opening_time || ''}
                             onChange={handleChange}
-                            placeholder="Ex: 08:00"
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
                             required
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="horario_fim" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="closing_time" className="block text-sm font-medium text-gray-700">
                             Horário de Fechamento
                         </label>
                         <input
-                            type="text"
-                            name="horario_fim"
-                            id="horario_fim"
-                            value={formData.horario_fim || ''}
+                            type="time"
+                            name="closing_time"
+                            id="closing_time"
+                            value={formData.closing_time || ''}
                             onChange={handleChange}
-                            placeholder="Ex: 18:00"
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
                             required
                         />
@@ -139,21 +120,21 @@ const Etapa3 = ({ formData, onUpdate }) => {
                 </div>
 
                 <div>
-                    <label htmlFor="preco_hora" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="price_per_hour" className="block text-sm font-medium text-gray-700">
                         Preço por Hora (R$)
                     </label>
                     <input
-                        type="text"
-                        name="preco_hora"
-                        id="preco_hora"
-                        value={formData.preco_hora || ''}
+                        type="number"
+                        name="price_per_hour"
+                        id="price_per_hour"
+                        value={formData.price_per_hour || ''}
                         onChange={handleChange}
-                        placeholder="Ex: 50,00"
+                        min="0"
+                        step="0.01"
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
                         required
                     />
                 </div>
-
             </div>
         </div>
     );

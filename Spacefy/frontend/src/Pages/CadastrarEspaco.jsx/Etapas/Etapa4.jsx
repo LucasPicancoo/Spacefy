@@ -2,8 +2,20 @@ import React from 'react';
 
 const Etapa4 = ({ formData, onUpdate }) => {
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        onUpdate({ [name]: type === 'checkbox' ? checked : value });
+        const { name, checked } = e.target;
+        const currentRules = formData.space_rules || [];
+        
+        if (checked) {
+            onUpdate({
+                ...formData,
+                space_rules: [...currentRules, name]
+            });
+        } else {
+            onUpdate({
+                ...formData,
+                space_rules: currentRules.filter(rule => rule !== name)
+            });
+        }
     };
 
     return (
@@ -27,15 +39,15 @@ const Etapa4 = ({ formData, onUpdate }) => {
                             <div className="flex items-center h-5">
                                 <input
                                     type="checkbox"
-                                    id="permite_animais"
-                                    name="permite_animais"
-                                    checked={formData.permite_animais || false}
+                                    id="animais"
+                                    name="animais"
+                                    checked={formData.space_rules?.includes('animais') || false}
                                     onChange={handleChange}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
                             </div>
                             <div className="ml-3 text-sm">
-                                <label htmlFor="permite_animais" className="font-medium text-gray-700">
+                                <label htmlFor="animais" className="font-medium text-gray-700">
                                     Permite Animais
                                 </label>
                                 <p className="text-gray-500">
@@ -48,15 +60,15 @@ const Etapa4 = ({ formData, onUpdate }) => {
                             <div className="flex items-center h-5">
                                 <input
                                     type="checkbox"
-                                    id="permite_fumar"
-                                    name="permite_fumar"
-                                    checked={formData.permite_fumar || false}
+                                    id="fumar"
+                                    name="fumar"
+                                    checked={formData.space_rules?.includes('fumar') || false}
                                     onChange={handleChange}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
                             </div>
                             <div className="ml-3 text-sm">
-                                <label htmlFor="permite_fumar" className="font-medium text-gray-700">
+                                <label htmlFor="fumar" className="font-medium text-gray-700">
                                     Permite Fumar
                                 </label>
                                 <p className="text-gray-500">
@@ -69,15 +81,15 @@ const Etapa4 = ({ formData, onUpdate }) => {
                             <div className="flex items-center h-5">
                                 <input
                                     type="checkbox"
-                                    id="permite_bebidas"
-                                    name="permite_bebidas"
-                                    checked={formData.permite_bebidas || false}
+                                    id="bebidas_alcoolicas"
+                                    name="bebidas_alcoolicas"
+                                    checked={formData.space_rules?.includes('bebidas_alcoolicas') || false}
                                     onChange={handleChange}
                                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                 />
                             </div>
                             <div className="ml-3 text-sm">
-                                <label htmlFor="permite_bebidas" className="font-medium text-gray-700">
+                                <label htmlFor="bebidas_alcoolicas" className="font-medium text-gray-700">
                                     Permite Bebidas Alcoólicas
                                 </label>
                                 <p className="text-gray-500">
@@ -87,7 +99,6 @@ const Etapa4 = ({ formData, onUpdate }) => {
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     );

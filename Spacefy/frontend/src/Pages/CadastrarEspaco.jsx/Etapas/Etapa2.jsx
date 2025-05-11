@@ -2,9 +2,8 @@ import React from 'react';
 
 const Etapa2 = ({ formData, onUpdate }) => {
     const handleImageChange = (e) => {
-        // Pega a primeira URL da lista de imagens
         const urls = e.target.value.split(',').map(url => url.trim());
-        onUpdate({ images: urls[0] || '' });
+        onUpdate({ image_url: urls[0] || '' });
     };
 
     return (
@@ -24,7 +23,7 @@ const Etapa2 = ({ formData, onUpdate }) => {
                         type="text"
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                         placeholder="Digite a URL da imagem principal"
-                        value={formData.images || ''}
+                        value={formData.image_url || ''}
                         onChange={handleImageChange}
                     />
                 </div>

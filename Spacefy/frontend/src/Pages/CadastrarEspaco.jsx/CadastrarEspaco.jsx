@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { spaceService } from "../../services/spaceService";
 import Header from '../../Components/Header/Header';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Etapa1 from './Etapas/Etapa1';
 import Etapa2 from './Etapas/Etapa2';
 import Etapa3 from './Etapas/Etapa3';
@@ -26,44 +28,11 @@ const CadastrarEspaco = () => {
             setLoading(true);
             setError(null);
 
-            // Log detalhado de todas as informações do formulário
-            console.log('=== INFORMAÇÕES COMPLETAS DO FORMULÁRIO ===');
-            console.log('Informações Básicas:', {
-                nome: formData.space_name,
-                capacidade: formData.max_people,
-                localizacao: formData.location,
-                tipo: formData.space_type,
-                descricao: formData.space_description
-            });
-            console.log('Equipamentos e Serviços:', formData.equipamentosEServicos);
-            console.log('Disponibilidade:', formData.disponibilidade);
-            console.log('Horários:', {
-                inicio: formData.horario_inicio,
-                fim: formData.horario_fim
-            });
-            console.log('Regras:', {
-                permite_animais: formData.permite_animais,
-                permite_fumar: formData.permite_fumar,
-                permite_bebidas: formData.permite_bebidas
-            });
-            console.log('Preço:', formData.price_per_hour);
-            console.log('Informações do Proprietário:', {
-                nome: formData.nome_proprietario,
-                cpf_cnpj: formData.cpf_cnpj,
-                telefone: formData.telefone,
-                email: formData.email
-            });
-            console.log('Documentos:', {
-                documento_proprietario: formData.documento,
-                documento_espaco: formData.documentoEspaco
-            });
-            console.log('Imagens:', formData.images);
-            console.log('=======================================');
-
             // Obtém o token do localStorage
             const token = localStorage.getItem('token');
             if (!token) {
-                throw new Error('Usuário não autenticado');
+                toast.error('Usuário não autenticado. Por favor, faça login novamente.');
+                return;
             }
 
             // Validação dos campos obrigatórios
@@ -72,12 +41,17 @@ const CadastrarEspaco = () => {
                 max_people: 'Capacidade máxima',
                 location: 'Localização',
                 space_type: 'Tipo do espaço',
-                horario_inicio: 'Horário de início',
-                horario_fim: 'Horário de fim',
+                opening_time: 'Horário de início',
+                closing_time: 'Horário de fim',
                 owner_name: 'Nome do proprietário',
                 document_number: 'CPF/CNPJ',
                 owner_phone: 'Telefone',
-                owner_email: 'Email'
+                owner_email: 'Email',
+                space_amenities: 'Comodidades',
+                week_days: 'Dias da semana',
+                document_photo: 'Documento do proprietário',
+                space_document_photo: 'Documento do espaço',
+                image_url: 'Imagem do espaço'
             };
 
             const camposFaltantes = Object.entries(camposObrigatorios)
@@ -85,22 +59,26 @@ const CadastrarEspaco = () => {
                 .map(([_, label]) => label);
 
             if (camposFaltantes.length > 0) {
-                throw new Error(`Os seguintes campos são obrigatórios: ${camposFaltantes.join(', ')}`);
+                toast.error(`Os seguintes campos são obrigatórios: ${camposFaltantes.join(', ')}`);
+                return;
             }
 
             // Validação do preço
             if (!formData.price_per_hour || isNaN(parseFloat(formData.price_per_hour))) {
-                throw new Error('O preço por hora deve ser um número válido');
+                toast.error('O preço por hora deve ser um número válido');
+                return;
             }
 
             // Validação dos documentos
-            if (!formData.documento || !formData.documentoEspaco) {
-                throw new Error('Os documentos do proprietário e do espaço são obrigatórios');
+            if (!formData.document_photo || !formData.space_document_photo) {
+                toast.error('Os documentos do proprietário e do espaço são obrigatórios');
+                return;
             }
 
             // Validação das imagens
-            if (!formData.images || formData.images.length === 0) {
-                throw new Error('Pelo menos uma imagem do espaço é obrigatória');
+            if (!formData.image_url) {
+                toast.error('A imagem do espaço é obrigatória');
+                return;
             }
 
             // Mapeia os dados do formulário para o formato esperado pelo backend
@@ -110,33 +88,20 @@ const CadastrarEspaco = () => {
                 location: formData.location,
                 space_type: formData.space_type,
                 space_description: formData.space_description || '',
-                space_amenities: Object.entries(formData.equipamentosEServicos || {})
-                    .filter(([_, value]) => value === true)
-                    .map(([key]) => key),
-                week_days: Object.entries(formData.disponibilidade || {})
-                    .filter(([_, value]) => value === true)
-                    .map(([key]) => key),
-                opening_time: formData.horario_inicio,
-                closing_time: formData.horario_fim,
-                space_rules: [
-                    ...(formData.permite_animais ? ['animais'] : []),
-                    ...(formData.permite_fumar ? ['fumar'] : []),
-                    ...(formData.permite_bebidas ? ['bebidas'] : [])
-                ],
+                space_amenities: formData.space_amenities || [],
+                week_days: formData.week_days || [],
+                opening_time: formData.opening_time,
+                closing_time: formData.closing_time,
+                space_rules: formData.space_rules || [],
                 price_per_hour: parseFloat(formData.price_per_hour),
-                owner_name: formData.owner_name || formData.nome_proprietario,
-                document_number: formData.document_number || formData.cpf_cnpj,
-                document_photo: formData.documento,
-                space_document_photo: formData.documentoEspaco,
-                owner_phone: formData.owner_phone || formData.telefone,
-                owner_email: formData.owner_email || formData.email,
-                image_url: formData.images
+                owner_name: formData.owner_name,
+                document_number: formData.document_number,
+                document_photo: formData.document_photo,
+                space_document_photo: formData.space_document_photo,
+                owner_phone: formData.owner_phone,
+                owner_email: formData.owner_email,
+                image_url: formData.image_url
             };
-
-            // Log dos dados formatados exatamente como serão enviados para a API
-            console.log('=== DADOS FORMATADOS PARA API ===');
-            console.log(JSON.stringify(dadosFormatados, null, 2));
-            console.log('================================');
 
             // Configura o cabeçalho com o token
             const config = {
@@ -147,23 +112,28 @@ const CadastrarEspaco = () => {
             };
 
             // Envia os dados para o backend
-            const response = await axios.post('http://localhost:3000/spaces/createSpace', dadosFormatados, config);
+            const response = await spaceService.createSpace(dadosFormatados);
 
             if (response.status === 201) {
-                // Redireciona para a página de sucesso
-                console.log('Espaço cadastrado com sucesso!');
+                toast.success('Espaço cadastrado com sucesso!');
+                navigate('/espacos');
             }
         } catch (error) {
             console.error('Erro ao cadastrar espaço:', error);
-            // Log mais detalhado do erro
+            
             if (error.response) {
-                console.error('Detalhes do erro:', {
-                    status: error.response.status,
-                    data: error.response.data,
-                    headers: error.response.headers
-                });
+                if (error.response.status === 400) {
+                    toast.error(error.response.data.error || 'Erro ao cadastrar espaço. Verifique os dados e tente novamente.');
+                } else if (error.response.status === 401) {
+                    toast.error('Sessão expirada. Por favor, faça login novamente.');
+                } else if (error.response.status === 403) {
+                    toast.error('Você não tem permissão para cadastrar espaços.');
+                } else {
+                    toast.error('Erro ao cadastrar espaço. Tente novamente mais tarde.');
+                }
+            } else {
+                toast.error('Erro de conexão com o servidor. Verifique sua conexão com a internet e tente novamente.');
             }
-            setError(error.response?.data?.error || error.message || 'Erro ao cadastrar espaço. Tente novamente.');
         } finally {
             setLoading(false);
         }
@@ -236,6 +206,18 @@ const CadastrarEspaco = () => {
     return (
         <>
             <Header />
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
             {etapaAtual === 0 ? (
                 <div className="w-full min-h-[calc(100vh-80px)] bg-white flex items-center justify-center">
                     {renderizarEtapa()}

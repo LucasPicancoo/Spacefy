@@ -2,8 +2,8 @@ import React from 'react';
 
 const Etapa7 = ({ formData, onUpdate }) => {
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        onUpdate({ [name]: type === 'checkbox' ? checked : value });
+        const { name, checked } = e.target;
+        onUpdate({ [name]: checked });
     };
 
     return (
@@ -57,12 +57,14 @@ const Etapa7 = ({ formData, onUpdate }) => {
                             <div>
                                 <dt className="text-sm font-medium text-gray-500">Horário de Funcionamento</dt>
                                 <dd className="mt-1 text-sm text-gray-900">
-                                    {formData.horario_inicio} - {formData.horario_fim}
+                                    {formData.opening_time} - {formData.closing_time}
                                 </dd>
                             </div>
                             <div>
-                                <dt className="text-sm font-medium text-gray-500">Tempo Mínimo de Locação</dt>
-                                <dd className="mt-1 text-sm text-gray-900">{formData.tempo_minimo} horas</dd>
+                                <dt className="text-sm font-medium text-gray-500">Dias da Semana</dt>
+                                <dd className="mt-1 text-sm text-gray-900">
+                                    {formData.week_days?.join(', ')}
+                                </dd>
                             </div>
                         </dl>
                     </div>
@@ -74,15 +76,13 @@ const Etapa7 = ({ formData, onUpdate }) => {
                     </h4>
                     <div className="bg-gray-50 p-4 rounded-lg">
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {Object.entries(formData.equipamentos || {}).map(([key, value]) => (
-                                value && (
-                                    <div key={key} className="flex items-center">
-                                        <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        <span className="text-sm text-gray-900">{key}</span>
-                                    </div>
-                                )
+                            {formData.space_amenities?.map((amenity) => (
+                                <div key={amenity} className="flex items-center">
+                                    <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span className="text-sm text-gray-900">{amenity}</span>
+                                </div>
                             ))}
                         </div>
                     </div>

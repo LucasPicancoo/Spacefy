@@ -21,6 +21,30 @@ const CampoTexto = ({ label, id, name, value, onChange, required = false, type =
     </div>
 );
 
+// Componente reutilizável para campos de seleção
+const CampoSelect = ({ label, id, name, value, onChange, options, required = false }) => (
+    <div>
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+            {label}
+        </label>
+        <select
+            name={name}
+            id={id}
+            value={value || ''}
+            onChange={onChange}
+            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+            required={required}
+        >
+            <option value="">Selecione uma opção</option>
+            {options.map((option) => (
+                <option key={option.value} value={option.value}>
+                    {option.label}
+                </option>
+            ))}
+        </select>
+    </div>
+);
+
 // Componente reutilizável para campos de texto longo (textarea)
 const CampoTextArea = ({ label, id, name, value, onChange, maxLength, placeholder }) => (
     <div className="flex flex-col h-full ml-8">
@@ -51,6 +75,56 @@ const Etapa1 = ({ formData, onUpdate }) => {
         onUpdate({ [name]: value });
     };
 
+    // Opções para o tipo de espaço
+    const tiposEspaco = [
+        { value: 'espaço_para_eventos', label: 'Espaço para Eventos' },
+        { value: 'sala_de_reuniões', label: 'Sala de Reuniões' },
+        { value: 'auditório', label: 'Auditório' },
+        { value: 'espaço_de_coworking', label: 'Espaço de Coworking' },
+        { value: 'estúdio', label: 'Estúdio' },
+        { value: 'galeria', label: 'Galeria' },
+        { value: 'salao_festas', label: 'Salão de Festas' },
+        { value: 'espaco_cultural', label: 'Espaço Cultural' },
+        { value: 'sala_treino', label: 'Sala de Treino/Academia' },
+        { value: 'sala_aula', label: 'Sala de Aula' },
+        { value: 'espaco_gastronomico', label: 'Espaço Gastronômico' },
+        { value: 'espaco_beleza', label: 'Espaço de Beleza' },
+        { value: 'espaco_medico', label: 'Espaço Médico/Consultório' },
+        { value: 'espaco_religioso', label: 'Espaço Religioso' },
+        { value: 'espaco_esportivo', label: 'Espaço Esportivo' },
+        { value: 'espaco_teatro', label: 'Espaço para Teatro' },
+        { value: 'espaco_musica', label: 'Espaço para Música' },
+        { value: 'espaco_exposicao', label: 'Espaço para Exposição' },
+        { value: 'espaco_workshop', label: 'Espaço para Workshops' },
+        { value: 'espaco_yoga', label: 'Espaço para Yoga/Meditação' },
+        { value: 'espaco_danca', label: 'Espaço para Dança' },
+        { value: 'espaco_artes_marciais', label: 'Espaço para Artes Marciais' },
+        { value: 'espaco_fotografia', label: 'Estúdio Fotográfico' },
+        { value: 'espaco_grafica', label: 'Espaço para Gráfica' },
+        { value: 'espaco_cerimonia', label: 'Espaço para Cerimônias' },
+        { value: 'espaco_conferencia', label: 'Espaço para Conferências' },
+        { value: 'espaco_showroom', label: 'Showroom' },
+        { value: 'espaco_loja', label: 'Espaço para Loja' },
+        { value: 'espaco_escritorio', label: 'Espaço para Escritório' },
+        { value: 'espaco_estudio_tv', label: 'Estúdio de TV' },
+        { value: 'espaco_estudio_radio', label: 'Estúdio de Rádio' },
+        { value: 'espaco_estudio_podcast', label: 'Estúdio de Podcast' },
+        { value: 'espaco_estudio_gravacao', label: 'Estúdio de Gravação' },
+        { value: 'espaco_estudio_danca', label: 'Estúdio de Dança' },
+        { value: 'espaco_estudio_musica', label: 'Estúdio de Música' },
+        { value: 'espaco_estudio_arte', label: 'Estúdio de Arte' },
+        { value: 'espaco_estudio_fitness', label: 'Estúdio de Fitness' },
+        { value: 'espaco_estudio_pilates', label: 'Estúdio de Pilates' },
+        { value: 'espaco_estudio_massagem', label: 'Espaço para Massagem' },
+        { value: 'espaco_estudio_spa', label: 'Espaço para Spa' },
+        { value: 'espaco_estudio_sauna', label: 'Espaço para Sauna' },
+        { value: 'espaco_estudio_piscina', label: 'Espaço com Piscina' },
+        { value: 'espaco_estudio_quadra', label: 'Espaço com Quadra' },
+        { value: 'espaco_estudio_campo', label: 'Espaço com Campo' },
+        { value: 'espaco_estudio_parque', label: 'Espaço com Parque' },
+        { value: 'outro', label: 'Outro' }
+    ];
+
     return (
         <div className="space-y-8">
             {/* Cabeçalho da etapa */}
@@ -73,7 +147,7 @@ const Etapa1 = ({ formData, onUpdate }) => {
                         required
                     />
 
-                    <CampoTexto
+                    <CampoSelect
                         label={
                             <>
                                 Tipo do espaço <span className="text-xs text-gray-400">(Espaço para Eventos, Sala de Reuniões, Auditório, etc...)</span>
@@ -83,6 +157,7 @@ const Etapa1 = ({ formData, onUpdate }) => {
                         name="space_type"
                         value={formData.space_type}
                         onChange={handleChange}
+                        options={tiposEspaco}
                         required
                     />
 

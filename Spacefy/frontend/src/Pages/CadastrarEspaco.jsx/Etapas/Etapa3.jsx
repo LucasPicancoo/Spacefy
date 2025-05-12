@@ -30,24 +30,40 @@ const CampoHorario = ({ label, id, name, value, onChange }) => (
 );
 
 // Componente para campo de preço
-const CampoPreco = ({ value, onChange }) => (
-    <div>
-        <label htmlFor="price_per_hour" className="block text-sm font-medium text-gray-700">
-            Preço por Hora (R$)
-        </label>
-        <input
-            type="number"
-            name="price_per_hour"
-            id="price_per_hour"
-            value={value || ''}
-            onChange={onChange}
-            min="0"
-            step="0.01"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
-            required
-        />
-    </div>
-);
+const CampoPreco = ({ value, onChange }) => {
+    const formatarPreco = (valor) => {
+        if (!valor) return '';
+        return `R$ ${parseFloat(valor).toFixed(2)}`;
+    };
+
+    const handlePrecoChange = (e) => {
+        const valor = e.target.value.replace(/[^\d]/g, '');
+        const valorNumerico = valor ? parseFloat(valor) / 100 : '';
+        onChange({
+            target: {
+                name: 'price_per_hour',
+                value: valorNumerico
+            }
+        });
+    };
+
+    return (
+        <div>
+            <label htmlFor="price_per_hour" className="block text-sm font-medium text-gray-700">
+                Preço por Hora
+            </label>
+            <input
+                type="text"
+                name="price_per_hour"
+                id="price_per_hour"
+                value={formatarPreco(value)}
+                onChange={handlePrecoChange}
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
+                required
+            />
+        </div>
+    );
+};
 
 // Componente para checkbox de dia da semana
 const CheckboxDia = ({ dia, checked, onChange }) => (

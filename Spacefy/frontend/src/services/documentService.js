@@ -57,7 +57,6 @@ const generateSignature = async (params) => {
         .map(([key, value]) => `${key}=${value}`)
         .join('&') + import.meta.env.VITE_CLOUDINARY_API_SECRET;
 
-    console.log('String to sign:', stringToSign); // Para debug
 
     const encoder = new TextEncoder();
     const data = encoder.encode(stringToSign);
@@ -88,7 +87,6 @@ export const deleteDocumentFromCloudinary = async (documentUrl) => {
 
         // Pega o public_id completo (incluindo a pasta)
         const publicId = urlParts.slice(uploadIndex + 2).join('/').split('.')[0];
-        console.log('Public ID:', publicId); // Para debug
 
         const timestamp = Math.floor(Date.now() / 1000);
         
@@ -123,7 +121,6 @@ export const deleteDocumentFromCloudinary = async (documentUrl) => {
         }
 
         const data = await response.json();
-        console.log('Resposta da deleção:', data); // Para debug
 
         if (data.error) {
             throw new Error(data.error.message);

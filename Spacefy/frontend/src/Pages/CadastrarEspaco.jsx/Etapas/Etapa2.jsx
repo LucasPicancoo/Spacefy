@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { uploadImages } from '../../../services/imageService';
+import { uploadImages, deleteImageFromCloudinary } from '../../../services/imageService';
 
 // Constante para o tamanho máximo (5MB em bytes)
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -44,13 +44,24 @@ const CampoImagem = ({ value, onChange }) => {
         }
     };
 
-    const handleRemoveImage = (index) => {
-        const newUrls = [...(value || [])];
-        const newPreviewUrls = [...previewUrls];
-        newUrls.splice(index, 1);
-        newPreviewUrls.splice(index, 1);
-        onChange({ target: { value: newUrls } });
-        setPreviewUrls(newPreviewUrls);
+    const handleRemoveImage = async (index) => {
+        try {
+            const imageUrl = value[index];
+            
+            // Tenta excluir a imagem do Cloudinary
+            await deleteImageFromCloudinary(imageUrl);
+            
+            // Se a exclusão for bem-sucedida, atualiza o estado local
+            const newUrls = [...(value || [])];
+            const newPreviewUrls = [...previewUrls];
+            newUrls.splice(index, 1);
+            newPreviewUrls.splice(index, 1);
+            onChange({ target: { value: newUrls } });
+            setPreviewUrls(newPreviewUrls);
+        } catch (error) {
+            console.error('Erro ao excluir imagem:', error);
+            setError('Erro ao excluir imagem. Tente novamente.');
+        }
     };
 
     return (

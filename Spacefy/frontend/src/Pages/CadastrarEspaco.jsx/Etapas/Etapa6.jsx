@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { uploadDocument, deleteDocumentFromCloudinary } from '../../../services/documentService';
 
-// Componente para campos de texto simples
+// Componente reutilizável para campos de texto
+// Recebe props para label, id, name, value, onChange e type (opcional)
 const CampoTexto = ({ label, id, name, value, onChange, type = "text" }) => (
     <div>
         <label htmlFor={id} className="block text-base font-medium text-gray-700">
@@ -17,23 +19,194 @@ const CampoTexto = ({ label, id, name, value, onChange, type = "text" }) => (
     </div>
 );
 
-// Componente para campos de documento (URL)
-const CampoDocumento = ({ titulo, id, name, value, onChange }) => (
-    <div>
-        <h4 className="text-lg font-medium text-gray-900 mb-4">{titulo}</h4>
-        <input
-            type="text"
-            id={id}
-            name={name}
-            value={value || ''}
-            onChange={onChange}
-            placeholder={`URL do ${titulo.toLowerCase()}`}
-            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
-        />
-    </div>
-);
+// Componente para visualização de documentos (PDFs e imagens)
+// Gerencia um modal para visualização e download de documentos
+const VisualizadorDocumento = ({ url }) => {
+    const [isOpen, setIsOpen] = useState(false);
 
-// Componente principal da Etapa 6 - Dados do Proprietário
+    if (!url) return null;
+
+    const fileType = url.split('.').pop().toLowerCase();
+    const isPDF = fileType === 'pdf';
+    const isImage = ['jpg', 'jpeg', 'png'].includes(fileType);
+
+    const handleOpen = (e) => {
+        e.preventDefault();
+        setIsOpen(true);
+    };
+
+    const handleClose = () => {
+        setIsOpen(false);
+    };
+
+    return (
+        <div className="mt-2">
+            <button
+                onClick={handleOpen}
+                className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2 cursor-pointer"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                </svg>
+                Visualizar Documento
+            </button>
+
+            {isOpen && (
+                <div className="fixed inset-0 backdrop-blur-sm bg-white/30 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg p-4 w-full max-w-4xl h-[80vh] flex flex-col shadow-xl">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg font-semibold">Visualização do Documento</h3>
+                            <button
+                                onClick={handleClose}
+                                className="text-gray-500 hover:text-gray-700 cursor-pointer"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-auto">
+                            {isPDF ? (
+                                <div className="h-full flex flex-col">
+                                    <iframe
+                                        src={`${url}?fl_attachment=true`}
+                                        className="flex-1 w-full"
+                                        title="Visualizador de PDF"
+                                    />
+                                    <div className="mt-4 flex justify-center">
+                                        <a
+                                            href={`${url}?fl_attachment=true`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clipRule="evenodd" />
+                                            </svg>
+                                            Abrir PDF em nova aba
+                                        </a>
+                                    </div>
+                                </div>
+                            ) : isImage ? (
+                                <img
+                                    src={url}
+                                    alt="Documento"
+                                    className="max-w-full max-h-full mx-auto"
+                                />
+                            ) : (
+                                <div className="flex items-center justify-center h-full">
+                                    <a
+                                        href={`${url}?fl_attachment=true`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                                    >
+                                        Abrir documento em nova aba
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Componente para upload e gerenciamento de documentos
+// Inclui funcionalidades de upload, remoção e visualização
+const CampoDocumento = ({ titulo, id, name, value, onChange }) => {
+    // Estados para controlar o upload e erros
+    const [isUploading, setIsUploading] = useState(false);
+    const [error, setError] = useState('');
+
+    // Função para lidar com o upload de arquivos
+    // Inclui validação de tamanho e tratamento de erros
+    const handleFileChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Verifica o tamanho do arquivo (máximo 10MB)
+        const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+        if (file.size > MAX_FILE_SIZE) {
+            setError('O arquivo excede o limite de 10MB. Por favor, reduza o tamanho do arquivo.');
+            return;
+        }
+
+        setIsUploading(true);
+        setError('');
+
+        try {
+            const url = await uploadDocument(file);
+            onChange({ target: { name, value: url } });
+        } catch (error) {
+            console.error('Erro ao fazer upload do documento:', error);
+            setError('Erro ao fazer upload do documento. Tente novamente.');
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // Função para remover documentos já enviados
+    const handleRemoveDocument = async () => {
+        if (!value) return;
+
+        try {
+            await deleteDocumentFromCloudinary(value);
+            onChange({ target: { name, value: '' } });
+        } catch (error) {
+            console.error('Erro ao excluir documento:', error);
+            setError('Erro ao excluir documento. Tente novamente.');
+        }
+    };
+
+    return (
+        <div>
+            <h4 className="text-lg font-medium text-gray-900 mb-4">{titulo}</h4>
+            <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                    <input
+                        type="file"
+                        id={id}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                        disabled={isUploading}
+                    />
+                    <label
+                        htmlFor={id}
+                        className={`px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors ${
+                            isUploading ? 'opacity-50 cursor-not-allowed' : ''
+                        }`}
+                    >
+                        {isUploading ? 'Enviando...' : 'Selecionar Arquivo'}
+                    </label>
+                    {value && (
+                        <button
+                            type="button"
+                            onClick={handleRemoveDocument}
+                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+                        >
+                            Remover
+                        </button>
+                    )}
+                </div>
+                {error && (
+                    <p className="text-sm text-red-600">{error}</p>
+                )}
+                {value && (
+                    <div className="mt-2">
+                        <VisualizadorDocumento url={value} />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Componente principal da Etapa 6 - Formulário de Dados do Proprietário
+// Organiza os campos em um layout de duas colunas e inclui seções para documentos
 const Etapa6 = ({ formData, onUpdate }) => {
     // Função para atualizar os dados do formulário
     const handleChange = (e) => {

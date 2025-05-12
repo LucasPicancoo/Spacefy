@@ -39,7 +39,6 @@ export default function Header() {
   };
 
   useEffect(() => {
-    console.log(user); // Verifique se o nome está sendo atribuído corretamente
   }, [user]);
 
   return (

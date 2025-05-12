@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import Header from "../../Components/Header/Header";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import profile from "../../assets/Profile.svg";
 import { useUser } from "../../Contexts/userContext";
+import { authService } from "../../services/authService";
 
 function LoginUsuario() {
   const navigate = useNavigate();
@@ -22,21 +22,13 @@ function LoginUsuario() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    //console.log(formData); //REMOVER APOS FASE DE TESTES
-
     try {
-      const response = await axios.post(
-        "http://localhost:3000/auth/login",
-        formData
-      );
-
-      const { token, user} = response.data;
-      // console.log("Token recebido:", token); //REMOVER APOS FASE DE TESTES
+      const { token, user } = await authService.login(formData.email, formData.password);
 
       if (token) {
         login(token);
         localStorage.setItem("token", token);
-        navigate("/Home", { replace: true }) ;
+        navigate("/Home", { replace: true });
       } else {
         toast.error("Erro: Token não recebido.");
       }

@@ -4,11 +4,30 @@ import { uploadImages, deleteImageFromCloudinary } from '../../../services/image
 // Constante para o tamanho máximo (5MB em bytes)
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
+// Modal para visualização de imagem
+const ModalImagem = ({ url, onClose }) => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="bg-white rounded-lg p-4 max-w-3xl w-full flex flex-col items-center relative">
+            <button
+                onClick={onClose}
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer"
+                title="Fechar"
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <img src={url} alt="Visualização" className="max-w-full max-h-[70vh] rounded" />
+        </div>
+    </div>
+);
+
 // Componente para o upload de imagem
 const CampoImagem = ({ value, onChange }) => {
     const [previewUrls, setPreviewUrls] = useState([]);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState('');
+    const [modalUrl, setModalUrl] = useState(null);
 
     const handleFileChange = async (e) => {
         const files = Array.from(e.target.files);
@@ -65,19 +84,26 @@ const CampoImagem = ({ value, onChange }) => {
     };
 
     return (
-        <div className="border-2 border-gray-300 rounded-lg p-6">
+        <div className="">
             <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                     Selecione as imagens (máximo 5MB cada)
                 </label>
                 <input
+                    id="upload-imagem"
                     type="file"
                     accept="image/*"
                     onChange={handleFileChange}
-                    className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="hidden"
                     disabled={isUploading}
                     multiple
                 />
+                <label
+                    htmlFor="upload-imagem"
+                    className={`px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                    {isUploading ? 'Enviando...' : 'Selecionar Imagem'}
+                </label>
                 {error && (
                     <p className="mt-2 text-sm text-red-600">
                         {error}
@@ -85,20 +111,14 @@ const CampoImagem = ({ value, onChange }) => {
                 )}
             </div>
             
-            {isUploading && (
-                <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                    <p className="mt-2 text-sm text-gray-600">Enviando imagens...</p>
-                </div>
-            )}
-
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
                 {previewUrls.map((url, index) => (
                     <div key={index} className="relative group">
                         <img
                             src={url}
                             alt={`Preview ${index + 1}`}
-                            className="w-full h-32 object-cover rounded-lg"
+                            className="w-full h-32 object-cover rounded-lg cursor-pointer"
+                            onClick={() => setModalUrl(url)}
                         />
                         <button
                             onClick={() => handleRemoveImage(index)}
@@ -113,6 +133,13 @@ const CampoImagem = ({ value, onChange }) => {
                 ))}
             </div>
 
+            {isUploading && (
+                <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="mt-2 text-sm text-gray-600">Enviando imagens...</p>
+                </div>
+            )}
+
             {value && value.length > 0 && !isUploading && (
                 <div className="mt-4">
                     <p className="text-sm text-gray-600">
@@ -120,6 +147,8 @@ const CampoImagem = ({ value, onChange }) => {
                     </p>
                 </div>
             )}
+
+            {modalUrl && <ModalImagem url={modalUrl} onClose={() => setModalUrl(null)} />}
         </div>
     );
 };

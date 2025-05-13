@@ -38,6 +38,10 @@ export default function Header() {
     navigate("/Perfil");
   };
 
+  const handleMessages = () => {
+    navigate("/messages");
+  };
+
   useEffect(() => {
   }, [user]);
 
@@ -89,7 +93,7 @@ export default function Header() {
                 <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handlePerfil}>
                   Meu Perfil
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer">
+                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handleMessages}>
                   Mensagens
                 </li>
                 <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handleLogout}>
@@ -106,10 +110,6 @@ export default function Header() {
           </button>
         </div>
       )}
-
-
-
-    
     </header>
   );
 }

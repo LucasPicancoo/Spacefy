@@ -10,6 +10,7 @@ import Dashboard from '../Pages/DashboardLocatario/Dashboard'
 import CadastrarEspaco from '../Pages/CadastrarEspaco.jsx/CadastrarEspaco'
 import EditarPerfilUsuario from '../Pages/Perfil_Usuario/EditarPerfilUsuario'
 import NotFound from '../Pages/NotFound/NotFound'
+import Messages from '../Pages/Messages/Messages'
 
 const AppRoutes = () => {
   return (
@@ -25,6 +26,7 @@ const AppRoutes = () => {
         <Route path="/Dashboard" element={<Dashboard />} />
         <Route path="/CadastrarEspaco" element={<CadastrarEspaco />} />
         <Route path="/EditarPerfilUsuario" element={<EditarPerfilUsuario />} />
+        <Route path="/messages" element={<Messages />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

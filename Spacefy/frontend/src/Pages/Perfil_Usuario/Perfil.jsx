@@ -3,6 +3,7 @@ import Header from "../../Components/Header/Header";
 import { FaHeart, FaStar, FaClock, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useUser } from "../../Contexts/userContext";
 import { useNavigate } from "react-router-dom";
+import BecomeRenterModal from "../../Components/Modal/BecomeRenterModal";
 
 const mockCards = [
   {
@@ -252,6 +253,7 @@ const Perfil = () => {
   const [ratedPage, setRatedPage] = useState(0);
   const [rentedPage, setRentedPage] = useState(0);
   const [favorites, setFavorites] = useState({});
+  const [isBecomeRenterModalOpen, setIsBecomeRenterModalOpen] = useState(false);
   const recentCarouselRef = useRef(null);
   const ratedCarouselRef = useRef(null);
   const rentedCarouselRef = useRef(null);
@@ -349,12 +351,20 @@ const Perfil = () => {
                   <p className="text-gray-600 text-sm">Usuário</p>
                 </div>
               </div>
-              <button 
-                onClick={() => navigate('/EditarPerfilUsuario')} 
-                className="w-full bg-[#00A3FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#0084CC] transition-colors cursor-pointer"
-              >
-                Editar Perfil
-              </button>
+              <div className="space-y-3">
+                <button 
+                  onClick={() => navigate('/EditarPerfilUsuario')} 
+                  className="w-full bg-[#00A3FF] text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#0084CC] transition-colors cursor-pointer"
+                >
+                  Editar Perfil
+                </button>
+                <button 
+                  onClick={() => setIsBecomeRenterModalOpen(true)} 
+                  className="w-full bg-white border-2 border-[#00A3FF] text-[#00A3FF] px-4 py-2 rounded-lg text-sm font-medium hover:bg-[#00A3FF] hover:text-white transition-colors cursor-pointer"
+                >
+                  Virar Locatário
+                </button>
+              </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-lg p-6">
@@ -611,6 +621,10 @@ const Perfil = () => {
           </section>
         </section>
       </main>
+      <BecomeRenterModal 
+        isOpen={isBecomeRenterModalOpen}
+        onClose={() => setIsBecomeRenterModalOpen(false)}
+      />
     </div>
   );
 };

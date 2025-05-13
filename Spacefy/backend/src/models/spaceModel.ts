@@ -2,12 +2,22 @@ import mongoose, { Schema } from "mongoose";
 import { ISpace } from "../types/space"; // ajusta o caminho conforme a estrutura do seu projeto
 import { ALLOWED_AMENITIES } from "../constants/amenities";
 import { ALLOWED_RULES } from "../constants/spaceRules";
+import { ALLOWED_SPACE_TYPES } from "../constants/spaceTypes";
 
 const SpaceSchema: Schema = new Schema({
   space_name: { type: String, required: true }, // Nome do espaço (obrigatório)
   max_people: { type: Number, required: true }, // Capacidade máxima de pessoas (obrigatório)
   location: { type: String, required: true }, // Localização do espaço (obrigatório)
-  space_type: { type: String, required: true }, // Tipo do espaço (obrigatório)
+  space_type: { 
+    type: String, 
+    required: true,
+    validate: {
+      validator: function(value: string) {
+        return ALLOWED_SPACE_TYPES.includes(value);
+      },
+      message: "Tipo de espaço inválido"
+    }
+  },
   space_description: { type: String, maxlength: 500 }, // Descrição do espaço (opcional, máximo de 500 caracteres)}, // Descrição do espaço (opcional)
   space_amenities: { 
     type: [String], 

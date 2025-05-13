@@ -31,4 +31,9 @@ export const spaceService = {
         return response.data;
     },
 
+    // Buscar espaços com filtros
+    async getSpacesWithFilters(params) {
+        const response = await api.get(`/spaces/getSpacesWithFilters?${params}`);
+        return response.data;
+    },
 };

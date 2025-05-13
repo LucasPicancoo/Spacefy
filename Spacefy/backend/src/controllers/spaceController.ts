@@ -54,7 +54,8 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
       min_people,
       amenities,
       space_rules,
-      week_days
+      week_days,
+      order_by
     } = req.query;
 
     // Construir o objeto de filtro
@@ -222,7 +223,27 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
     }
 
     // Limita o número máximo de resultados para evitar sobrecarga
-    const spaces = await SpaceModel.find(filter).limit(100);
+    let query = SpaceModel.find(filter).limit(100);
+
+    // Aplica a ordenação se especificada
+    if (order_by) {
+      switch (order_by) {
+        case 'asc':
+          query = query.sort({ price_per_hour: 1 });
+          break;
+        case 'desc':
+          query = query.sort({ price_per_hour: -1 });
+          break;
+        case 'recent':
+          query = query.sort({ createdAt: -1 });
+          break;
+        default:
+          // Ordenação padrão por relevância (pode ser ajustada conforme necessário)
+          query = query.sort({ rating: -1 });
+      }
+    }
+
+    const spaces = await query;
 
     if (!spaces || spaces.length === 0) {
       return res.status(404).json({ error: "Nenhum espaço encontrado com os filtros especificados" });

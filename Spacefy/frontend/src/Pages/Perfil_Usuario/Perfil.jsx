@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Header from "../../Components/Header/Header";
 import { FaHeart, FaStar, FaClock, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useUser } from "../../Contexts/userContext";
@@ -259,8 +259,14 @@ const Perfil = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useUser();
 
+  useEffect(() => {
+    if (!isLoggedIn) {
+      navigate("/NotFound");
+    }
+  }, [isLoggedIn, navigate]);
+
   if (!isLoggedIn) {
-    return <div>Você precisa estar logado para ver o perfil.</div>;
+    return null;
   }
 
   const formatPhoneNumber = (phoneNumber) => {

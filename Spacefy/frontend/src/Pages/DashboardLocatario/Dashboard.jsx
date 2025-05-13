@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SidebarDashboardLocatario from "../../Components/SidebarDashboardLocatario";
 import Header from "../../Components/Header/Header";
 import Dashboard_Home from "./Dashboard_Home";
@@ -6,10 +6,35 @@ import Dashboard_Reservas from "./Dashboard_Reservas";
 import Dashboard_Perfil from "./Dashboard_Perfil";
 import Dashboard_Mensagens from "./Dashboard_Mensagens";
 import Dashboard_Espaco from "./Dashboard_Espaco";
+import { useUser } from '../../Contexts/userContext';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const [paginaAtual, setPaginaAtual] = useState('Home');
   const [subEspacoSelecionado, setSubEspacoSelecionado] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const navigate = useNavigate();
+  const { isLoggedIn, user } = useUser();
+
+  useEffect(() => {
+    if (!isLoggedIn || user?.role !== "locatario") {
+      navigate("/NotFound");
+    }
+    setIsLoading(false);
+  }, [isLoggedIn, user?.role, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] flex items-center justify-center">
+        <div className="text-white text-xl">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn || user?.role !== "locatario") {
+    return null;
+  }
 
   const handlePageChange = (pagina, subEspacoIdx) => {
     setPaginaAtual(pagina);

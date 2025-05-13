@@ -1,0 +1,63 @@
+@keyframes floating {
+  0% {
+    transform: translateY(0px) rotate(0deg);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  25% {
+    transform: translateY(-15px) rotate(2deg);
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+  }
+  50% {
+    transform: translateY(0px) rotate(0deg);
+    text-shadow: 0 0 60px rgba(255, 255, 255, 0.7);
+  }
+  75% {
+    transform: translateY(15px) rotate(-2deg);
+    text-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
+  }
+  100% {
+    transform: translateY(0px) rotate(0deg);
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 20px rgba(30, 172, 227, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(0, 163, 255, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(30, 172, 227, 0.3);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.floating-404 {
+  animation: floating 6s ease-in-out infinite;
+  text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+  letter-spacing: 8px;
+}
+
+.glow-effect {
+  animation: glow 3s ease-in-out infinite;
+}
+
+.rotating-circle {
+  animation: rotate 10s linear infinite;
+  opacity: 0.3;
+}
+
+.rotating-circle-reverse {
+  animation: rotate 15s linear infinite reverse;
+  opacity: 0.2;
+} 

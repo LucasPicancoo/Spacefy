@@ -58,13 +58,13 @@ export default function Header() {
           Anunciar
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
         </button>
-        {/* {isTenant ? ( */}
-        <button onClick={() => navigate("/Dashboard")} className="relative group cursor-pointer">
-          Locatario
+        {isLoggedIn && user?.role === "locatario" && (
+          <button onClick={() => navigate("/Dashboard")} className="relative group cursor-pointer">
+            Locatario
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
         </button>
       
-        {/* ) : null} */}
+        )}
       </nav>
 
       {isLoggedIn ? (

@@ -158,6 +158,11 @@ const CadastrarEspaco = () => {
                 return;
             }
 
+            if (!formData.termos_aceitos) {
+                toast.error('Você precisa aceitar os termos e condições para continuar.');
+                return;
+            }
+
             if (!validarCamposObrigatorios() || !validarPreco() || !validarDocumentos() || !validarImagens()) {
                 return;
             }

@@ -38,8 +38,11 @@ export default function Header() {
     navigate("/Perfil");
   };
 
+  const handleMessages = () => {
+    navigate("/messages");
+  };
+
   useEffect(() => {
-    console.log(user); // Verifique se o nome está sendo atribuído corretamente
   }, [user]);
 
   return (
@@ -59,13 +62,13 @@ export default function Header() {
           Anunciar
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
         </button>
-        {/* {isTenant ? ( */}
-        <button onClick={() => navigate("/Dashboard")} className="relative group cursor-pointer">
-          Locatario
+        {isLoggedIn && user?.role === "locatario" && (
+          <button onClick={() => navigate("/Dashboard")} className="relative group cursor-pointer">
+            Locatario
           <span className="absolute left-0 bottom-0 w-full h-0.5 bg-[#1EACE3] scale-x-0 group-hover:scale-x-100 origin-left transition-all duration-300"></span>
         </button>
       
-        {/* ) : null} */}
+        )}
       </nav>
 
       {isLoggedIn ? (
@@ -90,7 +93,7 @@ export default function Header() {
                 <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handlePerfil}>
                   Meu Perfil
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer">
+                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handleMessages}>
                   Mensagens
                 </li>
                 <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handleLogout}>
@@ -107,10 +110,6 @@ export default function Header() {
           </button>
         </div>
       )}
-
-
-
-    
     </header>
   );
 }

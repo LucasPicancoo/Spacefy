@@ -38,6 +38,205 @@ export const getSpaceById = async (req: Request, res: Response) => {
   }
 };
 
+
+
+// Verificar como sera feito a busca por localizacao
+
+// Buscar espaços com filtros
+export const getSpacesWithFilters = async (req: Request, res: Response) => {
+  try {
+    const {
+      space_type,
+      min_price,
+      max_price,
+      min_area,
+      max_area,
+      min_people,
+      amenities,
+      space_rules,
+      week_days
+    } = req.query;
+
+    // Construir o objeto de filtro
+    const filter: any = {};
+
+    // Validação do tipo de espaço
+    if (space_type) {
+      if (typeof space_type !== 'string') {
+        return res.status(400).json({ error: "O tipo de espaço deve ser uma string" });
+      }
+      filter.space_type = space_type;
+    }
+
+    // Validação de preço
+    if (min_price || max_price) {
+      filter.price_per_hour = {};
+      
+      if (min_price) {
+        const minPriceNum = Number(min_price);
+        if (isNaN(minPriceNum) || minPriceNum < 0) {
+          return res.status(400).json({ error: "O preço mínimo deve ser um número positivo" });
+        }
+        filter.price_per_hour.$gte = minPriceNum;
+      }
+      
+      if (max_price) {
+        const maxPriceNum = Number(max_price);
+        if (isNaN(maxPriceNum) || maxPriceNum < 0) {
+          return res.status(400).json({ error: "O preço máximo deve ser um número positivo" });
+        }
+        if (min_price && maxPriceNum < Number(min_price)) {
+          return res.status(400).json({ error: "O preço máximo deve ser maior que o preço mínimo" });
+        }
+        filter.price_per_hour.$lte = maxPriceNum;
+      }
+    }
+
+    // Validação de área
+    if (min_area || max_area) {
+      filter.area = {};
+      
+      if (min_area) {
+        const minAreaNum = Number(min_area);
+        if (isNaN(minAreaNum) || minAreaNum < 0) {
+          return res.status(400).json({ error: "A área mínima deve ser um número positivo" });
+        }
+        filter.area.$gte = minAreaNum;
+      }
+      
+      if (max_area) {
+        const maxAreaNum = Number(max_area);
+        if (isNaN(maxAreaNum) || maxAreaNum < 0) {
+          return res.status(400).json({ error: "A área máxima deve ser um número positivo" });
+        }
+        if (min_area && maxAreaNum < Number(min_area)) {
+          return res.status(400).json({ error: "A área máxima deve ser maior que a área mínima" });
+        }
+        filter.area.$lte = maxAreaNum;
+      }
+    }
+
+    // Validação de número de pessoas
+    if (min_people) {
+      const minPeopleNum = Number(min_people);
+      if (isNaN(minPeopleNum) || minPeopleNum < 1) {
+        return res.status(400).json({ error: "O número mínimo de pessoas deve ser um número positivo maior que zero" });
+      }
+      filter.max_people = { $gte: minPeopleNum };
+    }
+
+    // Filtro por amenities
+    if (amenities) {
+      if (typeof amenities !== 'string') {
+        return res.status(400).json({ error: "As comodidades devem ser enviadas como uma string separada por vírgulas" });
+      }
+
+      // Converte a string de amenities em array, removendo espaços em branco
+      const amenitiesArray = String(amenities).split(',').map(amenity => amenity.trim());
+      
+      // Verifica se há amenities duplicadas
+      const uniqueAmenities = new Set(amenitiesArray);
+      if (uniqueAmenities.size !== amenitiesArray.length) {
+        return res.status(400).json({ error: "Comodidades duplicadas não são permitidas" });
+      }
+
+      // Verifica se todas as amenities solicitadas são permitidas
+      const invalidAmenities = amenitiesArray.filter(
+        amenity => !ALLOWED_AMENITIES.includes(amenity)
+      );
+
+      if (invalidAmenities.length > 0) {
+        return res.status(400).json({
+          error: "Comodidades inválidas encontradas",
+          invalidAmenities
+        });
+      }
+
+      // Adiciona o filtro para encontrar espaços que contenham TODAS as amenities solicitadas
+      filter.space_amenities = { $all: amenitiesArray };
+    }
+
+    // Filtro por regras do espaço
+    if (space_rules) {
+      if (typeof space_rules !== 'string') {
+        return res.status(400).json({ error: "As regras devem ser enviadas como uma string separada por vírgulas" });
+      }
+
+      // Converte a string de regras em array, removendo espaços em branco
+      const rulesArray = String(space_rules).split(',').map(rule => rule.trim());
+      
+      // Verifica se há regras duplicadas
+      const uniqueRules = new Set(rulesArray);
+      if (uniqueRules.size !== rulesArray.length) {
+        return res.status(400).json({ error: "Regras duplicadas não são permitidas" });
+      }
+
+      // Verifica se todas as regras solicitadas são permitidas
+      const invalidRules = rulesArray.filter(
+        rule => !ALLOWED_RULES.includes(rule)
+      );
+
+      if (invalidRules.length > 0) {
+        return res.status(400).json({
+          error: "Regras inválidas encontradas",
+          invalidRules
+        });
+      }
+
+      // Adiciona o filtro para encontrar espaços que contenham TODAS as regras solicitadas
+      filter.space_rules = { $all: rulesArray };
+    }
+
+    // Filtro por dias da semana
+    if (week_days) {
+      if (typeof week_days !== 'string') {
+        return res.status(400).json({ error: "Os dias da semana devem ser enviados como uma string separada por vírgulas" });
+      }
+
+      // Converte a string de dias em array, removendo espaços em branco
+      const daysArray = String(week_days).split(',').map(day => day.trim());
+      
+      // Verifica se há dias duplicados
+      const uniqueDays = new Set(daysArray);
+      if (uniqueDays.size !== daysArray.length) {
+        return res.status(400).json({ error: "Dias duplicados não são permitidos" });
+      }
+
+      // Lista de dias válidos
+      const validDays = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+      
+      // Verifica se todos os dias solicitados são válidos
+      const invalidDays = daysArray.filter(
+        day => !validDays.includes(day.toLowerCase())
+      );
+
+      if (invalidDays.length > 0) {
+        return res.status(400).json({
+          error: "Dias da semana inválidos encontrados",
+          invalidDays
+        });
+      }
+
+      // Adiciona o filtro para encontrar espaços que contenham TODOS os dias solicitados
+      filter.week_days = { $all: daysArray.map(day => day.toLowerCase()) };
+    }
+
+    // Limita o número máximo de resultados para evitar sobrecarga
+    const spaces = await SpaceModel.find(filter).limit(100);
+
+    if (!spaces || spaces.length === 0) {
+      return res.status(404).json({ error: "Nenhum espaço encontrado com os filtros especificados" });
+    }
+
+    return res.status(200).json(spaces);
+  } catch (error) {
+    console.error("Erro ao buscar espaços com filtros:", error);
+    return res.status(500).json({ error: "Erro ao buscar espaços com filtros" });
+  }
+};
+
+
+
 // Criar um novo espaço
 export const createSpace = async (req: Request, res: Response) => {
   try {

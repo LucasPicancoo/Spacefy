@@ -52,7 +52,7 @@ const SpaceSchema: Schema = new Schema({
   space_document_photo: { type: String, required: true }, // Foto do documento do espaço (obrigatório)
   owner_phone: { type: String, required: true }, // Telefone do proprietário (obrigatório)
   owner_email: { type: String, required: true },
-  image_url: { type: String, required: true }, // URL da imagem do espaço (obrigatório)
+  image_url: { type: [String], required: true }, // URL da imagem do espaço (obrigatório)
 });
 
 SpaceSchema.pre<ISpace>("save", async function (next) {
@@ -117,5 +117,6 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
 
   next();
 });
+
 
 export default mongoose.model<ISpace>("Space", SpaceSchema);

@@ -15,7 +15,6 @@ export function UserProvider({ children }) {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
-        console.log(decodedToken)
         setUser({ id: decodedToken.id, name: decodedToken.name, surname: decodedToken.surname, email: decodedToken.email, telephone: decodedToken.telephone, role: decodedToken.role });
         setIsLoggedIn(true);
       } catch (error) {

@@ -5,6 +5,7 @@ import {
   createSpace,
   updateSpace,
   deleteSpace,
+  getSpacesWithFilters,
 } from "../controllers/spaceController";
 import { validateAndGetTokenData } from "../middlewares/token";
 
@@ -15,6 +16,9 @@ spaceRouter.get("/getAllSpaces", getAllSpaces);
 
 // Rota para obter um espaço por ID
 spaceRouter.get("/getSpaceById/:id", getSpaceById);
+
+// Rota para buscar espaços com filtros
+spaceRouter.get("/getSpacesWithFilters", getSpacesWithFilters);
 
 // Rota para criar um novo espaço
 spaceRouter.post("/createSpace", validateAndGetTokenData, createSpace);

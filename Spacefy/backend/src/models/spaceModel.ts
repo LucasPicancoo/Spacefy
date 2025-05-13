@@ -118,4 +118,5 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
   next();
 });
 
+
 export default mongoose.model<ISpace>("Space", SpaceSchema);

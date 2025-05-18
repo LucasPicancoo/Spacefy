@@ -1,10 +1,10 @@
-import express from "express";
+import express, { Router } from "express";
 import { registerViewHistory, getViewHistoryByUser } from "../controllers/viewhistoryController";
 
-const viewHistoryRouter = express.Router();
+const viewHistoryRouter: Router = express.Router();
 
 // Rota para registrar uma visualização de espaço por usuário
-viewHistoryRouter.post("/register", registerViewHistory);
+viewHistoryRouter.post("/view", registerViewHistory);
 
 // Rota para Retorna todos os espaços visualizados por um usuário
 viewHistoryRouter.get("/user/:user_id", getViewHistoryByUser);

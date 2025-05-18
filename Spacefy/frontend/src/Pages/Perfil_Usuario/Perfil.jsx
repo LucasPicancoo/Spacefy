@@ -4,6 +4,7 @@ import { FaHeart, FaStar, FaClock, FaChevronLeft, FaChevronRight } from "react-i
 import { useUser } from "../../Contexts/userContext";
 import { useNavigate } from "react-router-dom";
 import BecomeRenterModal from "../../Components/Modal/BecomeRenterModal";
+import { userService } from "../../services/userService";
 
 const mockCards = [
   {
@@ -253,6 +254,7 @@ const Perfil = () => {
   const [ratedPage, setRatedPage] = useState(0);
   const [rentedPage, setRentedPage] = useState(0);
   const [favorites, setFavorites] = useState({});
+  const [favoriteSpaces, setFavoriteSpaces] = useState([]);
   const [isBecomeRenterModalOpen, setIsBecomeRenterModalOpen] = useState(false);
   const recentCarouselRef = useRef(null);
   const ratedCarouselRef = useRef(null);
@@ -266,6 +268,21 @@ const Perfil = () => {
       navigate("/NotFound");
     }
   }, [isLoggedIn, navigate]);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      try {
+        const response = await userService.getFavoriteSpaces(user.id);
+        setFavoriteSpaces(response);
+      } catch (error) {
+        console.error("Erro ao buscar favoritos:", error);
+      }
+    };
+
+    if (user?.id) {
+      fetchFavorites();
+    }
+  }, [user?.id]);
 
   if (!isLoggedIn) {
     return null;
@@ -333,11 +350,17 @@ const Perfil = () => {
     }
   };
 
-  const handleFavorite = (itemId) => {
-    setFavorites(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }));
+  const handleFavorite = async (spaceId) => {
+    try {
+      const response = await userService.toggleFavoriteSpace(user.id, spaceId);
+      if (response) {
+        // Atualiza a lista de favoritos após a mudança
+        const updatedFavorites = await userService.getFavoriteSpaces(user.id);
+        setFavoriteSpaces(updatedFavorites);
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar favorito:", error);
+    }
   };
 
   return (
@@ -485,36 +508,39 @@ const Perfil = () => {
                     scrollPadding: '0 16px',
                   }}
                 >
-                  {mockCards.map((card) => (
+                  {favoriteSpaces.map((favorite) => (
                     <div 
-                      key={card.id} 
-                      className="min-w-[250px] bg-white rounded-lg shadow-lg overflow-hidden flex-shrink-0"
+                      key={favorite._id} 
+                      className="min-w-[250px] bg-white rounded-lg shadow-lg overflow-hidden flex-shrink-0 cursor-pointer"
                       style={{ scrollSnapAlign: 'start' }}
+                      onClick={() => navigate(`/espaco/${favorite.spaceId._id}`)}
                     >
                       <div className="relative">
-                        <img src={card.imagem} alt={card.titulo} className="w-full h-40 object-cover" />
+                        <img 
+                          src={favorite.spaceId.image_url[0]} 
+                          alt={favorite.spaceId.space_name} 
+                          className="w-full h-40 object-cover" 
+                        />
                         <button 
-                          onClick={() => handleFavorite(card.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFavorite(favorite.spaceId._id);
+                          }}
                           className="absolute top-4 right-4 transition-colors"
                         >
-                          <FaHeart className={`text-xl ${favorites[card.id] ? 'text-red-500' : 'text-white'} hover:text-red-500 transition-colors`} />
+                          <FaHeart className="text-xl text-red-500 hover:text-red-600 transition-colors" />
                         </button>
                       </div>
                       <div className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <h3 className="text-xl font-semibold">{card.titulo}</h3>
-                            <p className="text-gray-600 text-sm">{card.cidade}</p>
-                            <p className="text-gray-500 text-xs">{card.endereco}</p>
-                          </div>
-                          <div className="flex items-center">
-                            <FaStar className="text-yellow-400 mr-1" />
-                            <span className="font-semibold">{card.nota}</span>
+                            <h3 className="text-xl font-semibold">{favorite.spaceId.space_name}</h3>
+                            <p className="text-gray-600 text-sm">{favorite.spaceId.location}</p>
                           </div>
                         </div>
                         <div className="flex justify-between items-center mt-4">
                           <div>
-                            <p className="text-[#00A3FF] font-bold">{card.preco}</p>
+                            <p className="text-[#00A3FF] font-bold">R$ {favorite.spaceId.price_per_hour}</p>
                             <p className="text-gray-500 text-xs">por hora</p>
                           </div>
                           <div className="flex items-center text-gray-500 text-sm">
@@ -535,7 +561,7 @@ const Perfil = () => {
                     <FaChevronLeft className="text-lg" />
                   </button>
                 )}
-                {ratedPage < Math.ceil(mockCards.length / Math.floor(ratedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && (
+                {ratedPage < Math.ceil(favoriteSpaces.length / Math.floor(ratedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && (
                   <button 
                     onClick={() => scrollRatedCarousel('next')}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"

@@ -2,6 +2,9 @@ import { Request, Response } from "express";
 import UserModel from "../models/userModel";
 import mongoose from "mongoose";
 import { hash } from "../middlewares/hashManager";
+import FavoriteModel from "../models/favoriteModel";
+import { IPopulatedFavorite } from "../types/favorite";
+import "../models/spaceModel"; // Importando o modelo de espaço para o populate funcionar
 // Deixando aqui algumas importações caso necessário
 // import { ObjectId } from "mongoose";
 // import { IBaseUser } from "../types/user";
@@ -152,33 +155,30 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "ID inválido." });
     }
 
-    // 4. Encontra o usuário
+    // 4. Verifica se o usuário existe
     const user = await UserModel.findById(userId);
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });
     }
-    // 5. Verifica se o espaço já está nos favoritos
-    const alreadyFavorited = (user.favorites ?? []).some(
-      (id) => id.toString() === spaceId
-    );
 
-    // 6. Adiciona ou remove dos favoritos
-    if (alreadyFavorited) {
-      user.favorites = (user.favorites ?? []).filter(
-        (id) => id.toString() !== spaceId
-      );
+    // 5. Verifica se o favorito já existe
+    const existingFavorite = await FavoriteModel.findOne({ userId, spaceId });
+
+    if (existingFavorite) {
+      // Remove o favorito
+      await FavoriteModel.deleteOne({ userId, spaceId });
+      return res.status(200).json({
+        message: "Espaço removido dos favoritos.",
+        isFavorited: false
+      });
     } else {
-      user.favorites = [...(user.favorites ?? []), spaceId];
+      // Adiciona o favorito
+      await FavoriteModel.create({ userId, spaceId });
+      return res.status(200).json({
+        message: "Espaço adicionado aos favoritos.",
+        isFavorited: true
+      });
     }
-
-    await user.save();
-
-    return res.status(200).json({
-      message: alreadyFavorited
-        ? "Espaço removido dos favoritos."
-        : "Espaço adicionado aos favoritos.",
-      favorites: user.favorites,
-    });
   } catch (error) {
     console.error("Erro ao favoritar/desfavoritar espaço:", error);
     return res
@@ -186,6 +186,35 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
       .json({ error: "Erro interno ao atualizar favoritos." });
   }
 };
+
+export const getUserFavorites = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  try {
+    // 1. Verifica se o usuário tem permissão
+    if (req.auth?.role !== "usuario") {
+      return res.status(403).json({
+        error: "Apenas usuários podem ver seus favoritos.",
+      });
+    }
+
+    // 2. Verifica se userId é um ObjectId válido
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "ID inválido." });
+    }
+
+    // 3. Busca os favoritos do usuário
+    const favorites = await FavoriteModel.find({ userId })
+      .populate<{ spaceId: IPopulatedFavorite['spaceId'] }>("spaceId", "name description images")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json(favorites);
+  } catch (error) {
+    console.error("Erro ao buscar favoritos:", error);
+    return res.status(500).json({ error: "Erro interno ao buscar favoritos." });
+  }
+};
+
 // Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {

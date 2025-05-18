@@ -19,14 +19,7 @@ const UserSchema: Schema = new Schema({
     required: function (this: any) {
       return this.role === "locatario";
     },
-  },
-  favorites: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "space", // Substitua se seu model tiver outro nome
-      default: [], // Inicializa como um array vazio
-    },
-  ],
+  }
 });
 
 UserSchema.pre<IBaseUser>("save", async function (this: any, next) {

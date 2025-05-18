@@ -1,25 +1,29 @@
 import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import cors from "cors";
+
 import userRouter from "./routes/userRoutes";
 import spaceRouter from "./routes/spaceRoutes";
 import authRoutes from "./routes/authRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import viewHistoryRouter from "./routes/viewhistoryRoutes";
-import cors from "cors";
-
+import rentalRoutes from "./routes/rentalRoutes"; // ✅ Importação adicionada
 
 dotenv.config();
 
 const app = express();
 
 app.use(cors());
-app.use(express.json()); // Middleware para JSON
-app.use("/users", userRouter); // Rotas de usuários
-app.use("/spaces", spaceRouter); // Rotas de espaços
-app.use("/auth", authRoutes); // Rotas de autenticação
-app.use("/payments", paymentRoutes);// Rotas de Pagamento Seguro
+app.use(express.json());
+
+// Rotas
+app.use("/users", userRouter);
+app.use("/spaces", spaceRouter);
+app.use("/auth", authRoutes);
+app.use("/payments", paymentRoutes);
 app.use("/view-history", viewHistoryRouter);
+app.use("/rentals", rentalRoutes); // ✅ Rota de aluguéis adicionada
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;

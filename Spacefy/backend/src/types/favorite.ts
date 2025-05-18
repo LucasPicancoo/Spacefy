@@ -17,6 +17,5 @@ export interface IPopulatedFavorite extends Omit<IFavorite, 'spaceId'> {
     image_url: string[];
     price_per_hour: number;
     location: string;
-    max_people: number;
   };
 } 

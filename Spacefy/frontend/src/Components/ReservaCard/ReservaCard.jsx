@@ -4,6 +4,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale, setDefaultLocale } from "react-datepicker";
 import ptBR from 'date-fns/locale/pt-BR';
 import { useNavigate } from "react-router-dom";
+import { rentalService } from "../../services/rentalService";
+import { toast } from 'react-toastify';
+import { useUser } from "../../Contexts/userContext";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
@@ -15,27 +18,10 @@ function ReservaCard({ space }) {
     const [checkOutTime, setCheckOutTime] = useState(null);
     const [totalHours, setTotalHours] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
-    const [numberOfPeople, setNumberOfPeople] = useState(1);
-    const [isPeopleDropdownOpen, setIsPeopleDropdownOpen] = useState(false);
-    const [isCustomInputOpen, setIsCustomInputOpen] = useState(false);
-    const [customNumber, setCustomNumber] = useState('');
-    const dropdownRef = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const { user, isLoggedIn } = useUser();
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsPeopleDropdownOpen(false);
-                setIsCustomInputOpen(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('pt-BR', {
@@ -101,13 +87,55 @@ function ReservaCard({ space }) {
         }
     };
 
-    const handleCustomNumberSubmit = (e) => {
-        e.preventDefault();
-        const num = parseInt(customNumber);
-        if (num > 5) {
-            setNumberOfPeople(num);
-            setIsCustomInputOpen(false);
-            setCustomNumber('');
+    const handleRental = async () => {
+        try {
+            if (!checkInDate || !checkOutDate || !checkInTime || !checkOutTime) {
+                toast.error('Por favor, preencha todas as datas e horários');
+                return;
+            }
+
+            // Verificar se o usuário está logado usando o contexto
+            if (!isLoggedIn || !user) {
+                toast.error('Você precisa estar logado para fazer uma reserva');
+                navigate('/login');
+                return;
+            }
+
+            setIsLoading(true);
+
+            // Formatar as datas para o formato esperado pelo backend (YYYY-MM-DD)
+            const formatDate = (date) => {
+                return date.toISOString().split('T')[0];
+            };
+
+            // Formatar os horários para o formato HH:mm
+            const formatTime = (time) => {
+                return time.toTimeString().slice(0, 5);
+            };
+
+            const rentalData = {
+                userId: user.id,
+                spaceId: space._id,
+                start_date: formatDate(checkInDate),
+                end_date: formatDate(checkOutDate),
+                startTime: formatTime(checkInTime),
+                endTime: formatTime(checkOutTime),
+                value: totalPrice
+            };
+
+            await rentalService.createRental(rentalData);
+            toast.success('Reserva realizada com sucesso!');
+            
+            // Limpar os campos após o sucesso
+            setCheckInDate(null);
+            setCheckOutDate(null);
+            setCheckInTime(null);
+            setCheckOutTime(null);
+            
+        } catch (error) {
+            toast.error(error.message || 'Erro ao realizar a reserva');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -169,7 +197,7 @@ function ReservaCard({ space }) {
                     </div>
 
                     {/* Check-out */}
-                    <div className="p-2 border-b border-gray-200">
+                    <div className="p-2">
                         <div className="grid grid-cols-[60%_40%] gap-4">
                             <div>
                                 <div className="text-[#696868] font-medium text-lg mb-1">Check-out</div>
@@ -200,75 +228,6 @@ function ReservaCard({ space }) {
                             </div>
                         </div>
                     </div>
-
-                    {/* Pessoas */}
-                    <div className="p-4 relative">
-                        <div className="flex justify-between items-center">
-                            <div className="text-gray-600 text-lg">Pessoas:</div>
-                            <div className="relative" ref={dropdownRef}>
-                                <button 
-                                    onClick={() => setIsPeopleDropdownOpen(!isPeopleDropdownOpen)}
-                                    className="flex items-center text-gray-900 text-lg font-medium hover:text-[#00A3FF] transition-colors cursor-pointer"
-                                >
-                                    {numberOfPeople} {numberOfPeople === 1 ? 'pessoa' : 'pessoas'}
-                                    <svg 
-                                        className={`w-5 h-5 ml-2 transition-transform duration-300 ${isPeopleDropdownOpen ? 'rotate-180' : ''}`} 
-                                        viewBox="0 0 20 20" 
-                                        fill="currentColor"
-                                    >
-                                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                                    </svg>
-                                </button>
-                                
-                                {isPeopleDropdownOpen && (
-                                    <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                                        {[1, 2, 3, 4, 5].map((num) => (
-                                            <button
-                                                key={num}
-                                                onClick={() => {
-                                                    setNumberOfPeople(num);
-                                                    setIsPeopleDropdownOpen(false);
-                                                }}
-                                                className={`w-full px-4 py-2 text-left hover:bg-gray-100 transition-colors cursor-pointer ${
-                                                    numberOfPeople === num ? 'text-[#00A3FF] font-medium' : 'text-gray-700'
-                                                }`}
-                                            >
-                                                {num} {num === 1 ? 'pessoa' : 'pessoas'}
-                                            </button>
-                                        ))}
-                                        <div className="border-t border-gray-200">
-                                            {isCustomInputOpen ? (
-                                                <form onSubmit={handleCustomNumberSubmit} className="p-2">
-                                                    <input
-                                                        type="number"
-                                                        min="6"
-                                                        value={customNumber}
-                                                        onChange={(e) => setCustomNumber(e.target.value)}
-                                                        placeholder="Número de pessoas"
-                                                        className="w-full px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-[#00A3FF]"
-                                                        autoFocus
-                                                    />
-                                                    <button
-                                                        type="submit"
-                                                        className="w-full mt-2 px-2 py-1 bg-[#00A3FF] text-white rounded hover:bg-[#0088FF] transition-colors"
-                                                    >
-                                                        Confirmar
-                                                    </button>
-                                                </form>
-                                            ) : (
-                                                <button
-                                                    onClick={() => setIsCustomInputOpen(true)}
-                                                    className="w-full px-4 py-2 text-left text-[#00A3FF] hover:bg-gray-100 transition-colors cursor-pointer"
-                                                >
-                                                    Personalizado
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <div className="mt-6">
@@ -288,8 +247,16 @@ function ReservaCard({ space }) {
                             </>
                         )}
                     </div>
-                    <button className="w-full bg-[#00A3FF] text-white font-bold py-3 rounded-lg hover:bg-[#0088FF] transition-colors cursor-pointer">
-                        Alugar
+                    <button 
+                        onClick={handleRental}
+                        disabled={isLoading || !checkInDate || !checkOutDate || !checkInTime || !checkOutTime}
+                        className={`w-full font-bold py-3 rounded-lg transition-colors cursor-pointer ${
+                            isLoading || !checkInDate || !checkOutDate || !checkInTime || !checkOutTime
+                            ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                            : 'bg-[#00A3FF] text-white hover:bg-[#0088FF]'
+                        }`}
+                    >
+                        {isLoading ? 'Processando...' : 'Alugar'}
                     </button>
                 </div>
             </div>

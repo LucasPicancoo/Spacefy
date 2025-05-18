@@ -21,5 +21,5 @@ const FavoriteSchema: Schema = new Schema({
 // Índice composto para garantir que um usuário não possa favoritar o mesmo espaço mais de uma vez
 FavoriteSchema.index({ userId: 1, spaceId: 1 }, { unique: true });
 
-export default mongoose.model<IFavorite>("favorite", FavoriteSchema);
-export const FavoriteModel = model<IFavorite>("Favorite", FavoriteSchema); 
+const FavoriteModel = model<IFavorite>("favorite", FavoriteSchema);
+export default FavoriteModel; 

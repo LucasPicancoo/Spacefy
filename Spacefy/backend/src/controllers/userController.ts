@@ -195,7 +195,7 @@ export const getUserFavorites = async (req: Request, res: Response) => {
     }
 
     const favorites = await FavoriteModel.find({ userId })
-      .populate<{ spaceId: IPopulatedFavorite['spaceId'] }>("spaceId", "name description images")
+      .populate<{ spaceId: IPopulatedFavorite['spaceId'] }>("spaceId", "space_name image_url price_per_hour location")
       .sort({ createdAt: -1 });
 
     return res.status(200).json(favorites);

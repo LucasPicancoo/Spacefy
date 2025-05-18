@@ -13,8 +13,9 @@ export interface IFavorite extends Document {
 export interface IPopulatedFavorite extends Omit<IFavorite, 'spaceId'> {
   spaceId: {
     _id: mongoose.Types.ObjectId;
-    name: string;
-    description: string;
-    images: string[];
+    space_name: string;
+    image_url: string[];
+    price_per_hour: number;
+    location: string;
   };
 } 

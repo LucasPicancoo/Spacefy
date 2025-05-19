@@ -5,250 +5,8 @@ import { useUser } from "../../Contexts/userContext";
 import { useNavigate } from "react-router-dom";
 import BecomeRenterModal from "../../Components/Modal/BecomeRenterModal";
 import { userService } from "../../services/userService";
+import { rentalService } from "../../services/rentalService";
 import SpaceCard from "../../Components/SpaceCard/SpaceCard";
-
-const mockCards = [
-  {
-    id: 1,
-    titulo: "Porto Belo",
-    cidade: "Muriaé - MG",
-    endereco: "Rua Leonídio Valentim Ferreira",
-    preco: "R$ 2.000",
-    area: "200 m²",
-    nota: 4.8,
-    avaliacoes: 268,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 2,
-    titulo: "Palácio de Cristal",
-    cidade: "Petrópolis - RJ",
-    endereco: "Rua Alfredo Pachá",
-    preco: "R$ 3.500",
-    area: "350 m²",
-    nota: 4.9,
-    avaliacoes: 312,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 3,
-    titulo: "Vila Mariana",
-    cidade: "São Paulo - SP",
-    endereco: "Rua Joaquim Távora",
-    preco: "R$ 2.800",
-    area: "280 m²",
-    nota: 4.7,
-    avaliacoes: 189,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 4,
-    titulo: "Centro Cultural",
-    cidade: "Belo Horizonte - MG",
-    endereco: "Avenida Afonso Pena",
-    preco: "R$ 1.800",
-    area: "250 m²",
-    nota: 4.6,
-    avaliacoes: 156,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 5,
-    titulo: "Espaço Moderno",
-    cidade: "Curitiba - PR",
-    endereco: "Rua XV de Novembro",
-    preco: "R$ 2.200",
-    area: "300 m²",
-    nota: 4.5,
-    avaliacoes: 234,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 6,
-    titulo: "Salão Nobre",
-    cidade: "Porto Alegre - RS",
-    endereco: "Avenida Borges de Medeiros",
-    preco: "R$ 2.500",
-    area: "320 m²",
-    nota: 4.8,
-    avaliacoes: 178,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 7,
-    titulo: "Centro de Eventos",
-    cidade: "Salvador - BA",
-    endereco: "Avenida Tancredo Neves",
-    preco: "R$ 3.000",
-    area: "400 m²",
-    nota: 4.7,
-    avaliacoes: 245,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 8,
-    titulo: "Espaço Premium",
-    cidade: "Recife - PE",
-    endereco: "Rua do Sol",
-    preco: "R$ 2.700",
-    area: "280 m²",
-    nota: 4.9,
-    avaliacoes: 198,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 9,
-    titulo: "Salão de Festas",
-    cidade: "Fortaleza - CE",
-    endereco: "Avenida Beira Mar",
-    preco: "R$ 2.300",
-    area: "260 m²",
-    nota: 4.6,
-    avaliacoes: 167,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 10,
-    titulo: "Centro de Convenções",
-    cidade: "Brasília - DF",
-    endereco: "Setor de Clubes Esportivos",
-    preco: "R$ 3.200",
-    area: "380 m²",
-    nota: 4.8,
-    avaliacoes: 289,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 11,
-    titulo: "Porto Belo",
-    cidade: "Muriaé - MG",
-    endereco: "Rua Leonídio Valentim Ferreira",
-    preco: "R$ 2.000",
-    area: "200 m²",
-    nota: 4.8,
-    avaliacoes: 268,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 12,
-    titulo: "Palácio de Cristal",
-    cidade: "Petrópolis - RJ",
-    endereco: "Rua Alfredo Pachá",
-    preco: "R$ 3.500",
-    area: "350 m²",
-    nota: 4.9,
-    avaliacoes: 312,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 13,
-    titulo: "Vila Mariana",
-    cidade: "São Paulo - SP",
-    endereco: "Rua Joaquim Távora",
-    preco: "R$ 2.800",
-    area: "280 m²",
-    nota: 4.7,
-    avaliacoes: 189,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 14,
-    titulo: "Centro Cultural",
-    cidade: "Belo Horizonte - MG",
-    endereco: "Avenida Afonso Pena",
-    preco: "R$ 1.800",
-    area: "250 m²",
-    nota: 4.6,
-    avaliacoes: 156,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 15,
-    titulo: "Espaço Moderno",
-    cidade: "Curitiba - PR",
-    endereco: "Rua XV de Novembro",
-    preco: "R$ 2.200",
-    area: "300 m²",
-    nota: 4.5,
-    avaliacoes: 234,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 16,
-    titulo: "Salão Nobre",
-    cidade: "Porto Alegre - RS",
-    endereco: "Avenida Borges de Medeiros",
-    preco: "R$ 2.500",
-    area: "320 m²",
-    nota: 4.8,
-    avaliacoes: 178,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 17,
-    titulo: "Centro de Eventos",
-    cidade: "Salvador - BA",
-    endereco: "Avenida Tancredo Neves",
-    preco: "R$ 3.000",
-    area: "400 m²",
-    nota: 4.7,
-    avaliacoes: 245,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 18,
-    titulo: "Espaço Premium",
-    cidade: "Recife - PE",
-    endereco: "Rua do Sol",
-    preco: "R$ 2.700",
-    area: "280 m²",
-    nota: 4.9,
-    avaliacoes: 198,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 19,
-    titulo: "Salão de Festas",
-    cidade: "Fortaleza - CE",
-    endereco: "Avenida Beira Mar",
-    preco: "R$ 2.300",
-    area: "260 m²",
-    nota: 4.6,
-    avaliacoes: 167,
-    favorito: false,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  },
-  {
-    id: 20,
-    titulo: "Centro de Convenções",
-    cidade: "Brasília - DF",
-    endereco: "Setor de Clubes Esportivos",
-    preco: "R$ 3.200",
-    area: "380 m²",
-    nota: 4.8,
-    avaliacoes: 289,
-    favorito: true,
-    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=400&q=80",
-  }
-];
 
 const Perfil = () => {
   const [currentPage, setCurrentPage] = useState(0);
@@ -257,6 +15,7 @@ const Perfil = () => {
   const [favorites, setFavorites] = useState({});
   const [favoriteSpaces, setFavoriteSpaces] = useState([]);
   const [viewHistory, setViewHistory] = useState([]);
+  const [userRentals, setUserRentals] = useState([]);
   const [isBecomeRenterModalOpen, setIsBecomeRenterModalOpen] = useState(false);
   const recentCarouselRef = useRef(null);
   const ratedCarouselRef = useRef(null);
@@ -290,9 +49,20 @@ const Perfil = () => {
       }
     };
 
+    const fetchUserRentals = async () => {
+      try {
+        const response = await rentalService.getRentalsByUserID(user.id);
+        setUserRentals(response || []);
+      } catch (error) {
+        console.error("Erro ao buscar aluguéis do usuário:", error);
+        setUserRentals([]);
+      }
+    };
+
     if (user?.id) {
       fetchFavorites();
       fetchViewHistory();
+      fetchUserRentals();
     }
   }, [user?.id]);
 
@@ -539,17 +309,34 @@ const Perfil = () => {
                     scrollPadding: '0 16px',
                   }}
                 >
-                  {mockCards.map((card) => (
-                    <SpaceCard
-                      key={card.id}
-                      space={card}
-                      onFavoriteClick={handleFavorite}
-                      isFavorite={favorites[card.id]}
-                    />
-                  ))}
+                  {userRentals && userRentals.length > 0 ? (
+                    userRentals.map((rental) => {
+                      if (!rental.space) {
+                        return null;
+                      }
+                      return (
+                        <SpaceCard
+                          key={rental._id}
+                          space={{
+                            _id: rental.space._id,
+                            space_name: rental.space.space_name,
+                            location: rental.space.location,
+                            price_per_hour: rental.space.price_per_hour,
+                            image_url: rental.space.image_url,
+                            nota: rental.space.nota || 4.8,
+                            avaliacoes: rental.space.avaliacoes || 0
+                          }}
+                          onFavoriteClick={handleFavorite}
+                          isFavorite={favorites[rental.space._id]}
+                        />
+                      );
+                    }).filter(Boolean)
+                  ) : (
+                    <div className="text-gray-500 text-sm px-4">Você ainda não alugou nenhum espaço.</div>
+                  )}
                 </div>
                 {/* Botões de navegação */}
-                {rentedPage > 0 && (
+                {rentedPage > 0 && userRentals && userRentals.length > 0 && (
                   <button 
                     onClick={() => scrollRentedCarousel('prev')}
                     className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 ml-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
@@ -557,7 +344,7 @@ const Perfil = () => {
                     <FaChevronLeft className="text-lg" />
                   </button>
                 )}
-                {rentedPage < Math.ceil(mockCards.length / Math.floor(rentedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && (
+                {rentedPage < Math.ceil((userRentals?.length || 0) / Math.floor(rentedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && userRentals && userRentals.length > 0 && (
                   <button 
                     onClick={() => scrollRentedCarousel('next')}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"

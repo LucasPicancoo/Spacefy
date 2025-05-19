@@ -13,7 +13,7 @@ export const rentalService = {
         }
     },
 
-    getRentalsByUser: async (userId) => {
+    getRentalsByUserID: async (userId) => {
         try {
             const response = await api.get(`/rentals/user/${userId}`);
             return response.data;

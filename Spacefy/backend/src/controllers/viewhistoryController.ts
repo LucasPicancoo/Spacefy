@@ -29,7 +29,22 @@ export const registerViewHistory = async (req: Request, res: Response) => {
       });
     }
 
-    // Se não existe, cria uma nova visualização
+    // Contar quantas visualizações o usuário já tem
+    const viewCount = await viewhistoryModel.countDocuments({ user_id });
+
+    // Se já tem 10 visualizações, remove a mais antiga
+    if (viewCount >= 10) {
+      const oldestView = await viewhistoryModel
+        .findOne({ user_id })
+        .sort({ viewed_at: 1 })
+        .limit(1);
+
+      if (oldestView) {
+        await viewhistoryModel.deleteOne({ _id: oldestView._id });
+      }
+    }
+
+    // Cria uma nova visualização
     const newViewHistory = new viewhistoryModel({ user_id, space_id });
     await newViewHistory.save();
 
@@ -53,7 +68,7 @@ export const getViewHistoryByUser = async (req: Request, res: Response) => {
     }
 
     // Converter limit e page para número (com fallback)
-    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50); // Máximo de 50 registros
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 10); // Máximo de 10 registros
     const page = Math.max(parseInt(req.query.page as string) || 1, 1); // Mínimo de 1
     const sort = (req.query.sort as string) || "-viewed_at"; // Ordenação padrão: mais recente primeiro
 

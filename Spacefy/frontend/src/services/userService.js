@@ -14,4 +14,19 @@ export const userService = {
         return response.data; // Retorna a lista de espaços favoritados
     },
 
+    // Registrar uma visualização de espaço
+    async registerSpaceView(userId, spaceId) {
+        const response = await api.post('/view-history/view', {
+            user_id: userId,
+            space_id: spaceId
+        });
+        return response.data;
+    },
+
+    // Buscar histórico de visualizações do usuário
+    async getViewHistory(userId) {
+        const response = await api.get(`/view-history/user/${userId}`);
+        return response.data;
+    },
+
 };

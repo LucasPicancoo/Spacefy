@@ -176,7 +176,7 @@ export const getRentalsByUser = async (req: Request, res: Response) => {
     }
 
     const rentals = await RentalModel.find({ user: userId })
-      .populate("space", "name location");
+      .populate("space", "space_name image_url price_per_hour location");
 
     return res.status(200).json(rentals);
   } catch (error) {

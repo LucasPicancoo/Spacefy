@@ -81,7 +81,7 @@ export const getViewHistoryByUser = async (req: Request, res: Response) => {
       .sort(sort)
       .limit(limit)
       .skip((page - 1) * limit)
-      .populate("space_id");
+      .populate("space_id", "space_name image_url price_per_hour location");
 
     res.status(200).json({
       data: history,

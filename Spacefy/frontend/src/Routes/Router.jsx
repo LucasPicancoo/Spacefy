@@ -11,7 +11,7 @@ import CadastrarEspaco from '../Pages/CadastrarEspaco.jsx/CadastrarEspaco'
 import EditarPerfilUsuario from '../Pages/Perfil_Usuario/EditarPerfilUsuario'
 import NotFound from '../Pages/NotFound/NotFound'
 import Messages from '../Pages/Messages/Messages'
-
+import Reservas from '../Pages/Reservas/Reservas'
 const AppRoutes = () => {
   return (
     <Router>
@@ -27,6 +27,7 @@ const AppRoutes = () => {
         <Route path="/CadastrarEspaco" element={<CadastrarEspaco />} />
         <Route path="/EditarPerfilUsuario" element={<EditarPerfilUsuario />} />
         <Route path="/messages" element={<Messages />} />
+        <Route path="/reservas" element={<Reservas />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

@@ -34,14 +34,6 @@ export default function Header() {
     navigate("/"); // Redirecionamento após logout
   };
 
-  const handlePerfil = () => {
-    navigate("/Perfil");
-  };
-
-  const handleMessages = () => {
-    navigate("/messages");
-  };
-
   useEffect(() => {
   }, [user]);
 
@@ -90,10 +82,13 @@ export default function Header() {
               style={{ top: "calc(50% + 10px)", right: "0.5rem" }}
             >
               <ul className="text-gray-700">
-                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handlePerfil}>
+                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={() => navigate("/Perfil")}>
                   Meu Perfil
                 </li>
-                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handleMessages}>
+                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={() => navigate("/Reservas")}>
+                  Minhas Reservas
+                </li>
+                <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={() => navigate("/messages")}>
                   Mensagens
                 </li>
                 <li className="px-4 py-2 hover:bg-gray-200 rounded-md cursor-pointer" onClick={handleLogout}>

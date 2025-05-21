@@ -1,49 +1,46 @@
 import mongoose, { Schema } from "mongoose";
-import { IAssessment } from "../types/assessment"; // importa o tipo
+import { IAssessment } from "../types/assessment";
 
-const AssessmentSchema: Schema = new Schema({
-  id_avaliacao: { type: Number, required: true, unique: true },
-  nota: { type: Number, required: true, min: 1, max: 5 },
-  comentario: { type: String, maxlength: 250 },
-  data_avaliacao: { type: Date, required: true, default: Date.now },
-  id_usuario: { type: Number, required: true },
-  id_espaco: { type: Number, required: true },
-  score: { 
-    type: Number, 
-    required: true, 
-    min: 1, 
-    max: 5 
-  }, // Nota da avaliação (obrigatória, entre 1 e 5)
-
-  comment: { 
-    type: String, 
-    maxlength: 500 
-  }, // Comentário opcional (máximo de 500 caracteres)
-
-  evaluation_date: { 
-    type: Date, 
-    required: true, 
-    default: Date.now 
-  }, // Data da avaliação (obrigatória, padrão: data atual)
-
-  user_id: { 
-    type: mongoose.Types.ObjectId, 
-    required: true 
-  }, // ID do usuário que fez a avaliação (ObjectId, obrigatório)
-  
-  space_id: { 
-    type: mongoose.Types.ObjectId, 
+const assessmentSchema = new Schema<IAssessment>({
+  score: {
+    type: Number,
     required: true,
-    ref: "Space" // Referência à coleção de espaços 
-  }, // ID do espaço avaliado (ObjectId, obrigatório)
-});
-
-AssessmentSchema.pre<IAssessment>("save", async function (next) {
-  if (!this.score || this.score < 1 || this.score > 5) {
-    throw new Error("A nota deve estar entre 1 e 5.");
+    min: 0,
+    max: 5
+  },
+  comment: {
+    type: String,
+    required: false
+  },
+  evaluation_date: {
+    type: Date,
+    required: true,
+    default: Date.now
+  },
+  userID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true
+  },
+  spaceID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Space",
+    required: true
   }
-
-  next();
+}, {
+  // Desabilita a criação automática de índices
+  autoIndex: false
 });
 
-export default mongoose.model<IAssessment>("Assessment", AssessmentSchema);
+// Remove todos os índices existentes
+assessmentSchema.indexes().forEach(index => {
+  assessmentSchema.index(index[0], { ...index[1], unique: false });
+});
+
+// Adiciona apenas os índices necessários
+assessmentSchema.index({ spaceID: 1 });
+assessmentSchema.index({ userID: 1 });
+assessmentSchema.index({ evaluation_date: -1 });
+assessmentSchema.index({ userID: 1, spaceID: 1 });
+
+export default mongoose.model<IAssessment>("Assessment", assessmentSchema);

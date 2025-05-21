@@ -9,6 +9,7 @@ import authRoutes from "./routes/authRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import viewHistoryRouter from "./routes/viewhistoryRoutes";
 import rentalRoutes from "./routes/rentalRoutes"; // ✅ Importação adicionada
+import assessmentRoutes from "./routes/assessmentRoutes";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use("/auth", authRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/view-history", viewHistoryRouter);
 app.use("/rentals", rentalRoutes); // ✅ Rota de aluguéis adicionada
+app.use("/assessment", assessmentRoutes);
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;

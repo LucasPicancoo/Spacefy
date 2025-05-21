@@ -7,6 +7,6 @@ export interface IAssessment extends Document {
   score: number; // Nota da avaliação
   comment?: string; // Comentário opcional
   evaluation_date: Date; // Data da avaliação
-  user_object_id: mongoose.Types.ObjectId; // ID do usuário (ObjectId do MongoDB)
-  space_object_id: mongoose.Types.ObjectId; // ID do espaço (ObjectId do MongoDB)
+  userID: mongoose.Types.ObjectId; // ID do usuário (ObjectId do MongoDB)
+  spaceID: mongoose.Types.ObjectId; // ID do espaço (ObjectId do MongoDB)
 }

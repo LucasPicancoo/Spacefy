@@ -47,24 +47,30 @@ const FAQSection = () => {
           {faqQuestions.map((faq, index) => (
             <div 
               key={index}
-              className="bg-white rounded-2xl shadow-md overflow-hidden transition-all duration-200"
+              className="bg-white rounded-2xl shadow-md overflow-hidden"
             >
               <button
                 onClick={() => toggleQuestion(index)}
-                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50"
+                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200"
               >
-                <span className="font-medium text-lg">{faq.question}</span>
+                <span className="font-medium text-lg cursor-pointer">{faq.question}</span>
                 <FaChevronDown 
-                  className={`text-gray-400 transition-transform duration-200 ${
+                  className={`text-gray-400 transition-transform duration-300 ease-in-out cursor-pointer ${
                     openQuestion === index ? 'transform rotate-180' : ''
                   }`}
                 />
               </button>
-              {openQuestion === index && (
-                <div className="px-6 pb-4">
-                  <p className="text-gray-600">{faq.answer}</p>
+              <div 
+                className={`grid transition-all duration-300 ease-in-out ${
+                  openQuestion === index ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="px-6 pb-4">
+                    <p className="text-gray-600">{faq.answer}</p>
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>

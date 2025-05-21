@@ -133,9 +133,9 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
   const { spaceId } = req.body;
 
   try {
-    if (req.auth?.role !== "usuario") {
-      return res.status(403).json({
-        error: "Apenas usuários podem favoritar ou desfavoritar espaços.",
+    if (!req.auth) {
+      return res.status(401).json({
+        error: "Autenticação necessária para favoritar espaços.",
       });
     }
 
@@ -184,9 +184,9 @@ export const getUserFavorites = async (req: Request, res: Response) => {
   const { userId } = req.params;
 
   try {
-    if (req.auth?.role !== "usuario") {
-      return res.status(403).json({
-        error: "Apenas usuários podem ver seus favoritos.",
+    if (!req.auth) {
+      return res.status(401).json({
+        error: "Autenticação necessária para ver favoritos.",
       });
     }
 

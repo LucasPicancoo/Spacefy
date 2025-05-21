@@ -134,3 +134,50 @@ export const getAllAssessments = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Erro ao buscar todas as avaliações." });
   }
 };
+
+export const getTopRatedSpaces = async (req: Request, res: Response) => {
+  try {
+    const topSpaces = await Review.aggregate([
+      {
+        $group: {
+          _id: "$spaceID",
+          averageScore: { $avg: "$score" },
+          totalReviews: { $sum: 1 }
+        }
+      },
+      {
+        $sort: { averageScore: -1 }
+      },
+      {
+        $limit: 10
+      },
+      {
+        $lookup: {
+          from: "spaces",
+          localField: "_id",
+          foreignField: "_id",
+          as: "spaceInfo"
+        }
+      },
+      {
+        $unwind: "$spaceInfo"
+      },
+      {
+        $project: {
+          _id: 1,
+          averageScore: 1,
+          totalReviews: 1,
+          space_name: "$spaceInfo.space_name",
+          location: "$spaceInfo.location",
+          price_per_hour: "$spaceInfo.price_per_hour"
+        }
+      }
+    ]);
+
+    res.status(200).json(topSpaces);
+  } catch (error) {
+    console.error("Erro ao buscar espaços melhor avaliados:", error);
+    res.status(500).json({ error: "Erro ao buscar espaços melhor avaliados." });
+  }
+};
+

@@ -4,7 +4,8 @@ import {
   updateAssessment,
   deleteAssessment,
   getAllAssessments,
-  getAssessmentsBySpace
+  getAssessmentsBySpace,
+  getTopRatedSpaces
 } from "../controllers/assessmentController";
 import { validateAndGetTokenData } from "../middlewares/token";
 
@@ -14,6 +15,7 @@ router.post("/create", validateAndGetTokenData, createAssessment);
 router.put("/update/:id", validateAndGetTokenData, updateAssessment);
 router.delete("/delete/:id", validateAndGetTokenData, deleteAssessment);
 router.get("/getAll", validateAndGetTokenData, getAllAssessments);
-router.get("/space/:spaceId", validateAndGetTokenData, getAssessmentsBySpace);
+router.get("/space/:spaceId", getAssessmentsBySpace);
+router.get("/top-rated", getTopRatedSpaces);
 
 export default router; 

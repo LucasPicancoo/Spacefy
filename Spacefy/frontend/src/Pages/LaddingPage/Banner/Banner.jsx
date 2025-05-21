@@ -1,6 +1,6 @@
 import React from 'react';
 import banner from "../../assets/Banner.svg";
-import SearchBarLaddingPage from "../SearchBar/SearchBarLaddingPage.jsx";
+import SearchBarLaddingPage from "../../../Components/SearchBar/SearchBarLaddingPage.jsx";
 
 const Banner = () => {
   return (

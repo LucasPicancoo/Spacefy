@@ -1,7 +1,7 @@
 import React from 'react';
-import Volei from "../../assets/Spaces/Volei.jpg";
-import Escritorio from "../../assets/Spaces/Escritorio.jpg";
-import SalaoDeFestas from "../../assets/Spaces/SalaoDeFestas.jpg";
+import Volei from "../../../assets/Spaces/Volei.jpg";
+import Escritorio from "../../../assets/Spaces/Escritorio.jpg";
+import SalaoDeFestas from "../../../assets/Spaces/SalaoDeFestas.jpg";
 
 const IdealSpaceSection = () => {
   return (

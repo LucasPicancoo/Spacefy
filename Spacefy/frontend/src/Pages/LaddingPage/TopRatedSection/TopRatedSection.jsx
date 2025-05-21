@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaClock } from 'react-icons/fa';
-import Volei from "../../assets/Spaces/Volei.jpg";
+import Volei from "../../../assets/Spaces/Volei.jpg";
 
 const TopRatedSection = () => {
   const [ratedPage, setRatedPage] = useState(0);

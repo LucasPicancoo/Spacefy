@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { FaParking, FaWifi, FaSwimmingPool, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { MdAir, MdTv } from 'react-icons/md';
 import { GiBarbecue } from 'react-icons/gi';
-import Volei from "../../assets/Spaces/Volei.jpg";
+import Volei from "../../../assets/Spaces/Volei.jpg";
 
 const ExperienceSection = () => {
   const [selectedAmenity, setSelectedAmenity] = useState('parking');

@@ -3,11 +3,11 @@ import Header from "../../Components/Header/Header.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
 import { useUser } from "../../Contexts/userContext.jsx";
 import Banner from "./Banner/Banner.jsx";
-import LoginBanner from "../../Components/LoginBanner/LoginBanner.jsx";
-import IdealSpaceSection from "../../Components/IdealSpaceSection/IdealSpaceSection";
-import ExperienceSection from "../../Components/ExperienceSection/ExperienceSection";
-import TopRatedSection from "../../Components/TopRatedSection/TopRatedSection";
-import FAQSection from "../../Components/FAQSection/FAQSection";
+import LoginBanner from "./LoginBanner/LoginBanner.jsx";
+import IdealSpaceSection from "./IdealSpaceSection/IdealSpaceSection.jsx";
+import ExperienceSection from "./ExperienceSection/ExperienceSection.jsx";
+import TopRatedSection from "./TopRatedSection/TopRatedSection.jsx";
+import FAQSection from "./FAQSection/FAQSection.jsx";
 import ScrollToTopButton from "../../Components/ScrollToTopButton/ScrollToTopButton.jsx";
 
 const Landing = () => {

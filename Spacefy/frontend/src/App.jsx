@@ -2,10 +2,11 @@ import React from 'react'
 import Router from './Routes/Router'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { FavoriteProvider } from './contexts/FavoriteContext';
 
 const App = () => {
   return (
-    <>
+    <FavoriteProvider>
       <Router />
       <ToastContainer
         position="top-right"
@@ -19,7 +20,7 @@ const App = () => {
         pauseOnHover
         theme="light"
       />
-    </>
+    </FavoriteProvider>
   )
 }
 

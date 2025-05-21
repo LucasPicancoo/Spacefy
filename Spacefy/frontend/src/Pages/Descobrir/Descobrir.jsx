@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { spaceService } from "../../services/spaceService";
 import SidebarFiltros from "../../Components/SidebarFiltros/SidebarFiltros";
 import { useNavigate } from "react-router-dom";
+import { FavoriteButton } from "../../components/FavoriteButton/FavoriteButton";
 
 function Descobrir() {
     const navigate = useNavigate();
@@ -157,16 +158,7 @@ function Descobrir() {
                                     </span>
                                     <div className="flex items-center justify-between mt-2">
                                         <span className="text-xs text-gray-500">Cabe até <b>{espaco.max_people}</b> pessoas</span>
-                                        <button 
-                                            className="text-[#1486B8] hover:text-[#0f6a94]"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                            }}
-                                        >
-                                            <svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' strokeWidth={2} stroke='currentColor' className='w-6 h-6'>
-                                                <path strokeLinecap='round' strokeLinejoin='round' d='M16.5 5.25a5.25 5.25 0 00-4.5 2.472A5.25 5.25 0 007.5 5.25C5.014 5.25 3 7.264 3 9.75c0 4.418 7.5 9 7.5 9s7.5-4.582 7.5-9c0-2.486-2.014-4.5-4.5-4.5z' />
-                                            </svg>
-                                        </button>
+                                        <FavoriteButton spaceId={espaco._id} />
                                     </div>
                                 </div>
                             </button>

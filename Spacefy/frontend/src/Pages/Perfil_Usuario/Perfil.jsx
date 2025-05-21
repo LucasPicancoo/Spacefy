@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "../../Components/Header/Header";
 import { FaHeart, FaStar, FaClock, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useUser } from "../../Contexts/userContext";
+import { useFavorite } from "../../contexts/FavoriteContext";
 import { useNavigate } from "react-router-dom";
 import BecomeRenterModal from "../../Components/Modal/BecomeRenterModal";
 import { userService } from "../../services/userService";
@@ -12,7 +13,6 @@ const Perfil = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [ratedPage, setRatedPage] = useState(0);
   const [rentedPage, setRentedPage] = useState(0);
-  const [favorites, setFavorites] = useState({});
   const [favoriteSpaces, setFavoriteSpaces] = useState([]);
   const [viewHistory, setViewHistory] = useState([]);
   const [userRentals, setUserRentals] = useState([]);
@@ -23,6 +23,7 @@ const Perfil = () => {
 
   const navigate = useNavigate();
   const { user, isLoggedIn } = useUser();
+  const { loadFavorites, toggleFavorite } = useFavorite();
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -35,6 +36,8 @@ const Perfil = () => {
       try {
         const response = await userService.getFavoriteSpaces(user.id);
         setFavoriteSpaces(response);
+        // Atualiza o contexto global de favoritos
+        await loadFavorites(user.id);
       } catch (error) {
         console.error("Erro ao buscar favoritos:", error);
       }
@@ -64,7 +67,7 @@ const Perfil = () => {
       fetchViewHistory();
       fetchUserRentals();
     }
-  }, [user?.id]);
+  }, [user?.id, loadFavorites]);
 
   if (!isLoggedIn) {
     return null;
@@ -134,12 +137,10 @@ const Perfil = () => {
 
   const handleFavorite = async (spaceId) => {
     try {
-      const response = await userService.toggleFavoriteSpace(user.id, spaceId);
-      if (response) {
-        // Atualiza a lista de favoritos após a mudança
-        const updatedFavorites = await userService.getFavoriteSpaces(user.id);
-        setFavoriteSpaces(updatedFavorites);
-      }
+      await toggleFavorite(user.id, spaceId);
+      // Atualiza a lista de favoritos após a mudança
+      const updatedFavorites = await userService.getFavoriteSpaces(user.id);
+      setFavoriteSpaces(updatedFavorites);
     } catch (error) {
       console.error("Erro ao atualizar favorito:", error);
     }
@@ -229,7 +230,7 @@ const Perfil = () => {
                           image_url: view.space_id.image_url
                         }}
                         onFavoriteClick={handleFavorite}
-                        isFavorite={favorites[view.space_id._id]}
+                        isFavorite={favoriteSpaces.some(space => space._id === view.space_id._id)}
                       />
                     ))
                   ) : (
@@ -268,17 +269,32 @@ const Perfil = () => {
                     scrollPadding: '0 16px',
                   }}
                 >
-                  {favoriteSpaces.map((favorite) => (
-                    <SpaceCard
-                      key={favorite._id}
-                      space={favorite.spaceId}
-                      onFavoriteClick={handleFavorite}
-                      isFavorite={true}
-                    />
-                  ))}
+                  {favoriteSpaces && favoriteSpaces.length > 0 ? (
+                    favoriteSpaces.map((favorite) => (
+                      <SpaceCard
+                        key={favorite.spaceId._id}
+                        space={favorite.spaceId}
+                        onFavoriteClick={handleFavorite}
+                        isFavorite={true}
+                      />
+                    ))
+                  ) : (
+                    <div className="w-full text-center py-8 px-4">
+                      <div className="flex flex-col items-center gap-4">
+                        <FaHeart className="text-gray-300 text-4xl" />
+                        <p className="text-gray-500">Você ainda não tem espaços favoritos</p>
+                        <button 
+                          onClick={() => navigate('/Descobrir')}
+                          className="text-[#00A3FF] hover:text-[#0084CC] font-medium cursor-pointer"
+                        >
+                          Explorar espaços
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 {/* Botões de navegação */}
-                {ratedPage > 0 && (
+                {ratedPage > 0 && favoriteSpaces && favoriteSpaces.length > 0 && (
                   <button 
                     onClick={() => scrollRatedCarousel('prev')}
                     className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-2 ml-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
@@ -286,7 +302,7 @@ const Perfil = () => {
                     <FaChevronLeft className="text-lg" />
                   </button>
                 )}
-                {ratedPage < Math.ceil(favoriteSpaces.length / Math.floor(ratedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && (
+                {ratedPage < Math.ceil((favoriteSpaces?.length || 0) / Math.floor(ratedCarouselRef.current?.clientWidth / 250 || 1)) - 1 && favoriteSpaces && favoriteSpaces.length > 0 && (
                   <button 
                     onClick={() => scrollRatedCarousel('next')}
                     className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-2 mr-2 bg-white p-2 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
@@ -327,7 +343,7 @@ const Perfil = () => {
                             avaliacoes: rental.space.avaliacoes || 0
                           }}
                           onFavoriteClick={handleFavorite}
-                          isFavorite={favorites[rental.space._id]}
+                          isFavorite={favoriteSpaces.some(space => space._id === rental.space._id)}
                         />
                       );
                     }).filter(Boolean)

@@ -5,7 +5,7 @@ export const userService = {
     // Toggle favorito do espaço (adiciona/remove)
     async toggleFavoriteSpace(userId, spaceId) {
         const response = await api.post(`/users/${userId}/favorite`, { spaceId });
-        return response.data; // Retorna um booleano indicando se o espaço está favoritado
+        return response.data; // Retorna o objeto completo com isFavorited
     },
 
     // Buscar todos os espaços favoritados do usuário

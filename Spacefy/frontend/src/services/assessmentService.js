@@ -30,6 +30,11 @@ export const assessmentService = {
     async topRatedSpaces() {
         const response = await api.get(`/assessment/top-rated`);
         return response.data;
+    },
+
+    async getAssessmentsByUser(userId, page = 1) {
+        const response = await api.get(`/assessment/user/${userId}?page=${page}`);
+        return response.data;
     }
 
 };

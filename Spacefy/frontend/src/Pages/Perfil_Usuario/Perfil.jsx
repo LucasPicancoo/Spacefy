@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Header from "../../Components/Header/Header";
 import { FaHeart, FaStar, FaClock, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { useUser } from "../../Contexts/userContext";
@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import BecomeRenterModal from "../../Components/Modal/BecomeRenterModal";
 import { userService } from "../../services/userService";
 import { rentalService } from "../../services/rentalService";
+import { assessmentService } from "../../services/assessmentService";
 import SpaceCard from "../../Components/SpaceCard/SpaceCard";
 
 const Perfil = () => {
@@ -16,6 +17,14 @@ const Perfil = () => {
   const [favoriteSpaces, setFavoriteSpaces] = useState([]);
   const [viewHistory, setViewHistory] = useState([]);
   const [userRentals, setUserRentals] = useState([]);
+  const [userAssessments, setUserAssessments] = useState([]);
+  const [assessmentPagination, setAssessmentPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalAssessments: 0,
+    hasNextPage: false,
+    hasPreviousPage: false
+  });
   const [isBecomeRenterModalOpen, setIsBecomeRenterModalOpen] = useState(false);
   const recentCarouselRef = useRef(null);
   const ratedCarouselRef = useRef(null);
@@ -24,6 +33,32 @@ const Perfil = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useUser();
   const { loadFavorites, toggleFavorite } = useFavorite();
+
+  const fetchUserAssessments = useCallback(async (page = 1) => {
+    try {
+      const response = await assessmentService.getAssessmentsByUser(user.id, page);
+      if (response && response.assessments) {
+        setUserAssessments(response.assessments);
+        setAssessmentPagination(response.pagination);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar avaliações do usuário:", error);
+      setUserAssessments([]);
+      setAssessmentPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalAssessments: 0,
+        hasNextPage: false,
+        hasPreviousPage: false
+      });
+    }
+  }, [user?.id]);
+
+  const handlePageChange = useCallback(async (newPage) => {
+    if (newPage >= 1 && newPage <= assessmentPagination.totalPages) {
+      await fetchUserAssessments(newPage);
+    }
+  }, [fetchUserAssessments, assessmentPagination.totalPages]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -36,7 +71,6 @@ const Perfil = () => {
       try {
         const response = await userService.getFavoriteSpaces(user.id);
         setFavoriteSpaces(response);
-        // Atualiza o contexto global de favoritos
         await loadFavorites(user.id);
       } catch (error) {
         console.error("Erro ao buscar favoritos:", error);
@@ -68,6 +102,13 @@ const Perfil = () => {
       fetchUserRentals();
     }
   }, [user?.id, loadFavorites]);
+
+  // Efeito separado para carregar as avaliações iniciais
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserAssessments(1);
+    }
+  }, [user?.id]);
 
   if (!isLoggedIn) {
     return null;
@@ -374,7 +415,64 @@ const Perfil = () => {
             {/* Avaliações feitas por você */}
             <section>
               <h2 className="font-bold text-lg mb-2 px-4">Avaliações feitas por você:</h2>
-              <div className="text-gray-500 text-sm px-4">Você ainda não fez uma avaliação.</div>
+              {userAssessments && userAssessments.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
+                    {userAssessments.map((assessment) => (
+                      <div key={assessment._id} className="bg-white rounded-lg shadow-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center">
+                            <FaStar className="text-yellow-400 mr-1" />
+                            <span className="font-semibold">{assessment.score}</span>
+                          </div>
+                          <span className="text-sm text-gray-500">
+                            {new Date(assessment.evaluation_date).toLocaleDateString('pt-BR')}
+                          </span>
+                        </div>
+                        <p className="text-gray-700 mb-3">{assessment.comment}</p>
+                        <div className="flex items-center justify-between">
+                          <button 
+                            onClick={() => navigate(`/espaco/${assessment.spaceID}`)}
+                            className="text-[#00A3FF] hover:text-[#0084CC] text-sm font-medium"
+                          >
+                            Ver espaço
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Paginação */}
+                  <div className="flex justify-center items-center gap-4 mt-6 px-4">
+                    <button
+                      onClick={() => handlePageChange(assessmentPagination.currentPage - 1)}
+                      disabled={!assessmentPagination.hasPreviousPage}
+                      className={`px-4 py-2 rounded-lg ${
+                        assessmentPagination.hasPreviousPage
+                          ? 'bg-[#00A3FF] text-white hover:bg-[#0084CC]'
+                          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Anterior
+                    </button>
+                    <span className="text-gray-600">
+                      Página {assessmentPagination.currentPage} de {assessmentPagination.totalPages}
+                    </span>
+                    <button
+                      onClick={() => handlePageChange(assessmentPagination.currentPage + 1)}
+                      disabled={!assessmentPagination.hasNextPage}
+                      className={`px-4 py-2 rounded-lg ${
+                        assessmentPagination.hasNextPage
+                          ? 'bg-[#00A3FF] text-white hover:bg-[#0084CC]'
+                          : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                      }`}
+                    >
+                      Próxima
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-gray-500 text-sm px-4">Você ainda não fez nenhuma avaliação.</div>
+              )}
             </section>
           </section>
         </section>

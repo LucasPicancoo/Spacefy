@@ -149,7 +149,7 @@ export const getTopRatedSpaces = async (req: Request, res: Response) => {
         $sort: { averageScore: -1 }
       },
       {
-        $limit: 10
+        $limit: 25
       },
       {
         $lookup: {
@@ -169,7 +169,8 @@ export const getTopRatedSpaces = async (req: Request, res: Response) => {
           totalReviews: 1,
           space_name: "$spaceInfo.space_name",
           location: "$spaceInfo.location",
-          price_per_hour: "$spaceInfo.price_per_hour"
+          price_per_hour: "$spaceInfo.price_per_hour",
+          image_url: "$spaceInfo.image_url"
         }
       }
     ]);

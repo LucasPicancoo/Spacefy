@@ -1,12 +1,32 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaClock } from 'react-icons/fa';
-import Volei from "../../../assets/Spaces/Volei.jpg";
+import { assessmentService } from '../../../services/assessmentService';
+import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../../Contexts/userContext';
+import { userService } from '../../../services/userService';
+import { useFavorite } from '../../../contexts/FavoriteContext';
 
 const TopRatedSection = () => {
+  const navigate = useNavigate();
+  const { user, isLoggedIn } = useUser();
+  const { toggleFavorite, isFavorite } = useFavorite();
   const [ratedPage, setRatedPage] = useState(0);
-  const [favorites, setFavorites] = useState({});
+  const [topRatedSpaces, setTopRatedSpaces] = useState([]);
   const ratedCarouselRef = useRef(null);
-  const totalPages = 3;
+  const totalPages = Math.ceil(topRatedSpaces.length / 5);
+
+  useEffect(() => {
+    const fetchTopRatedSpaces = async () => {
+      try {
+        const spaces = await assessmentService.topRatedSpaces();
+        setTopRatedSpaces(spaces);
+      } catch (error) {
+        console.error('Erro ao buscar espaços mais bem avaliados:', error);
+      }
+    };
+
+    fetchTopRatedSpaces();
+  }, []);
 
   const scrollRatedCarousel = (direction) => {
     if (ratedCarouselRef.current) {
@@ -24,11 +44,24 @@ const TopRatedSection = () => {
     }
   };
 
-  const handleFavorite = (itemId) => {
-    setFavorites(prev => ({
-      ...prev,
-      [itemId]: !prev[itemId]
-    }));
+  const handleFavorite = async (spaceId) => {
+    if (!isLoggedIn || !user) return;
+    try {
+      await toggleFavorite(user.id, spaceId);
+    } catch (error) {
+      console.error('Erro ao favoritar espaço:', error);
+    }
+  };
+
+  const handleCardClick = async (spaceId) => {
+    if (isLoggedIn && user) {
+      try {
+        await userService.registerSpaceView(user.id, spaceId);
+      } catch (error) {
+        console.error('Erro ao registrar visualização:', error);
+      }
+    }
+    navigate(`/espaco/${spaceId}`);
   };
 
   return (
@@ -46,47 +79,50 @@ const TopRatedSection = () => {
               scrollPadding: '0 24px',
             }}
           >
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((item) => (
+            {topRatedSpaces.map((space) => (
               <div 
-                key={item} 
-                className="min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden flex-shrink-0"
+                key={space._id} 
+                className="min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden flex-shrink-0 cursor-pointer hover:shadow-xl transition-shadow"
                 style={{ scrollSnapAlign: 'start' }}
+                onClick={() => handleCardClick(space._id)}
               >
                 <div className="relative">
                   <img
-                    src={Volei}
-                    alt="Porto Belo"
+                    src={space.image_url?.[0] || space.image_url}
+                    alt={space.space_name}
                     className="w-full h-48 object-cover"
                   />
                   <button 
-                    onClick={() => handleFavorite(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFavorite(space._id);
+                    }}
                     className="absolute top-4 right-4 transition-colors"
                   >
                     <FaHeart 
-                      className={`text-xl ${favorites[item] ? 'text-red-500' : 'text-white'} hover:text-red-500 transition-colors`}
+                      className={`text-xl ${isFavorite(space._id) ? 'text-red-500' : 'text-white'} hover:text-red-500 transition-colors`}
                     />
                   </button>
                 </div>
                 <div className="p-4">
                   <div className="flex justify-between items-start mb-2">
                     <div>
-                      <h3 className="text-xl font-semibold">Porto Belo</h3>
-                      <p className="text-gray-600 text-sm">Muriaé - MG</p>
-                      <p className="text-gray-500 text-xs">Rua Leonídio Valentim Ferreira</p>
+                      <h3 className="text-xl font-semibold">{space.space_name}</h3>
+                      <p className="text-gray-600 text-sm">{space.location}</p>
                     </div>
                     <div className="flex items-center">
                       <FaStar className="text-yellow-400 mr-1" />
-                      <span className="font-semibold">4.80</span>
+                      <span className="font-semibold">{space.averageScore.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="flex justify-between items-center mt-4">
                     <div>
-                      <p className="text-[#00A3FF] font-bold">R$ 2.000</p>
+                      <p className="text-[#00A3FF] font-bold">R$ {space.price_per_hour}</p>
                       <p className="text-gray-500 text-xs">por hora</p>
                     </div>
                     <div className="flex items-center text-gray-500 text-sm">
                       <FaClock className="mr-1" />
-                      <span>Clique para ver mais</span>
+                      <span>{space.totalReviews} avaliações</span>
                     </div>
                   </div>
                 </div>
@@ -96,7 +132,10 @@ const TopRatedSection = () => {
 
           {ratedPage > 0 && (
             <button 
-              onClick={() => scrollRatedCarousel('prev')}
+              onClick={(e) => {
+                e.stopPropagation();
+                scrollRatedCarousel('prev');
+              }}
               className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-5 bg-white p-3 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
             >
               <FaChevronLeft className="text-xl" />
@@ -104,7 +143,10 @@ const TopRatedSection = () => {
           )}
           {ratedPage < totalPages - 1 && (
             <button 
-              onClick={() => scrollRatedCarousel('next')}
+              onClick={(e) => {
+                e.stopPropagation();
+                scrollRatedCarousel('next');
+              }}
               className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-5 bg-white p-3 rounded-full shadow-lg text-gray-600 hover:text-[#00A3FF] transition-colors focus:outline-none focus:ring-2 focus:ring-[#00A3FF] z-10"
             >
               <FaChevronRight className="text-xl" />

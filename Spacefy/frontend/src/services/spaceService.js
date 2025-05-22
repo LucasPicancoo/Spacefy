@@ -36,4 +36,9 @@ export const spaceService = {
         const response = await api.get(`/spaces/getSpacesWithFilters?${params}`);
         return response.data;
     },
+
+    async getSpacesByExperienceAmenities() {
+        const response = await api.get('/spaces/getSpacesByExperienceAmenities');
+        return response.data;
+    }
 };

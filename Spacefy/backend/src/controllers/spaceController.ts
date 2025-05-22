@@ -484,7 +484,7 @@ export const getSpacesByExperienceAmenities = async (req: Request, res: Response
         $in: ['estacionamento', 'wifi', 'piscina', 'churrasqueira', 'ar_condicionado', 'tv']
       }
     })
-    .select('image_url space_name location space_amenities') // Seleciona apenas os campos necessários
+    .select('image_url space_name location space_amenities price_per_hour') // Adicionado price_per_hour
     .sort({ rating: -1 }); // Ordena por avaliação
 
     // Organiza os espaços por comodidade e pega apenas a primeira imagem
@@ -493,42 +493,48 @@ export const getSpacesByExperienceAmenities = async (req: Request, res: Response
         .filter(space => space.space_amenities.includes('estacionamento'))
         .map(space => ({
           ...space.toObject(),
-          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url,
+          price_per_hour: space.price_per_hour
         }))
         .slice(0, 5),
       wifi: spaces
         .filter(space => space.space_amenities.includes('wifi'))
         .map(space => ({
           ...space.toObject(),
-          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url,
+          price_per_hour: space.price_per_hour
         }))
         .slice(0, 5),
       pool: spaces
         .filter(space => space.space_amenities.includes('piscina'))
         .map(space => ({
           ...space.toObject(),
-          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url,
+          price_per_hour: space.price_per_hour
         }))
         .slice(0, 5),
       barbecue: spaces
         .filter(space => space.space_amenities.includes('churrasqueira'))
         .map(space => ({
           ...space.toObject(),
-          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url,
+          price_per_hour: space.price_per_hour
         }))
         .slice(0, 5),
       ac: spaces
         .filter(space => space.space_amenities.includes('ar_condicionado'))
         .map(space => ({
           ...space.toObject(),
-          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url,
+          price_per_hour: space.price_per_hour
         }))
         .slice(0, 5),
       tv: spaces
         .filter(space => space.space_amenities.includes('tv'))
         .map(space => ({
           ...space.toObject(),
-          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url,
+          price_per_hour: space.price_per_hour
         }))
         .slice(0, 5)
     };

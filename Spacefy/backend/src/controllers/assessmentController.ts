@@ -182,3 +182,40 @@ export const getTopRatedSpaces = async (req: Request, res: Response) => {
   }
 };
 
+export const getAssessmentsByUser = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = 3;
+  const skip = (page - 1) * limit;
+
+  try {
+    // Validação do ID do usuário
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "ID do usuário inválido." });
+    }
+
+    // Busca o total de avaliações para calcular o total de páginas
+    const totalAssessments = await Review.countDocuments({ userID: userId });
+    const totalPages = Math.ceil(totalAssessments / limit);
+
+    const assessments = await Review.find({ userID: userId })
+      .sort({ evaluation_date: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    res.status(200).json({
+      assessments,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalAssessments,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
+      }
+    });
+  } catch (error) {
+    console.error("Erro ao buscar avaliações do usuário:", error);
+    res.status(500).json({ error: "Erro ao buscar avaliações do usuário." });
+  }
+};
+

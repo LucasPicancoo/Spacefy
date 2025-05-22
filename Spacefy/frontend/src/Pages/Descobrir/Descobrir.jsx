@@ -2,11 +2,12 @@ import Header from "../../Components/Header/Header";
 import { useState, useEffect } from "react";
 import { spaceService } from "../../services/spaceService";
 import SidebarFiltros from "../../Components/SidebarFiltros/SidebarFiltros";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FavoriteButton } from "../../components/FavoriteButton/FavoriteButton";
 
 function Descobrir() {
     const navigate = useNavigate();
+    const location = useLocation();
     const [espacos, setEspacos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -22,8 +23,14 @@ function Descobrir() {
     });
 
     useEffect(() => {
-        buscarEspacos();
-    }, []);
+        // Verifica se há filtros na navegação
+        if (location.state?.filtros) {
+            setFiltros(location.state.filtros);
+            buscarEspacos(location.state.filtros);
+        } else {
+            buscarEspacos();
+        }
+    }, [location]);
 
     const buscarEspacos = async (filtrosAtuais = null) => {
         try {

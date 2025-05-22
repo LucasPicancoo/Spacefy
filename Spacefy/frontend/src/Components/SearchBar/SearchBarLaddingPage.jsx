@@ -74,7 +74,7 @@ export default function SearchBarLaddingPage() {
 
       {/* Botão de Pesquisa */}
       <button
-        type="button" onClick={() => navigate("/Espaço")}
+        type="button" onClick={() => navigate("/Descobrir")}
         className="bg-[#1EACE3] hover:bg-[#32C6FF] hover:scale-[1.05] text-white font-medium px-8 py-2.5 rounded-lg transition-all duration-300 cursor-pointer" style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}>
         Pesquisar
       </button>

@@ -473,3 +473,72 @@ export const deleteSpace = async (req: Request, res: Response) => {
     });
   }
 }
+
+
+// Buscar espaços por comodidades da tela de experiência
+export const getSpacesByExperienceAmenities = async (req: Request, res: Response) => {
+  try {
+    // Busca todos os espaços que tenham pelo menos uma das comodidades
+    const spaces = await SpaceModel.find({
+      space_amenities: {
+        $in: ['estacionamento', 'wifi', 'piscina', 'churrasqueira', 'ar_condicionado', 'tv']
+      }
+    })
+    .select('image_url space_name location space_amenities') // Seleciona apenas os campos necessários
+    .sort({ rating: -1 }); // Ordena por avaliação
+
+    // Organiza os espaços por comodidade e pega apenas a primeira imagem
+    const spacesByAmenity = {
+      parking: spaces
+        .filter(space => space.space_amenities.includes('estacionamento'))
+        .map(space => ({
+          ...space.toObject(),
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+        }))
+        .slice(0, 5),
+      wifi: spaces
+        .filter(space => space.space_amenities.includes('wifi'))
+        .map(space => ({
+          ...space.toObject(),
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+        }))
+        .slice(0, 5),
+      pool: spaces
+        .filter(space => space.space_amenities.includes('piscina'))
+        .map(space => ({
+          ...space.toObject(),
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+        }))
+        .slice(0, 5),
+      barbecue: spaces
+        .filter(space => space.space_amenities.includes('churrasqueira'))
+        .map(space => ({
+          ...space.toObject(),
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+        }))
+        .slice(0, 5),
+      ac: spaces
+        .filter(space => space.space_amenities.includes('ar_condicionado'))
+        .map(space => ({
+          ...space.toObject(),
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+        }))
+        .slice(0, 5),
+      tv: spaces
+        .filter(space => space.space_amenities.includes('tv'))
+        .map(space => ({
+          ...space.toObject(),
+          image_url: Array.isArray(space.image_url) ? space.image_url[0] : space.image_url
+        }))
+        .slice(0, 5)
+    };
+
+    return res.status(200).json(spacesByAmenity);
+  } catch (error) {
+    console.error("Erro ao buscar espaços por comodidades:", error);
+    return res.status(500).json({
+      error: "Erro ao buscar espaços por comodidades",
+      details: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
+};

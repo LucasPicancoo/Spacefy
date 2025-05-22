@@ -40,8 +40,6 @@ function Descobrir() {
             // Prepara os parâmetros para a busca
             const params = new URLSearchParams();
             
-            console.log('Filtros atuais:', filtrosParaBusca);
-            
             if (filtrosParaBusca.tipoEspaco) {
                 params.append('space_type', filtrosParaBusca.tipoEspaco);
             }
@@ -75,18 +73,11 @@ function Descobrir() {
                 params.append('order_by', filtrosParaBusca.ordenarPor);
             }
 
-            console.log('URL completa:', `http://localhost:3000/spaces/getSpacesWithFilters?${params.toString()}`);
-            console.log('Parâmetros de busca:', params.toString());
-
             // Faz a chamada para o endpoint com os filtros
             const response = await spaceService.getSpacesWithFilters(params.toString());
-            console.log('Resposta da API:', response);
             setEspacos(response);
             setError(null);
         } catch (err) {
-            console.error('Erro detalhado:', err);
-            console.error('Mensagem de erro:', err.message);
-            console.error('Resposta do servidor:', err.response?.data);
             setError(err.response?.data?.error || 'Erro ao carregar os espaços. Por favor, tente novamente mais tarde.');
         } finally {
             setLoading(false);
@@ -139,7 +130,7 @@ function Descobrir() {
                             ? espaco.image_url[0] 
                             : (espaco.image_url || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
                         return (
-                            <button 
+                            <div 
                                 key={espaco._id} 
                                 className="w-full text-left bg-white rounded-xl shadow hover:shadow-lg transition-shadow overflow-hidden flex flex-col cursor-pointer"
                                 onClick={() => handleEspacoClick(espaco._id)}
@@ -168,7 +159,7 @@ function Descobrir() {
                                         <FavoriteButton spaceId={espaco._id} />
                                     </div>
                                 </div>
-                            </button>
+                            </div>
                         );
                     })}
                 </div>

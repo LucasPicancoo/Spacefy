@@ -1,6 +1,8 @@
 import Header from "../../Components/Header/Header";
 import { useState, useEffect } from "react";
 import { spaceService } from "../../services/spaceService";
+import { userService } from "../../services/userService";
+import { useUser } from "../../Contexts/userContext";
 import SidebarFiltros from "../../Components/SidebarFiltros/SidebarFiltros";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FavoriteButton } from "../../components/FavoriteButton/FavoriteButton";
@@ -8,6 +10,7 @@ import { FavoriteButton } from "../../components/FavoriteButton/FavoriteButton";
 function Descobrir() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { user, isLoggedIn } = useUser();
     const [espacos, setEspacos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -92,7 +95,14 @@ function Descobrir() {
         buscarEspacos(filtros);
     };
 
-    const handleEspacoClick = (espacoId) => {
+    const handleEspacoClick = async (espacoId) => {
+        if (isLoggedIn && user) {
+            try {
+                await userService.registerSpaceView(user.id, espacoId);
+            } catch (error) {
+                console.error('Erro ao registrar visualização:', error);
+            }
+        }
         navigate(`/espaco/${espacoId}`);
     };
 

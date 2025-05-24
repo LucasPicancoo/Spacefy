@@ -1,53 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { BsCurrencyDollar } from "react-icons/bs";
 import { MdCalendarToday } from "react-icons/md";
 import { FaWifi } from "react-icons/fa";
 import CommentsModal from "../../Components/CommentsModal";
-
-const subespacos = [
-  {
-    id: 1,
-    nome: "Palacio de Cristal",
-    preco: "R$ 500/dia",
-    diasFuncionamento: "Segunda a domingo",
-    comodidades: ["Wi-Fi", "Ar Condicionado", "Estacionamento"],
-    avaliacao: 4.5,
-    totalAvaliacoes: 120,
-    alugados: ["2021-06-22"],
-    reviews: [
-      { name: "João Silva", review: "Espaço excelente, muito limpo!" },
-      { name: "Ana Paula", review: "Ótima localização e atendimento." },
-    ],
-  },
-  {
-    id: 2,
-    nome: "Espaço 2",
-    preco: "R$ 300/dia",
-    diasFuncionamento: "Segunda a sexta",
-    comodidades: ["Wi-Fi", "Estacionamento"],
-    avaliacao: 4.2,
-    totalAvaliacoes: 80,
-    alugados: ["2021-06-15"],
-    reviews: [
-      { name: "Carlos Lima", review: "Bom custo-benefício." },
-    ],
-  },
-  {
-    id: 3,
-    nome: "Espaço 3",
-    preco: "R$ 700/dia",
-    diasFuncionamento: "Somente finais de semana",
-    comodidades: ["Wi-Fi", "Ar Condicionado"],
-    avaliacao: 4.8,
-    totalAvaliacoes: 200,
-    alugados: ["2021-06-10"],
-    reviews: [
-      { name: "Marina Souza", review: "Perfeito para eventos!" },
-      { name: "Pedro Henrique", review: "Voltarei mais vezes." },
-    ],
-  },
-];
+import { spaceService } from "../../services/spaceService";
+import { useUser } from "../../Contexts/userContext";
 
 function renderStars(avaliacao) {
   const stars = [];
@@ -65,13 +23,61 @@ function renderStars(avaliacao) {
 
 export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
-  const espacoSelecionado = subespacos[subEspacoSelecionado] || subespacos[0];
+  const [espacos, setEspacos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useUser();
+
+  useEffect(() => {
+    const buscarEspacos = async () => {
+      try {
+        setLoading(true);
+        const espacosData = await spaceService.getSpacesByOwnerId(user.id);
+        setEspacos(espacosData);
+        setError(null);
+      } catch (err) {
+        setError(err.response?.data?.error || 'Erro ao carregar os espaços. Por favor, tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      buscarEspacos();
+    }
+  }, [user?.id]);
+
+  if (loading) {
+    return (
+      <div className="w-full h-full p-6 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1486B8]"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="w-full h-full p-6 flex items-center justify-center">
+        <div className="text-red-500">{error}</div>
+      </div>
+    );
+  }
+
+  if (!espacos.length) {
+    return (
+      <div className="w-full h-full p-6 flex items-center justify-center">
+        <div className="text-gray-500">Nenhum espaço encontrado</div>
+      </div>
+    );
+  }
+
+  const espacoSelecionado = espacos[subEspacoSelecionado] || espacos[0];
 
   return (
     <div className="w-full h-full p-6 flex gap-6">
       {/* Conteúdo principal */}
       <div className="flex-1 bg-white rounded-xl shadow-lg p-6 flex flex-col gap-6">
-        <h2 className="text-3xl font-bold mb-2">{espacoSelecionado.nome}</h2>
+        <h2 className="text-3xl font-bold mb-2">{espacoSelecionado.space_name}</h2>
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Gráfico */}
           <div className="flex-1 bg-white rounded-lg p-4 flex flex-col items-center justify-center min-h-[220px] w-full">
@@ -83,11 +89,11 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
           {/* Card lateral */}
           <div className="w-full lg:w-64 bg-gradient-to-br from-[#eaf6fd] to-[#b2d6f7] rounded-xl shadow p-4 flex flex-col gap-3">
             <div className="flex items-center gap-2 text-lg font-bold"><BsCurrencyDollar /> Preço</div>
-            <div className="text-base font-semibold">{espacoSelecionado.preco}</div>
+            <div className="text-base font-semibold">R$ {espacoSelecionado.price_per_hour}/hora</div>
             <div className="flex items-center gap-2 text-base font-bold mt-2"><MdCalendarToday /> Dias de funcionamento</div>
-            <div className="text-sm">{espacoSelecionado.diasFuncionamento}</div>
+            <div className="text-sm">{espacoSelecionado.week_days.join(", ")}</div>
             <div className="flex items-center gap-2 text-base font-bold mt-2"><FaWifi /> Comodidades</div>
-            <div className="text-sm">{espacoSelecionado.comodidades.join(", ")}</div>
+            <div className="text-sm">{espacoSelecionado.space_amenities.join(", ")}</div>
             <div className="text-base font-bold mt-2">Dias já alugados</div>
             {/* Placeholder do calendário */}
             <div className="bg-white rounded-lg p-2 shadow mt-1">
@@ -96,7 +102,7 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
                 <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
                 {/* Exemplo de dias */}
                 {Array.from({length: 30}, (_,i) => i+1).map(day => (
-                  <div key={day} className={`py-1 rounded-full ${espacoSelecionado.alugados.includes(`2021-06-${day.toString().padStart(2,'0')}`) ? 'bg-blue-300 text-white font-bold' : ''}`}>{day}</div>
+                  <div key={day} className={`py-1 rounded-full ${espacoSelecionado.alugados?.includes(`2021-06-${day.toString().padStart(2,'0')}`) ? 'bg-blue-300 text-white font-bold' : ''}`}>{day}</div>
                 ))}
               </div>
             </div>
@@ -106,8 +112,8 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
         <div className="bg-white rounded-lg border-0 p-4 mt-4">
           <div className="flex items-center gap-2 text-lg font-bold mb-1">Avaliações</div>
           <div className="flex items-center gap-2 mb-1">
-            {renderStars(espacoSelecionado.avaliacao)}
-            <span className="text-xl font-bold ml-2">{espacoSelecionado.avaliacao}</span>
+            {renderStars(espacoSelecionado.rating || 0)}
+            <span className="text-xl font-bold ml-2">{espacoSelecionado.rating || 0}</span>
           </div>
           <button className="mt-3 bg-[#1486B8] hover:bg-[#0f6a94] text-white font-semibold py-2 px-4 rounded-lg text-lg transition duration-300 ease-in-out shadow cursor-pointer" onClick={() => setShowCommentsModal(true)}>Ver Avaliações</button>
         </div>

@@ -4,6 +4,7 @@ import { Document, ObjectId } from "mongoose";
 // Interface para espaços, representando os campos comuns a todos os espaços
 export interface ISpace extends Document {
   _id: ObjectId; // ID do espaço
+  owner_id: ObjectId; // ID do locador
   space_name: string; // Nome do espaço
   max_people: number; // Capacidade máxima de pessoas
   location: string; // Localização do espaço

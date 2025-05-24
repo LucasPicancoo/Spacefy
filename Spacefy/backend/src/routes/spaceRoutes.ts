@@ -7,6 +7,7 @@ import {
   deleteSpace,
   getSpacesWithFilters,
   getSpacesByExperienceAmenities,
+  getSpacesByOwnerId,
 } from "../controllers/spaceController";
 import { validateAndGetTokenData } from "../middlewares/token";
 
@@ -33,5 +34,7 @@ spaceRouter.delete("/deleteSpace/:id", validateAndGetTokenData, deleteSpace);
 // Rota para buscar espaços por comodidades da tela de experiência
 spaceRouter.get("/getSpacesByExperienceAmenities", getSpacesByExperienceAmenities);
 
+// Rota para buscar espaços por ID do proprietário
+spaceRouter.get("/getSpacesByOwnerId/:owner_id", getSpacesByOwnerId);
 
 export default spaceRouter;

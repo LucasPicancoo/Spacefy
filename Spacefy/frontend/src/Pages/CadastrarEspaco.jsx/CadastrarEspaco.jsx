@@ -11,6 +11,7 @@ import Etapa4 from './Etapas/Etapa4';
 import Etapa5 from './Etapas/Etapa5';
 import Etapa6 from './Etapas/Etapa6';
 import Etapa7 from './Etapas/Etapa7';
+import { useUser } from '../../Contexts/userContext';
 
 // Mapeamento dos campos obrigatórios e suas mensagens de erro
 const CAMPOS_OBRIGATORIOS = {
@@ -76,10 +77,26 @@ const BarraProgresso = ({ etapaAtual }) => (
 
 const CadastrarEspaco = () => {
     const navigate = useNavigate();
+    const { user, isLoggedIn } = useUser();
     const [etapaAtual, setEtapaAtual] = useState(0);
     const [formData, setFormData] = useState({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    // Verificação de autenticação e papel do usuário
+    React.useEffect(() => {
+        if (!isLoggedIn) {
+            toast.error('Você precisa estar logado para cadastrar um espaço.');
+            navigate('/login');
+            return;
+        }
+
+        if (user.role !== 'locatario') {
+            toast.error('Apenas locadores podem cadastrar espaços.');
+            navigate('/');
+            return;
+        }
+    }, [isLoggedIn, user, navigate]);
 
     // Função para iniciar o cadastro, mudando para a primeira etapa
     const iniciarCadastro = () => setEtapaAtual(1);
@@ -126,6 +143,7 @@ const CadastrarEspaco = () => {
 
     // Formatação dos dados para envio ao backend
     const formatarDadosParaEnvio = () => ({
+        owner_id: user.id,
         space_name: formData.space_name,
         max_people: parseInt(formData.max_people),
         location: formData.location,

@@ -40,5 +40,11 @@ export const spaceService = {
     async getSpacesByExperienceAmenities() {
         const response = await api.get('/spaces/getSpacesByExperienceAmenities');
         return response.data;
+    },
+
+    // Buscar espaços por ID do proprietário
+    async getSpacesByOwnerId(ownerId) {
+        const response = await api.get(`/spaces/getSpacesByOwnerId/${ownerId}`);
+        return response.data;
     }
 };

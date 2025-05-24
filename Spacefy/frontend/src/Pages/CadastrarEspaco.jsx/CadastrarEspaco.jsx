@@ -5,13 +5,13 @@ import Header from '../../Components/Header/Header';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Etapa1 from './Etapas/Etapa1';
-import Etapa1_2 from './Etapas/Etapa1_2';
 import Etapa2 from './Etapas/Etapa2';
 import Etapa3 from './Etapas/Etapa3';
 import Etapa4 from './Etapas/Etapa4';
 import Etapa5 from './Etapas/Etapa5';
 import Etapa6 from './Etapas/Etapa6';
 import Etapa7 from './Etapas/Etapa7';
+import Etapa8 from './Etapas/Etapa8';
 import { useUser } from '../../Contexts/userContext';
 
 // Mapeamento dos campos obrigatórios e suas mensagens de erro
@@ -262,13 +262,13 @@ const CadastrarEspaco = () => {
     const renderizarEtapa = () => {
         const etapas = {
             1: <Etapa1 formData={formData} onUpdate={atualizarFormData} />,
-            2: <Etapa1_2 formData={formData} onUpdate={atualizarFormData} />,
-            3: <Etapa2 formData={formData} onUpdate={atualizarFormData} />,
-            4: <Etapa3 formData={formData} onUpdate={atualizarFormData} />,
-            5: <Etapa4 formData={formData} onUpdate={atualizarFormData} />,
-            6: <Etapa5 formData={formData} onUpdate={atualizarFormData} />,
-            7: <Etapa6 formData={formData} onUpdate={atualizarFormData} />,
-            8: <Etapa7 formData={formData} onUpdate={atualizarFormData} />
+            2: <Etapa2 formData={formData} onUpdate={atualizarFormData} />,
+            3: <Etapa3 formData={formData} onUpdate={atualizarFormData} />,
+            4: <Etapa4 formData={formData} onUpdate={atualizarFormData} />,
+            5: <Etapa5 formData={formData} onUpdate={atualizarFormData} />,
+            6: <Etapa6 formData={formData} onUpdate={atualizarFormData} />,
+            7: <Etapa7 formData={formData} onUpdate={atualizarFormData} />,
+            8: <Etapa8 formData={formData} onUpdate={atualizarFormData} />
         };
 
         return etapas[etapaAtual] || <TelaInicial onIniciar={iniciarCadastro} />;

@@ -78,16 +78,16 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
       {/* Conteúdo principal */}
       <div className="flex-1 bg-white rounded-xl shadow-lg p-6 flex flex-col gap-6">
         <h2 className="text-3xl font-bold mb-2">{espacoSelecionado.space_name}</h2>
-        <div className="flex flex-col lg:flex-row gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_256px] gap-6">
           {/* Gráfico */}
-          <div className="flex-1 bg-white rounded-lg p-4 flex flex-col items-center justify-center min-h-[220px] w-full">
+          <div className="bg-white rounded-lg p-4 flex flex-col items-center justify-center min-h-[550px]">
             {/* Placeholder do gráfico igual ao da Home */}
-            <div className="h-64 flex items-center justify-center bg-blue-50 rounded flex-1 w-full">
+            <div className="h-[550px] flex items-center justify-center bg-blue-50 rounded w-full">
               <span className="text-gray-400">[Gráfico de linhas aqui]</span>
             </div>
           </div>
           {/* Card lateral */}
-          <div className="w-full lg:w-64 bg-gradient-to-br from-[#eaf6fd] to-[#b2d6f7] rounded-xl shadow p-4 flex flex-col gap-3">
+          <div className="bg-gradient-to-br from-[#eaf6fd] to-[#b2d6f7] rounded-xl shadow p-4 flex flex-col gap-3">
             <div className="flex items-center gap-2 text-lg font-bold"><BsCurrencyDollar /> Preço</div>
             <div className="text-base font-semibold">R$ {espacoSelecionado.price_per_hour}/hora</div>
             <div className="flex items-center gap-2 text-base font-bold mt-2"><MdCalendarToday /> Dias de funcionamento</div>

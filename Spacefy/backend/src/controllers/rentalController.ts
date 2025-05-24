@@ -74,6 +74,19 @@ const convertDate = (dateStr: string): Date => {
   return new Date(year, month - 1, day);
 };
 
+// Função para gerar array de datas entre duas datas
+const getDatesBetween = (startDate: Date, endDate: Date): Date[] => {
+  const dates: Date[] = [];
+  const currentDate = new Date(startDate);
+  
+  while (currentDate <= endDate) {
+    dates.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return dates;
+};
+
 // Criar um novo aluguel com validação de conflito
 export const createRental = async (req: Request, res: Response) => {
   try {
@@ -204,5 +217,38 @@ export const deleteRental = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao deletar aluguel:", error);
     return res.status(500).json({ error: "Erro interno ao deletar aluguel." });
+  }
+};
+
+// Listar todas as datas reservadas de um espaço específico
+export const getRentedDatesBySpace = async (req: Request, res: Response) => {
+  try {
+    const { spaceId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(spaceId)) {
+      return res.status(400).json({ error: "ID de espaço inválido." });
+    }
+
+    const rentals = await RentalModel.find({ space: spaceId })
+      .select('start_date end_date');
+
+    if (!rentals.length) {
+      return res.status(200).json({ dates: [] });
+    }
+
+    // Gerar array com todas as datas reservadas
+    const allRentedDates = rentals.reduce((dates: Date[], rental) => {
+      const datesBetween = getDatesBetween(rental.start_date, rental.end_date);
+      return [...dates, ...datesBetween];
+    }, []);
+
+    // Remover duplicatas e ordenar as datas
+    const uniqueDates = [...new Set(allRentedDates.map(date => date.toISOString().split('T')[0]))]
+      .sort();
+
+    return res.status(200).json({ dates: uniqueDates });
+  } catch (error) {
+    console.error("Erro ao buscar datas reservadas:", error);
+    return res.status(500).json({ error: "Erro interno ao buscar datas reservadas." });
   }
 };

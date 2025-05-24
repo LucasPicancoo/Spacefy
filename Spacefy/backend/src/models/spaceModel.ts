@@ -5,6 +5,7 @@ import { ALLOWED_RULES } from "../constants/spaceRules";
 import { ALLOWED_SPACE_TYPES } from "../constants/spaceTypes";
 
 const SpaceSchema: Schema = new Schema({
+  owner_id: { type: Schema.Types.ObjectId, required: true, ref: 'User' }, // ID do locador (obrigatório)
   space_name: { type: String, required: true }, // Nome do espaço (obrigatório)
   max_people: { type: Number, required: true }, // Capacidade máxima de pessoas (obrigatório)
   location: { type: String, required: true }, // Localização do espaço (obrigatório)

@@ -267,6 +267,14 @@ export const createSpace = async (req: Request, res: Response) => {
         .status(403)
         .json({ error: "Apenas locatários podem criar espaços." });
     }
+
+    // Verifica se o ID do usuário está disponível
+    if (!req.auth?.id) {
+      return res
+        .status(400)
+        .json({ error: "ID do usuário não encontrado na autenticação." });
+    }
+
     const {
       space_name,
       max_people,
@@ -340,6 +348,7 @@ export const createSpace = async (req: Request, res: Response) => {
 
     // Cria um novo espaço
     const newSpace = new SpaceModel({
+      owner_id: req.auth.id, // Adiciona o ID do usuário autenticado
       space_name,
       max_people,
       location,

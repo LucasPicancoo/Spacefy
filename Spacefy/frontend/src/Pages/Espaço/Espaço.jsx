@@ -122,7 +122,7 @@ function Espaço() {
                     <div className="flex-1 max-w-[60%]">
                         <div className="mb-4 border-b border-[#00A3FF] pb-8">
                             <h2 className="text-2xl font-bold text-[#363636]">Endereço:</h2>
-                            <p className="text-[#696868]">{space.location}</p>
+                            <p className="text-[#696868]">{space.location.formatted_address}</p>
                         </div>
                         <div className="mb-4 border-b border-[#00A3FF] pb-8">
                             <h2 className="text-2xl font-bold text-[#363636]">Descrição</h2>

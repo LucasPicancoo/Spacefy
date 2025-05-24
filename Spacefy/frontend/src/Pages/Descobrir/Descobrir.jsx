@@ -160,7 +160,7 @@ function Descobrir() {
                                             {rating}
                                         </span>
                                     </div>
-                                    <span className="text-xs text-gray-500">{espaco.location}</span>
+                                    <span className="text-xs text-gray-500">{espaco.location.formatted_address}</span>
                                     <span className="text-[#1486B8] font-semibold text-base">
                                         R$ {espaco.price_per_hour} <span className="text-xs font-normal text-gray-500">por hora</span>
                                     </span>

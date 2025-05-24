@@ -5,6 +5,7 @@ import Header from '../../Components/Header/Header';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Etapa1 from './Etapas/Etapa1';
+import Etapa1_2 from './Etapas/Etapa1_2';
 import Etapa2 from './Etapas/Etapa2';
 import Etapa3 from './Etapas/Etapa3';
 import Etapa4 from './Etapas/Etapa4';
@@ -17,7 +18,12 @@ import { useUser } from '../../Contexts/userContext';
 const CAMPOS_OBRIGATORIOS = {
     space_name: 'Nome do espaço',
     max_people: 'Capacidade máxima',
-    location: 'Localização',
+    street: 'Rua',
+    number: 'Número',
+    neighborhood: 'Bairro',
+    city: 'Cidade',
+    state: 'Estado',
+    zipCode: 'CEP',
     space_type: 'Tipo do espaço',
     opening_time: 'Horário de início',
     closing_time: 'Horário de fim',
@@ -33,7 +39,7 @@ const CAMPOS_OBRIGATORIOS = {
 };
 
 // Número total de etapas do formulário
-const TOTAL_ETAPAS = 7;
+const TOTAL_ETAPAS = 8;
 
 // Componente da tela inicial com botão para iniciar o cadastro
 const TelaInicial = ({ onIniciar }) => (
@@ -142,27 +148,40 @@ const CadastrarEspaco = () => {
     };
 
     // Formatação dos dados para envio ao backend
-    const formatarDadosParaEnvio = () => ({
-        owner_id: user.id,
-        space_name: formData.space_name,
-        max_people: parseInt(formData.max_people),
-        location: formData.location,
-        space_type: formData.space_type,
-        space_description: formData.space_description || '',
-        space_amenities: formData.space_amenities || [],
-        week_days: formData.week_days || [],
-        opening_time: formData.opening_time,
-        closing_time: formData.closing_time,
-        space_rules: formData.space_rules || [],
-        price_per_hour: parseFloat(formData.price_per_hour),
-        owner_name: formData.owner_name,
-        document_number: formData.document_number,
-        document_photo: formData.document_photo,
-        space_document_photo: formData.space_document_photo,
-        owner_phone: formData.owner_phone,
-        owner_email: formData.owner_email,
-        image_url: formData.image_url
-    });
+    const formatarDadosParaEnvio = () => {
+        // Combina os campos de endereço em um único objeto
+        const locationData = {
+            street: formData.street,
+            number: formData.number,
+            complement: formData.complement,
+            neighborhood: formData.neighborhood,
+            city: formData.city,
+            state: formData.state,
+            zipCode: formData.zipCode
+        };
+
+        return {
+            owner_id: user.id,
+            space_name: formData.space_name,
+            max_people: parseInt(formData.max_people),
+            location: locationData,
+            space_type: formData.space_type,
+            space_description: formData.space_description || '',
+            space_amenities: formData.space_amenities || [],
+            week_days: formData.week_days || [],
+            opening_time: formData.opening_time,
+            closing_time: formData.closing_time,
+            space_rules: formData.space_rules || [],
+            price_per_hour: parseFloat(formData.price_per_hour),
+            owner_name: formData.owner_name,
+            document_number: formData.document_number,
+            document_photo: formData.document_photo,
+            space_document_photo: formData.space_document_photo,
+            owner_phone: formData.owner_phone,
+            owner_email: formData.owner_email,
+            image_url: formData.image_url
+        };
+    };
 
     // Função para enviar os dados ao backend
     const enviarDadosParaBackend = async () => {
@@ -243,12 +262,13 @@ const CadastrarEspaco = () => {
     const renderizarEtapa = () => {
         const etapas = {
             1: <Etapa1 formData={formData} onUpdate={atualizarFormData} />,
-            2: <Etapa2 formData={formData} onUpdate={atualizarFormData} />,
-            3: <Etapa3 formData={formData} onUpdate={atualizarFormData} />,
-            4: <Etapa4 formData={formData} onUpdate={atualizarFormData} />,
-            5: <Etapa5 formData={formData} onUpdate={atualizarFormData} />,
-            6: <Etapa6 formData={formData} onUpdate={atualizarFormData} />,
-            7: <Etapa7 formData={formData} onUpdate={atualizarFormData} />
+            2: <Etapa1_2 formData={formData} onUpdate={atualizarFormData} />,
+            3: <Etapa2 formData={formData} onUpdate={atualizarFormData} />,
+            4: <Etapa3 formData={formData} onUpdate={atualizarFormData} />,
+            5: <Etapa4 formData={formData} onUpdate={atualizarFormData} />,
+            6: <Etapa5 formData={formData} onUpdate={atualizarFormData} />,
+            7: <Etapa6 formData={formData} onUpdate={atualizarFormData} />,
+            8: <Etapa7 formData={formData} onUpdate={atualizarFormData} />
         };
 
         return etapas[etapaAtual] || <TelaInicial onIniciar={iniciarCadastro} />;

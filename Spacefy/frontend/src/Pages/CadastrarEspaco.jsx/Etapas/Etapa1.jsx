@@ -171,19 +171,6 @@ const Etapa1 = ({ formData, onUpdate }) => {
                         min="1"
                         required
                     />
-
-                    <CampoTexto
-                        label={
-                            <>
-                                Localização <span className="text-xs text-gray-400">(URL no MAPS)</span>
-                            </>
-                        }
-                        id="location"
-                        name="location"
-                        value={formData.location}
-                        onChange={handleChange}
-                        required
-                    />
                 </div>
 
                 {/* Coluna da direita - Campo de descrição */}

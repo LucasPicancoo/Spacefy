@@ -28,9 +28,9 @@ const SpaceCard = ({
 
   // Função para formatar a localização
   const formatLocation = (location) => {
-    if (!location) return "Muriaé - MG"; // Valor padrão fictício
-    if (location.includes(" - ")) return location;
-    return `${location} - MG`; // Valor padrão fictício para o estado
+    if (!location) return "Endereço não disponível";
+    if (typeof location === 'string') return location;
+    return location.formatted_address || "Endereço não disponível";
   };
 
   return (

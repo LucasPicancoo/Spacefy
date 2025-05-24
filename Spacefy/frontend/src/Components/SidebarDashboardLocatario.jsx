@@ -1,15 +1,40 @@
 import { useEffect, useState } from "react";
 import { MdOutlineKeyboardArrowDown, MdOutlineKeyboardArrowUp } from "react-icons/md";
+import { spaceService } from "../services/spaceService";
+import { useUser } from "../Contexts/userContext";
 
-export default function SidebarDashboardLocatario({ espacos: espacosProp, onPageChange, paginaAtual, subEspacoSelecionado }) {
-  const [espacos, setEspacos] = useState(espacosProp || []);
+export default function SidebarDashboardLocatario({ onPageChange, paginaAtual, subEspacoSelecionado }) {
+  const [espacos, setEspacos] = useState([]);
   const [open, setOpen] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useUser();
+
+  const truncarNome = (nome) => {
+    if (nome.length > 20) {
+      return nome.substring(0, 20) + "...";
+    }
+    return nome;
+  };
 
   useEffect(() => {
-    if (!espacosProp) {
-      setEspacos(["Espaço 1", "Espaço 2", "Espaço 3", "Espaço 4", "Espaço 5", "Espaço 6", "Espaço 7", "Espaço 8", "Espaço 9", "Espaço 10", "ababa"]);
+    const buscarEspacos = async () => {
+      try {
+        setLoading(true);
+        const espacosData = await spaceService.getSpacesByOwnerId(user.id);
+        setEspacos(espacosData);
+        setError(null);
+      } catch (err) {
+        setError(err.response?.data?.error || 'Erro ao carregar os espaços. Por favor, tente novamente mais tarde.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      buscarEspacos();
     }
-  }, [espacosProp]);
+  }, [user?.id]);
 
   return (
     <nav className="w-60 bg-white border-r border-gray-200 flex flex-col py-6 px-4" aria-label="Menu lateral do dashboard">
@@ -41,17 +66,26 @@ export default function SidebarDashboardLocatario({ espacos: espacosProp, onPage
               opacity: open ? 1 : 0,
             }}
           >
-            {espacos.slice(0, 3).map((nome, idx) => (
-              <li
-                key={idx}
-                className={`py-1 pl-2 text-gray-700 hover:text-[#236B8E] hover:bg-gray-100 cursor-pointer transition-colors rounded ${
-                  paginaAtual === 'Espaco' && subEspacoSelecionado === idx ? 'bg-[#1486B8] text-white' : ''
-                }`}
-                onClick={() => onPageChange('Espaco', idx)}
-              >
-                {nome}
-              </li>
-            ))}
+            {loading ? (
+              <li className="py-1 pl-2 text-gray-500">Carregando...</li>
+            ) : error ? (
+              <li className="py-1 pl-2 text-red-500">{error}</li>
+            ) : espacos.length === 0 ? (
+              <li className="py-1 pl-2 text-gray-500">Nenhum espaço encontrado</li>
+            ) : (
+              espacos.map((espaco, idx) => (
+                <li
+                  key={espaco._id}
+                  className={`py-1 pl-2 text-gray-700 hover:text-[#236B8E] hover:bg-gray-100 cursor-pointer transition-colors rounded ${
+                    paginaAtual === 'Espaco' && subEspacoSelecionado === idx ? 'bg-[#1486B8] text-white' : ''
+                  }`}
+                  onClick={() => onPageChange('Espaco', idx)}
+                  title={espaco.space_name}
+                >
+                  {truncarNome(espaco.space_name)}
+                </li>
+              ))
+            )}
           </ul>
         )}
       </div>

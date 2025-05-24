@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import SpaceModel from "../models/spaceModel";
 import { AMENITIES, ALLOWED_AMENITIES } from "../constants/amenities";
 import { ALLOWED_RULES } from "../constants/spaceRules";
+import mongoose from 'mongoose';
 
 // import { AuthenticationData } from "../types/auth";
 
@@ -447,8 +448,6 @@ export const updateSpace = async (req: Request, res: Response) => {
 };
 
 // Excluir um espaço por ID
-import mongoose from 'mongoose';
-
 export const deleteSpace = async (req: Request, res: Response) => {
   try {
     if (!req.auth || !["locatario", "admin"].includes(req.auth.role)) {
@@ -553,6 +552,32 @@ export const getSpacesByExperienceAmenities = async (req: Request, res: Response
     console.error("Erro ao buscar espaços por comodidades:", error);
     return res.status(500).json({
       error: "Erro ao buscar espaços por comodidades",
+      details: error instanceof Error ? error.message : "Erro desconhecido"
+    });
+  }
+};
+
+// Buscar espaços por ID do proprietário
+export const getSpacesByOwnerId = async (req: Request, res: Response) => {
+  try {
+    const { owner_id } = req.params;
+
+    // Validação do ID
+    if (!mongoose.Types.ObjectId.isValid(owner_id)) {
+      return res.status(400).json({ error: "ID do proprietário inválido" });
+    }
+
+    const spaces = await SpaceModel.find({ owner_id });
+
+    if (!spaces || spaces.length === 0) {
+      return res.status(404).json({ error: "Nenhum espaço encontrado para este proprietário" });
+    }
+
+    return res.status(200).json(spaces);
+  } catch (error) {
+    console.error("Erro ao buscar espaços do proprietário:", error);
+    return res.status(500).json({ 
+      error: "Erro ao buscar espaços do proprietário",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
   }

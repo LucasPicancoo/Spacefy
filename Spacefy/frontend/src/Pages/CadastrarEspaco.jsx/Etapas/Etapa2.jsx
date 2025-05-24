@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Loader } from '@googlemaps/js-api-loader';
 
 // Componente reutilizável para campos de texto
-const CampoTexto = ({ label, id, name, value, onChange, required = false, type = "text", min, placeholder, maxLength }) => (
+const CampoTexto = ({ label, id, name, value, onChange, required = false, type = "text", min, placeholder, maxLength, inputRef, onBlur }) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
@@ -12,11 +13,13 @@ const CampoTexto = ({ label, id, name, value, onChange, required = false, type =
             id={id}
             value={value || ''}
             onChange={onChange}
+            onBlur={onBlur}
             min={min}
             maxLength={maxLength}
             placeholder={placeholder}
             className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
             required={required}
+            ref={inputRef}
         />
     </div>
 );
@@ -46,9 +49,93 @@ const CampoSelect = ({ label, id, name, value, onChange, options, required = fal
 );
 
 const Etapa1_2 = ({ formData, onUpdate }) => {
+    const streetInputRef = useRef(null);
+    const autocompleteRef = useRef(null);
+    const [streetValue, setStreetValue] = useState(formData.street || '');
+    const [selectedPlace, setSelectedPlace] = useState(null);
+    const [isPlaceSelected, setIsPlaceSelected] = useState(false);
+
+    useEffect(() => {
+        const loader = new Loader({
+            apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
+            version: 'weekly',
+            libraries: ['places'],
+        });
+
+        loader.load().then(() => {
+            if (streetInputRef.current) {
+                autocompleteRef.current = new window.google.maps.places.Autocomplete(streetInputRef.current, {
+                    componentRestrictions: { country: 'br' },
+                    fields: ['address_components', 'formatted_address'],
+                });
+
+                autocompleteRef.current.addListener('place_changed', () => {
+                    const place = autocompleteRef.current.getPlace();
+                    if (place && place.address_components) {
+                        setSelectedPlace(place);
+                        setIsPlaceSelected(true);
+                        handlePlaceSelect(place);
+                    }
+                });
+            }
+        });
+    }, []);
+
+    const handlePlaceSelect = (place = selectedPlace) => {
+        if (!place) return;
+
+        const addressComponents = place.address_components;
+        const newData = {};
+
+        // Função auxiliar para encontrar o componente do endereço
+        const getAddressComponent = (types) => {
+            const component = addressComponents.find(component => 
+                types.some(type => component.types.includes(type))
+            );
+            return component ? component.long_name : '';
+        };
+
+        // Função auxiliar para encontrar o componente do estado (usando short_name)
+        const getStateComponent = () => {
+            const component = addressComponents.find(component => 
+                component.types.includes('administrative_area_level_1')
+            );
+            return component ? component.short_name : '';
+        };
+
+        // Preenche cada campo com seu respectivo componente
+        const street = getAddressComponent(['route']);
+        const number = getAddressComponent(['street_number']);
+        const neighborhood = getAddressComponent(['sublocality_level_1', 'sublocality']);
+        const city = getAddressComponent(['administrative_area_level_2']);
+        const state = getStateComponent();
+        const zipCode = getAddressComponent(['postal_code']);
+
+        // Atualiza o estado local e o formulário
+        setStreetValue(street);
+        onUpdate({
+            street,
+            number,
+            neighborhood,
+            city,
+            state,
+            zipCode
+        });
+    };
+
+    const handleBlur = () => {
+        if (isPlaceSelected) {
+            setIsPlaceSelected(false);
+            setSelectedPlace(null);
+        }
+    };
+
     // Função para atualizar os dados do formulário
     const handleChange = (e) => {
         const { name, value } = e.target;
+        if (name === 'street') {
+            setStreetValue(value);
+        }
         onUpdate({ [name]: value });
     };
 
@@ -99,25 +186,18 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-x-12">
                 <div className="space-y-6">
                     <CampoTexto
-                        label="CEP"
-                        id="zipCode"
-                        name="zipCode"
-                        value={formData.zipCode}
+                        label="Rua"
+                        id="street"
+                        name="street"
+                        value={streetValue}
                         onChange={handleChange}
+                        onBlur={handleBlur}
                         required
-                        placeholder="00000-000"
+                        placeholder="Digite o nome da rua"
+                        inputRef={streetInputRef}
                     />
 
                     <div className="grid grid-cols-2 gap-4">
-                        <CampoTexto
-                            label="Rua"
-                            id="street"
-                            name="street"
-                            value={formData.street}
-                            onChange={handleChange}
-                            required
-                        />
-                        
                         <CampoTexto
                             label="Número"
                             id="number"
@@ -125,6 +205,16 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
                             value={formData.number}
                             onChange={handleChange}
                             required
+                        />
+                        
+                        <CampoTexto
+                            label="CEP"
+                            id="zipCode"
+                            name="zipCode"
+                            value={formData.zipCode}
+                            onChange={handleChange}
+                            required
+                            placeholder="00000-000"
                         />
                     </div>
 
@@ -165,7 +255,7 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
                         Instruções
                     </h4>
                     <ul className="list-disc list-inside space-y-2 text-gray-600">
-                        <li>Preencha o CEP para autopreenchimento do endereço</li>
+                        <li>Digite o nome da rua para autopreenchimento do endereço</li>
                         <li>Verifique se todos os dados estão corretos</li>
                         <li>O endereço será usado para localização no mapa</li>
                         <li>Certifique-se de que o endereço está completo e correto</li>

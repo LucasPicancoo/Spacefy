@@ -7,7 +7,10 @@ export interface ISpace extends Document {
   owner_id: ObjectId; // ID do locador
   space_name: string; // Nome do espaço
   max_people: number; // Capacidade máxima de pessoas
-  location: string; // Localização do espaço
+  location: {
+    formatted_address: string;
+    place_id: string;
+  };
   space_type: string; // Tipo do espaço (ex.: quadra, salão, auditório)
   space_description: string; // Descrição opcional do espaço
   space_amenities: string[]; // Comodidades do espaço

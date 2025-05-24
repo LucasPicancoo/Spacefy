@@ -8,7 +8,10 @@ const SpaceSchema: Schema = new Schema({
   owner_id: { type: Schema.Types.ObjectId, required: true, ref: 'User' }, // ID do locador (obrigatório)
   space_name: { type: String, required: true }, // Nome do espaço (obrigatório)
   max_people: { type: Number, required: true }, // Capacidade máxima de pessoas (obrigatório)
-  location: { type: String, required: true }, // Localização do espaço (obrigatório)
+  location: {
+    formatted_address: { type: String, required: true },
+    place_id: { type: String, required: true }
+  },
   space_type: { 
     type: String, 
     required: true,
@@ -75,8 +78,8 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
     throw new Error("O número máximo de pessoas não foi informado.");
   }
 
-  if (!this.location) {
-    throw new Error("A URL de localização do espaço não foi informada.");
+  if (!this.location?.formatted_address || !this.location?.place_id) {
+    throw new Error("Todos os campos do endereço são obrigatórios.");
   }
 
   if (!this.price_per_hour) {

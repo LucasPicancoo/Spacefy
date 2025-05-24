@@ -3,6 +3,7 @@ import SpaceModel from "../models/spaceModel";
 import { AMENITIES, ALLOWED_AMENITIES } from "../constants/amenities";
 import { ALLOWED_RULES } from "../constants/spaceRules";
 import mongoose from 'mongoose';
+import { GoogleMapsService } from "../services/googleMapsService";
 
 // import { AuthenticationData } from "../types/auth";
 
@@ -321,6 +322,25 @@ export const createSpace = async (req: Request, res: Response) => {
         .json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
     }
 
+    // Valida o endereço usando o Google Maps API
+    const googleMapsService = new GoogleMapsService();
+    const addressValidation = await googleMapsService.validateAddress({
+      street: location.street,
+      number: location.number,
+      complement: location.complement,
+      neighborhood: location.neighborhood,
+      city: location.city,
+      state: location.state,
+      zipCode: location.zipCode
+    });
+
+    if (!addressValidation.isValid) {
+      return res.status(400).json({
+        error: "Endereço inválido",
+        details: addressValidation.error
+      });
+    }
+
     // Verifica se todas as comodidades são permitidas
     const invalidAmenities = space_amenities.filter(
       (amenity: string) => !ALLOWED_AMENITIES.includes(amenity)
@@ -352,7 +372,10 @@ export const createSpace = async (req: Request, res: Response) => {
       owner_id: req.auth.id, // Adiciona o ID do usuário autenticado
       space_name,
       max_people,
-      location,
+      location: {
+        formatted_address: addressValidation.formattedAddress,
+        place_id: addressValidation.placeId
+      },
       space_type,
       space_description,
       space_amenities,

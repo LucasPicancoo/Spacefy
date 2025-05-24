@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { FaMapMarkerAlt, FaChevronDown } from 'react-icons/fa';
+import { FaChevronDown } from 'react-icons/fa';
 import DatePicker from 'react-datepicker';
 import "react-datepicker/dist/react-datepicker.css";
 import ptBR from 'date-fns/locale/pt-BR';
 import { isAfter, startOfDay } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { LocationSearch } from './LocationSearch';
 
 export default function SearchBarLaddingPage() {
   const [startDate, setStartDate] = useState(null);
@@ -15,7 +16,6 @@ export default function SearchBarLaddingPage() {
 
   const handlePeopleChange = (e) => {
     const value = e.target.value;
-    // Permite apenas números
     if (/^\d*$/.test(value)) {
       setNumberOfPeople(value);
     }
@@ -23,16 +23,8 @@ export default function SearchBarLaddingPage() {
 
   return (
     <div className="w-full max-w-5xl mx-auto flex items-center gap-2 bg-[#1486B8] rounded-xl p-4" style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}>
-
-      {/* Campo de Localização */}
-      <div className="flex-1 flex items-center bg-white rounded-xl px-4 py-3">
-        <FaMapMarkerAlt className="text-gray-400 mr-2 text-lg" />
-        <input
-          type="text"
-          placeholder="Localização"
-          className="w-full outline-none text-gray-700 placeholder-gray-400 text-sm"
-        />
-      </div>
+      {/* Campo de Localização com autocomplete */}
+      <LocationSearch />
 
       {/* Campo de Datas */}
       <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3">
@@ -50,15 +42,11 @@ export default function SearchBarLaddingPage() {
           className="w-full outline-none text-gray-700 text-sm cursor-pointer"
           dateFormat="dd/MM/yyyy"
           minDate={today}
-          filterDate={(date) => {
-            return isAfter(date, today) || date.getTime() === today.getTime();
-          }}
+          filterDate={(date) => isAfter(date, today) || date.getTime() === today.getTime()}
         />
         <FaChevronDown className="text-gray-400 text-sm" />
       </div>
 
-
-      {/* Adicionar Limite de quantidade */}
       {/* Campo de Pessoas */}
       <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3">
         <input
@@ -74,10 +62,13 @@ export default function SearchBarLaddingPage() {
 
       {/* Botão de Pesquisa */}
       <button
-        type="button" onClick={() => navigate("/Descobrir")}
-        className="bg-[#1EACE3] hover:bg-[#32C6FF] hover:scale-[1.05] text-white font-medium px-8 py-2.5 rounded-lg transition-all duration-300 cursor-pointer" style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}>
+        type="button"
+        onClick={() => navigate('/Descobrir')}
+        className="bg-[#1EACE3] hover:bg-[#32C6FF] hover:scale-[1.05] text-white font-medium px-8 py-2.5 rounded-lg transition-all duration-300 cursor-pointer"
+        style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}
+      >
         Pesquisar
       </button>
     </div>
   );
-};
+}

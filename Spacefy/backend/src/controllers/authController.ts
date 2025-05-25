@@ -14,7 +14,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Preencha todos os campos" }); // Adicionando o return aqui
     }
 
-    const user = await UserModel.findOne({ email }) as IBaseUser;
+    const user = (await UserModel.findOne({ email })) as IBaseUser;
 
     if (!user) {
       return res.status(401).json({ error: "E-mail ou senha inválidos" }); // Adicionando o return aqui
@@ -34,6 +34,14 @@ export const login = async (req: Request, res: Response) => {
       role: user.role,
     });
 
+    // Armazena o token no cookie
+    res.cookie("token", token, {
+      httpOnly: true, // Impede acesso ao cookie via JavaScript no navegador
+      secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
+      sameSite: "strict", // Protege contra CSRF
+      maxAge: 24 * 60 * 60 * 1000, // 1 dia
+    });
+
     return res.status(200).json({
       message: "Login realizado com sucesso",
       token,
@@ -47,4 +55,19 @@ export const login = async (req: Request, res: Response) => {
     console.error("Erro ao fazer login:", error);
     return res.status(500).json({ error: "Erro ao fazer login" }); // Adicionando o return aqui
   }
+};
+
+// Ler um cookie
+export const getCookie = (req: Request, res: Response) => {
+  const token = req.cookies.token; // Acessa o cookie "token"
+  if (!token) {
+    return res.status(404).json({ message: "Cookie não encontrado" });
+  }
+  res.status(200).json({ token });
+};
+
+// Excluir um cookie
+export const deleteCookie = (req: Request, res: Response) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Cookie removido com sucesso!" });
 };

@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
+import cookieParser from "cookie-parser"; // Importar cookie-parser
 
 import userRouter from "./routes/userRoutes";
 import spaceRouter from "./routes/spaceRoutes";
@@ -17,6 +18,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser()); // Adicionar o middleware para cookies
 
 // Rotas
 app.use("/users", userRouter);

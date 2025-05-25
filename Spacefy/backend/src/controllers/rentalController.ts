@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import RentalModel from "../models/rentalModel";
+import NotificationModel from "../models/notificationModel";
 import mongoose from "mongoose";
 
 // Função para calcular o número de dias entre duas datas
@@ -12,15 +13,15 @@ const calculateDays = (startDate: Date, endDate: Date): number => {
 const calculateHours = (startTime: string, endTime: string): number => {
   const [startHour, startMinute] = startTime.split(':').map(Number);
   const [endHour, endMinute] = endTime.split(':').map(Number);
-  
+
   let hours = endHour - startHour;
   let minutes = endMinute - startMinute;
-  
+
   if (minutes < 0) {
     hours -= 1;
     minutes += 60;
   }
-  
+
   return hours + (minutes / 60);
 };
 
@@ -54,9 +55,11 @@ const hasTimeConflict = (
   }
 
   // Se for o mesmo dia, verifica o horário
-  if (newStartDate.getTime() === newEndDate.getTime() && 
-      existingStartDate.getTime() === existingEndDate.getTime() &&
-      newStartDate.getTime() === existingStartDate.getTime()) {
+  if (
+    newStartDate.getTime() === newEndDate.getTime() &&
+    existingStartDate.getTime() === existingEndDate.getTime() &&
+    newStartDate.getTime() === existingStartDate.getTime()
+  ) {
     return (
       (newStartTime >= existingStartTime && newStartTime < existingEndTime) ||
       (newEndTime > existingStartTime && newEndTime <= existingEndTime) ||
@@ -78,16 +81,16 @@ const convertDate = (dateStr: string): Date => {
 const getDatesBetween = (startDate: Date, endDate: Date): Date[] => {
   const dates: Date[] = [];
   const currentDate = new Date(startDate);
-  
+
   while (currentDate <= endDate) {
     dates.push(new Date(currentDate));
     currentDate.setDate(currentDate.getDate() + 1);
   }
-  
+
   return dates;
 };
 
-// Criar um novo aluguel com validação de conflito
+// Criar um novo aluguel com validação de conflito + notificação automática
 export const createRental = async (req: Request, res: Response) => {
   try {
     const { userId, spaceId, start_date, end_date, startTime, endTime, value } = req.body;
@@ -96,27 +99,21 @@ export const createRental = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Todos os campos são obrigatórios." });
     }
 
-    // Validar IDs
-    if (
-      !mongoose.Types.ObjectId.isValid(userId) ||
-      !mongoose.Types.ObjectId.isValid(spaceId)
-    ) {
+    if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(spaceId)) {
       return res.status(400).json({ error: "ID inválido." });
     }
 
-    // Converter as datas para o formato correto
     const convertedStartDate = convertDate(start_date);
     const convertedEndDate = convertDate(end_date);
 
-    // Verificar conflitos no mesmo espaço
     const rentalsOnSameSpace = await RentalModel.find({
       space: spaceId,
       $or: [
         {
           start_date: { $lte: convertedEndDate },
-          end_date: { $gte: convertedStartDate }
-        }
-      ]
+          end_date: { $gte: convertedStartDate },
+        },
+      ],
     });
 
     for (const rental of rentalsOnSameSpace) {
@@ -145,10 +142,22 @@ export const createRental = async (req: Request, res: Response) => {
       end_date: convertedEndDate,
       startTime,
       endTime,
-      value
+      value,
     });
 
     await rental.save();
+
+    // Busca o nome do espaço para a notificação
+    const space = await RentalModel.findById(rental._id).populate("space", "space_name");
+    const spaceName = space?.space?.space_name || "espaço";
+
+    // Criar notificação automática
+    await NotificationModel.create({
+      user: userId,
+      title: "Aluguel criado com sucesso",
+      message: `Seu aluguel para o espaço "${spaceName}" foi criado com sucesso de ${start_date} até ${end_date}.`,
+    });
+
     return res.status(201).json(rental);
   } catch (error) {
     console.error("Erro ao criar aluguel:", error);
@@ -188,8 +197,10 @@ export const getRentalsByUser = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "ID de usuário inválido." });
     }
 
-    const rentals = await RentalModel.find({ user: userId })
-      .populate("space", "space_name image_url price_per_hour location");
+    const rentals = await RentalModel.find({ user: userId }).populate(
+      "space",
+      "space_name image_url price_per_hour location"
+    );
 
     return res.status(200).json(rentals);
   } catch (error) {
@@ -229,8 +240,7 @@ export const getRentedDatesBySpace = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "ID de espaço inválido." });
     }
 
-    const rentals = await RentalModel.find({ space: spaceId })
-      .select('start_date end_date');
+    const rentals = await RentalModel.find({ space: spaceId }).select("start_date end_date");
 
     if (!rentals.length) {
       return res.status(200).json({ dates: [] });
@@ -243,8 +253,7 @@ export const getRentedDatesBySpace = async (req: Request, res: Response) => {
     }, []);
 
     // Remover duplicatas e ordenar as datas
-    const uniqueDates = [...new Set(allRentedDates.map(date => date.toISOString().split('T')[0]))]
-      .sort();
+    const uniqueDates = [...new Set(allRentedDates.map((date) => date.toISOString().split("T")[0]))].sort();
 
     return res.status(200).json({ dates: uniqueDates });
   } catch (error) {

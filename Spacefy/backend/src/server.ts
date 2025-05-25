@@ -8,8 +8,9 @@ import spaceRouter from "./routes/spaceRoutes";
 import authRoutes from "./routes/authRoutes";
 import paymentRoutes from "./routes/paymentRoutes";
 import viewHistoryRouter from "./routes/viewhistoryRoutes";
-import rentalRoutes from "./routes/rentalRoutes"; // ✅ Importação adicionada
+import rentalRoutes from "./routes/rentalRoutes"; 
 import assessmentRoutes from "./routes/assessmentRoutes";
+import notificationRoutes from "./routes/notificationRoutes";
 
 dotenv.config();
 
@@ -24,8 +25,9 @@ app.use("/spaces", spaceRouter);
 app.use("/auth", authRoutes);
 app.use("/payments", paymentRoutes);
 app.use("/view-history", viewHistoryRouter);
-app.use("/rentals", rentalRoutes); // ✅ Rota de aluguéis adicionada
+app.use("/rentals", rentalRoutes); 
 app.use("/assessment", assessmentRoutes);
+app.use("/notifications", notificationRoutes);
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;

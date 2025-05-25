@@ -58,3 +58,12 @@ export const setCookie = (req: Request, res: Response) => {
   });
   res.status(200).json({ message: "Cookie definido com sucesso!" });
 };
+
+// Ler um cookie
+export const getCookie = (req: Request, res: Response) => {
+  const token = req.cookies.token; // Acessa o cookie "token"
+  if (!token) {
+    return res.status(404).json({ message: "Cookie não encontrado" });
+  }
+  res.status(200).json({ token });
+};

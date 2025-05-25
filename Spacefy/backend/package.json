@@ -31,6 +31,7 @@
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
-    "mongoose": "^8.13.2"
+    "mongoose": "^8.13.2",
+    "nodemailer": "^7.0.3"
   }
 }

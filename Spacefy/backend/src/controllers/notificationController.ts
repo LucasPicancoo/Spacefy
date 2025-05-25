@@ -4,7 +4,6 @@ import UserModel from '../models/userModel';
 import mongoose from 'mongoose';
 import { sendEmail } from '../services/sendEmail';
 
-// 🔥 Criar notificação (com envio de email)
 export const createNotification = async (userId: string, title: string, message: string) => {
   const notification = await NotificationModel.create({
     user: userId,
@@ -15,17 +14,23 @@ export const createNotification = async (userId: string, title: string, message:
   const user = await UserModel.findById(userId);
 
   if (user && user.email) {
-    await sendEmail(
-      user.email,
-      title,
-      message
-    );
+    console.log(`Tentando enviar email para: ${user.email}`);  // <-- log antes do envio
+
+    try {
+      await sendEmail(user.email, title, message);
+      console.log(`Email enviado com sucesso para: ${user.email}`);  // <-- log após sucesso
+    } catch (error) {
+      console.error(`Erro ao enviar email para ${user.email}:`, error);  // <-- log erro
+    }
+  } else {
+    console.log('Usuário não encontrado ou sem email para envio.');
   }
 
   return notification;
 };
 
-// 🔥 Listar notificações do usuário (com opção de filtrar só não lidas)
+// Outras funções continuam iguais...
+
 export const getUserNotifications = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
@@ -49,7 +54,6 @@ export const getUserNotifications = async (req: Request, res: Response) => {
   }
 };
 
-// 🔥 Marcar notificação como lida
 export const markNotificationAsRead = async (req: Request, res: Response) => {
   try {
     const { notificationId } = req.params;
@@ -75,7 +79,6 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
   }
 };
 
-// 🔥 Deletar notificação
 export const deleteNotification = async (req: Request, res: Response) => {
   try {
     const { notificationId } = req.params;

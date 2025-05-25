@@ -67,3 +67,9 @@ export const getCookie = (req: Request, res: Response) => {
   }
   res.status(200).json({ token });
 };
+
+// Excluir um cookie
+export const deleteCookie = (req: Request, res: Response) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Cookie removido com sucesso!" });
+};

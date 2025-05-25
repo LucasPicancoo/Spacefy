@@ -14,7 +14,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Preencha todos os campos" }); // Adicionando o return aqui
     }
 
-    const user = await UserModel.findOne({ email }) as IBaseUser;
+    const user = (await UserModel.findOne({ email })) as IBaseUser;
 
     if (!user) {
       return res.status(401).json({ error: "E-mail ou senha inválidos" }); // Adicionando o return aqui
@@ -47,4 +47,14 @@ export const login = async (req: Request, res: Response) => {
     console.error("Erro ao fazer login:", error);
     return res.status(500).json({ error: "Erro ao fazer login" }); // Adicionando o return aqui
   }
+};
+
+// Criar um cookie
+export const setCookie = (req: Request, res: Response) => {
+  res.cookie("token", "meu-token-seguro", {
+    httpOnly: true, // Impede acesso ao cookie via JavaScript no navegador
+    secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
+    maxAge: 24 * 60 * 60 * 1000, // 1 dia
+  });
+  res.status(200).json({ message: "Cookie definido com sucesso!" });
 };

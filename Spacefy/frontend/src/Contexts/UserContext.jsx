@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import jwtDecode from "jwt-decode"; // Corrigido para importar corretamente
+import { jwtDecode } from "jwt-decode";
 import Cookies from "js-cookie"; // Biblioteca para manipular cookies
 
 // Criação do contexto do usuário
@@ -15,6 +15,16 @@ export function UserProvider({ children }) {
     if (token) {
       try {
         const decodedToken = jwtDecode(token);
+        
+        // Verifica se o token expirou
+        const currentTime = Date.now() / 1000;
+        if (decodedToken.exp < currentTime) {
+          Cookies.remove("token");
+          setIsLoggedIn(false);
+          setUser(null);
+          return;
+        }
+
         setUser({
           id: decodedToken.id,
           name: decodedToken.name,

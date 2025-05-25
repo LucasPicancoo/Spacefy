@@ -30,15 +30,7 @@ function LoginUsuario() {
       );
 
       if (token) {
-        login(token);
-
-        // Armazena o token no cookie
-        Cookies.set("token", token, {
-          secure: process.env.VITE_NODE_ENV === "production", // Apenas HTTPS em produção
-          sameSite: "strict", // Protege contra CSRF
-          expires: 1, // Expira em 1 dia
-        });
-
+        login(token); // O método login do contexto já armazena o token no cookie
         navigate("/Home", { replace: true });
       } else {
         toast.error("Erro: Token não recebido.");

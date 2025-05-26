@@ -72,7 +72,7 @@ export default function Dashboard_Reservas() {
                   className="grid grid-cols-12 items-center bg-white rounded-lg shadow border border-gray-200 px-4 py-3 hover:shadow-md transition-all"
                 >
                   <div className="col-span-1 font-medium">{reserva._id.slice(-4)}</div>
-                  <div className="col-span-3">{reserva.user?.name || "Usuário não encontrado"}</div>
+                  <div className="col-span-3">{reserva.user?.name + " " + reserva.user?.surname || "Usuário não encontrado"}</div>
                   <div className="col-span-3 flex flex-col text-sm text-gray-700">
                     <span>{new Date(reserva.start_date).toLocaleDateString()} - {reserva.startTime}</span>
                     <span>{new Date(reserva.end_date).toLocaleDateString()} - {reserva.endTime}</span>

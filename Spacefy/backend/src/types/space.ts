@@ -10,6 +10,10 @@ export interface ISpace extends Document {
   location: {
     formatted_address: string;
     place_id: string;
+    coordinates: {
+      lat: number;
+      lng: number;
+    };
   };
   space_type: string; // Tipo do espaço (ex.: quadra, salão, auditório)
   space_description: string; // Descrição opcional do espaço

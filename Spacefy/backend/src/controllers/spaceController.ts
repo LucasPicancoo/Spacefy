@@ -341,13 +341,6 @@ export const createSpace = async (req: Request, res: Response) => {
       });
     }
 
-    // Verifica se as coordenadas foram retornadas
-    if (!addressValidation.coordinates?.lat || !addressValidation.coordinates?.lng) {
-      return res.status(400).json({
-        error: "Não foi possível obter as coordenadas do endereço"
-      });
-    }
-
     // Verifica se todas as comodidades são permitidas
     const invalidAmenities = space_amenities.filter(
       (amenity: string) => !ALLOWED_AMENITIES.includes(amenity)
@@ -382,10 +375,7 @@ export const createSpace = async (req: Request, res: Response) => {
       location: {
         formatted_address: addressValidation.formattedAddress,
         place_id: addressValidation.placeId,
-        coordinates: {
-          lat: addressValidation.coordinates.lat,
-          lng: addressValidation.coordinates.lng
-        }
+        coordinates: addressValidation.coordinates
       },
       space_type,
       space_description,

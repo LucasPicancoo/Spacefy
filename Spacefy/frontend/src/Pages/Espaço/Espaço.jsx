@@ -13,6 +13,7 @@ import { assessmentService } from "../../services/assessmentService";
 import { useParams } from "react-router-dom";
 import AvaliacaoGeral from "./AvaliacaoGeral";
 import ComentariosUsuarios from "./ComentariosUsuarios";
+import MapaEspaço from "./MapaEspaço";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
@@ -203,6 +204,9 @@ function Espaço() {
                     assessments={assessments} 
                     onVerTodas={() => setIsCommentsModalOpen(true)} 
                 />
+            </div>
+            <div className="mt-10">
+                <MapaEspaço location={space.location} />
             </div>
             <Footer />
             {isCommentsModalOpen && (

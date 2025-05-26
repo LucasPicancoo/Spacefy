@@ -6,6 +6,12 @@ import { useUser } from '../../../Contexts/userContext';
 import { userService } from '../../../services/userService';
 import { useFavorite } from '../../../contexts/FavoriteContext';
 
+const truncateText = (text, maxLength = 30) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
+};
+
 const TopRatedSection = () => {
   const navigate = useNavigate();
   const { user, isLoggedIn } = useUser();
@@ -108,7 +114,7 @@ const TopRatedSection = () => {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h3 className="text-xl font-semibold">{space.space_name}</h3>
-                      <p className="text-gray-600 text-sm">{space.location}</p>
+                      <p className="text-gray-600 text-sm">{truncateText(space.location?.formatted_address)}</p>
                     </div>
                     <div className="flex items-center">
                       <FaStar className="text-yellow-400 mr-1" />

@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import BlockedDateModel from "../models/blockedDateModel";
 import RentalModel from "../models/rentalModel";
 import NotificationModel from "../models/notificationModel";
 import mongoose from "mongoose";
@@ -105,6 +106,19 @@ export const createRental = async (req: Request, res: Response) => {
 
     const convertedStartDate = convertDate(start_date);
     const convertedEndDate = convertDate(end_date);
+
+    const blockedDates = await BlockedDateModel.find({
+      space: spaceId,
+      date: { $gte: convertedStartDate, $lte: convertedEndDate }
+    });
+    
+    if (blockedDates.length > 0) {
+      const blockedList = blockedDates.map((d) => d.date.toISOString().split("T")[0]);
+      return res.status(400).json({
+        error: "O espaço está indisponível em algumas das datas selecionadas.",
+        blockedDates: blockedList,
+      });
+    }
 
     const rentalsOnSameSpace = await RentalModel.find({
       space: spaceId,

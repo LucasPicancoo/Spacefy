@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Loader } from '@googlemaps/js-api-loader';
+import { googleMapsService } from '../../../services/googleMapsService';
 
 // Componente reutilizável para campos de texto
-const CampoTexto = ({ label, id, name, value, onChange, required = false, type = "text", min, placeholder, maxLength, inputRef, onBlur }) => (
+const CampoTexto = ({ label, id, name, value, onChange, required = false, type = "text", min, placeholder, maxLength, inputRef, onBlur, onFocus }) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
@@ -14,6 +14,7 @@ const CampoTexto = ({ label, id, name, value, onChange, required = false, type =
             value={value || ''}
             onChange={onChange}
             onBlur={onBlur}
+            onFocus={onFocus}
             min={min}
             maxLength={maxLength}
             placeholder={placeholder}
@@ -54,18 +55,14 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
     const [streetValue, setStreetValue] = useState(formData.street || '');
     const [selectedPlace, setSelectedPlace] = useState(null);
     const [isPlaceSelected, setIsPlaceSelected] = useState(false);
+    const [isApiInitialized, setIsApiInitialized] = useState(false);
 
-    useEffect(() => {
-        const loader = new Loader({
-            apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-            version: 'weekly',
-            libraries: ['places'],
-        });
-
-        loader.load().then(() => {
+    const initializeAutocomplete = async () => {
+        try {
+            await googleMapsService.loadGoogleMaps();
+            
             if (streetInputRef.current) {
-                autocompleteRef.current = new window.google.maps.places.Autocomplete(streetInputRef.current, {
-                    componentRestrictions: { country: 'br' },
+                autocompleteRef.current = googleMapsService.createAutocomplete(streetInputRef.current, {
                     fields: ['address_components', 'formatted_address'],
                 });
 
@@ -78,8 +75,17 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
                     }
                 });
             }
-        });
-    }, []);
+            setIsApiInitialized(true);
+        } catch (error) {
+            console.error('Erro ao inicializar o Autocomplete:', error);
+        }
+    };
+
+    const handleInputFocus = async () => {
+        if (!isApiInitialized) {
+            await initializeAutocomplete();
+        }
+    };
 
     const handlePlaceSelect = (place = selectedPlace) => {
         if (!place) return;
@@ -192,6 +198,7 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
                         value={streetValue}
                         onChange={handleChange}
                         onBlur={handleBlur}
+                        onFocus={handleInputFocus}
                         required
                         placeholder="Digite o nome da rua"
                         inputRef={streetInputRef}

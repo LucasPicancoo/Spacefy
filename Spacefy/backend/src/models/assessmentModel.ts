@@ -19,7 +19,7 @@ const assessmentSchema = new Schema<IAssessment>({
   },
   userID: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "user",
     required: true
   },
   spaceID: {

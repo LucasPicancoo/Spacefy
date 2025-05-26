@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Review from "../models/assessmentModel";
 import mongoose from "mongoose";
+import { IBaseUser } from "../types/user";
 
 // Registrar uma avaliação
 export const createAssessment = async (req: Request, res: Response) => {
@@ -116,10 +117,39 @@ export const getAssessmentsBySpace = async (req: Request, res: Response) => {
   const { spaceId } = req.params;
 
   try {
-    const assessments = await Review.find({ spaceID: spaceId });
-    res.status(200).json(assessments);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar avaliações do espaço." });
+    // Validação do ID do espaço
+    if (!mongoose.Types.ObjectId.isValid(spaceId)) {
+      return res.status(400).json({ error: "ID do espaço inválido." });
+    }
+
+    const assessments = await Review.find({ spaceID: spaceId })
+      .populate({
+        path: 'userID',
+        select: 'name',
+        model: 'user'
+      })
+      .lean();
+    
+    // Formatar os dados para retornar apenas o necessário
+    const formattedAssessments = assessments.map(assessment => ({
+      _id: assessment._id,
+      score: assessment.score,
+      comment: assessment.comment,
+      evaluation_date: assessment.evaluation_date,
+      userID: assessment.userID ? {
+        _id: assessment.userID._id,
+        name: (assessment.userID as IBaseUser).name
+      } : null,
+      spaceID: assessment.spaceID
+    }));
+
+    res.status(200).json(formattedAssessments);
+  } catch (error: any) {
+    console.error("Erro detalhado ao buscar avaliações:", error);
+    res.status(500).json({ 
+      error: "Erro ao buscar avaliações do espaço.",
+      details: error.message 
+    });
   }
 };
 
@@ -216,6 +246,49 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar avaliações do usuário:", error);
     res.status(500).json({ error: "Erro ao buscar avaliações do usuário." });
+  }
+};
+
+export const getAverageScoreBySpace = async (req: Request, res: Response) => {
+  const { spaceId } = req.params;
+
+  try {
+    // Validação do ID do espaço
+    if (!mongoose.Types.ObjectId.isValid(spaceId)) {
+      return res.status(400).json({ error: "ID do espaço inválido." });
+    }
+
+    const result = await Review.aggregate([
+      {
+        $match: {
+          spaceID: new mongoose.Types.ObjectId(spaceId)
+        }
+      },
+      {
+        $group: {
+          _id: "$spaceID",
+          averageScore: { $avg: "$score" },
+          totalReviews: { $sum: 1 }
+        }
+      }
+    ]);
+
+    if (result.length === 0) {
+      return res.status(404).json({ 
+        error: "Nenhuma avaliação encontrada para este espaço.",
+        averageScore: 0,
+        totalReviews: 0
+      });
+    }
+
+    res.status(200).json({
+      spaceId,
+      averageScore: Number(result[0].averageScore.toFixed(1)),
+      totalReviews: result[0].totalReviews
+    });
+  } catch (error) {
+    console.error("Erro ao calcular média das avaliações:", error);
+    res.status(500).json({ error: "Erro ao calcular média das avaliações do espaço." });
   }
 };
 

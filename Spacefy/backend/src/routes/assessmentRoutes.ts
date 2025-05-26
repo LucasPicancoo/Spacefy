@@ -6,7 +6,8 @@ import {
   getAllAssessments,
   getAssessmentsBySpace,
   getTopRatedSpaces,
-  getAssessmentsByUser
+  getAssessmentsByUser,
+  getAverageScoreBySpace
 } from "../controllers/assessmentController";
 import { validateAndGetTokenData } from "../middlewares/token";
 
@@ -19,5 +20,6 @@ router.get("/getAll", validateAndGetTokenData, getAllAssessments);
 router.get("/space/:spaceId", getAssessmentsBySpace);
 router.get("/top-rated", getTopRatedSpaces);
 router.get("/user/:userId", validateAndGetTokenData, getAssessmentsByUser);
+router.get("/average/:spaceId", getAverageScoreBySpace);
 
 export default router; 

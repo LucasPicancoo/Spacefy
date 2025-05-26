@@ -10,7 +10,11 @@ const SpaceSchema: Schema = new Schema({
   max_people: { type: Number, required: true }, // Capacidade máxima de pessoas (obrigatório)
   location: {
     formatted_address: { type: String, required: true },
-    place_id: { type: String, required: true }
+    place_id: { type: String, required: true },
+    coordinates: {
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true }
+    }
   },
   space_type: { 
     type: String, 

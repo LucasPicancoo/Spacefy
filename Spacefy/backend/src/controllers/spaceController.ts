@@ -341,6 +341,13 @@ export const createSpace = async (req: Request, res: Response) => {
       });
     }
 
+    // Verifica se as coordenadas foram retornadas
+    if (!addressValidation.coordinates?.lat || !addressValidation.coordinates?.lng) {
+      return res.status(400).json({
+        error: "Não foi possível obter as coordenadas do endereço"
+      });
+    }
+
     // Verifica se todas as comodidades são permitidas
     const invalidAmenities = space_amenities.filter(
       (amenity: string) => !ALLOWED_AMENITIES.includes(amenity)
@@ -369,12 +376,16 @@ export const createSpace = async (req: Request, res: Response) => {
 
     // Cria um novo espaço
     const newSpace = new SpaceModel({
-      owner_id: req.auth.id, // Adiciona o ID do usuário autenticado
+      owner_id: req.auth.id,
       space_name,
       max_people,
       location: {
         formatted_address: addressValidation.formattedAddress,
-        place_id: addressValidation.placeId
+        place_id: addressValidation.placeId,
+        coordinates: {
+          lat: addressValidation.coordinates.lat,
+          lng: addressValidation.coordinates.lng
+        }
       },
       space_type,
       space_description,

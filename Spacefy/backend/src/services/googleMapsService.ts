@@ -5,6 +5,10 @@ interface AddressValidationResult {
   formattedAddress?: string;
   placeId?: string;
   error?: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
 }
 
 interface AddressComponent {
@@ -19,6 +23,12 @@ interface GoogleMapsResponse {
     formatted_address: string;
     place_id: string;
     address_components: AddressComponent[];
+    geometry?: {
+      location: {
+        lat: number;
+        lng: number;
+      };
+    };
   }>;
 }
 
@@ -68,10 +78,17 @@ export class GoogleMapsService {
             ? `${result.formatted_address.split(',')[0]}, ${address.neighborhood}, ${result.formatted_address.split(',').slice(1).join(',').trim()}`
             : result.formatted_address;
 
+        // Obtém as coordenadas do resultado
+        const location = result.geometry?.location;
+        
         return {
           isValid: true,
           formattedAddress: finalFormattedAddress,
-          placeId: result.place_id
+          placeId: result.place_id,
+          coordinates: location ? {
+            lat: location.lat,
+            lng: location.lng
+          } : undefined
         };
       }
 

@@ -117,6 +117,12 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
         const state = getStateComponent();
         const zipCode = getAddressComponent(['postal_code']);
 
+        // Obtém as coordenadas do lugar selecionado
+        const coordinates = place.geometry?.location ? {
+            lat: place.geometry.location.lat(),
+            lng: place.geometry.location.lng()
+        } : null;
+
         // Atualiza o estado local e o formulário
         setStreetValue(street);
         onUpdate({
@@ -125,7 +131,8 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
             neighborhood,
             city,
             state,
-            zipCode
+            zipCode,
+            coordinates
         });
     };
 

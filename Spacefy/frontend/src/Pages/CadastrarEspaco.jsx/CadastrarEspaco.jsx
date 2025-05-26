@@ -158,7 +158,8 @@ const CadastrarEspaco = () => {
             neighborhood: formData.neighborhood,
             city: formData.city,
             state: formData.state,
-            zipCode: formData.zipCode
+            zipCode: formData.zipCode,
+            coordinates: formData.coordinates
         };
 
         return {

@@ -35,6 +35,11 @@ export const assessmentService = {
     async getAssessmentsByUser(userId, page = 1) {
         const response = await api.get(`/assessment/user/${userId}?page=${page}`);
         return response.data;
+    },
+
+    async getAverageScoreBySpace(spaceId) {
+        const response = await api.get(`/assessment/average/${spaceId}`);
+        return response.data;
     }
 
 };

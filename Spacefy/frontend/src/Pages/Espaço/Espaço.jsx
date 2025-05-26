@@ -1,15 +1,18 @@
 import Header from "../../Components/Header/Header";
 import Footer from "../../Components/Footer/Footer";
 import ReservaCard from "../../Components/ReservaCard/ReservaCard";
-import CommentsModal from "../../Components/CommentsModal";
+import ComentariosModal from "../../Components/Modal/ComentariosModal";
 import { useState, useRef, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight, FaChevronDown } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaChevronDown, FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale, setDefaultLocale } from "react-datepicker";
 import ptBR from 'date-fns/locale/pt-BR';
 import { spaceService } from "../../services/spaceService";
+import { assessmentService } from "../../services/assessmentService";
 import { useParams } from "react-router-dom";
+import AvaliacaoGeral from "./AvaliacaoGeral";
+import ComentariosUsuarios from "./ComentariosUsuarios";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
@@ -22,6 +25,8 @@ function Espaço() {
     const [loading, setLoading] = useState(true);
     const [showAllAmenities, setShowAllAmenities] = useState(false);
     const [showFullDescription, setShowFullDescription] = useState(false);
+    const [averageScore, setAverageScore] = useState(0);
+    const [assessments, setAssessments] = useState([]);
     const PhotosCarouselRef = useRef(null);
 
     useEffect(() => {
@@ -29,6 +34,14 @@ function Espaço() {
             try {
                 const spaceData = await spaceService.getSpaceById(id);
                 setSpace(spaceData);
+                
+                // Buscar a nota média do espaço
+                const scoreData = await assessmentService.getAverageScoreBySpace(id);
+                setAverageScore(scoreData.averageScore || 0);
+
+                // Buscar as avaliações do espaço
+                const assessmentsData = await assessmentService.getAssessmentsBySpace(id);
+                setAssessments(assessmentsData);
             } catch (error) {
                 console.error("Erro ao buscar espaço:", error);
             } finally {
@@ -182,19 +195,23 @@ function Espaço() {
                     <ReservaCard space={space} />
                 </div>
 
-                {/* Informações do Proprietário */}
-                <div className="mt-16">
-                    <hr className="border-t border-[#00A3FF] mb-8" />
-                    <h2 className="text-3xl font-bold text-center mb-2">Informações do Proprietário</h2>
-                    <div className="flex flex-col items-center mb-8">
-                        <p className="text-[#363636]">Nome: {space.owner_name}</p>
-                        <p className="text-[#363636]">Email: {space.owner_email}</p>
-                        <p className="text-[#363636]">Telefone: {space.owner_phone}</p>
-                    </div>
-                    <hr className="border-t border-[#00A3FF] mb-8" />
-                </div>
+                {/* Avaliação Geral */}
+                <AvaliacaoGeral averageScore={averageScore} />
+
+                {/* Avaliações */}
+                <ComentariosUsuarios 
+                    assessments={assessments} 
+                    onVerTodas={() => setIsCommentsModalOpen(true)} 
+                />
             </div>
             <Footer />
+            {isCommentsModalOpen && (
+                <ComentariosModal
+                    isOpen={isCommentsModalOpen}
+                    onClose={() => setIsCommentsModalOpen(false)}
+                    comments={assessments}
+                />
+            )}
         </div>
     )
 }

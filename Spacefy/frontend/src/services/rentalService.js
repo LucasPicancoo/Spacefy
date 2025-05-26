@@ -20,5 +20,17 @@ export const rentalService = {
         } catch (error) {
             throw new Error('Erro ao buscar aluguéis do usuário');
         }
+    },
+
+    getRentalsByOwner: async (ownerId) => {
+        try {
+            const response = await api.get(`/rentals/owner/${ownerId}`);
+            return response.data;
+        } catch (error) {
+            if (error.response?.data?.error) {
+                throw new Error(error.response.data.error);
+            }
+            throw new Error('Erro ao buscar reservas do locador');
+        }
     }
 }; 

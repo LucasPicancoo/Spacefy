@@ -297,10 +297,29 @@ export const getRentalsByOwner = async (req: Request, res: Response) => {
     }
 
     const rentals = await RentalModel.find({ owner: ownerId })
-      .populate("user", "name email")
-      .populate("space", "space_name image_url price_per_hour location");
+      .populate({
+        path: 'user',
+        select: 'name surname email',
+        model: 'user'
+      })
+      .populate("space", "space_name image_url price_per_hour location")
+      .lean();
 
-    return res.status(200).json(rentals);
+    // Transformar os resultados para incluir os dados do usuário de forma estruturada
+    const formattedRentals = rentals.map(rental => {
+      const rentalObj = rental as any;
+      return {
+        ...rentalObj,
+        user: {
+          _id: rentalObj.user?._id || rentalObj.user,
+          name: rentalObj.user?.name || '',
+          surname: rentalObj.user?.surname || '',
+          email: rentalObj.user?.email || ''
+        }
+      };
+    });
+
+    return res.status(200).json(formattedRentals);
   } catch (error) {
     console.error("Erro ao buscar aluguéis do locador:", error);
     return res.status(500).json({ error: "Erro interno ao buscar aluguéis." });

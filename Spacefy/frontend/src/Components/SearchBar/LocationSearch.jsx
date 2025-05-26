@@ -16,7 +16,8 @@ export function LocationSearch() {
       
       if (inputRef.current && !autocompleteRef.current) {
         autocompleteRef.current = googleMapsService.createAutocomplete(inputRef.current, {
-          fields: ['formatted_address', 'geometry', 'place_id', 'name', 'types'],
+          fields: ['formatted_address', 'place_id'],
+          types: ['geocode']
         });
 
         autocompleteRef.current.addListener('place_changed', () => {

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import RentalModel from "../models/rentalModel";
 import NotificationModel from "../models/notificationModel";
+import SpaceModel from "../models/spaceModel";
+import UserModel from "../models/userModel";
 import mongoose from "mongoose";
 
 // Função para calcular o número de dias entre duas datas
@@ -103,6 +105,18 @@ export const createRental = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "ID inválido." });
     }
 
+    // Buscar o espaço para obter o ID do locador
+    const space = await SpaceModel.findById(spaceId).select("owner_id space_name");
+    if (!space) {
+      return res.status(404).json({ error: "Espaço não encontrado." });
+    }
+
+    // Verificar se o usuário existe
+    const user = await UserModel.findById(userId).select("name");
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
     const convertedStartDate = convertDate(start_date);
     const convertedEndDate = convertDate(end_date);
 
@@ -138,6 +152,7 @@ export const createRental = async (req: Request, res: Response) => {
     const rental = new RentalModel({
       user: userId,
       space: spaceId,
+      owner: space.owner_id,
       start_date: convertedStartDate,
       end_date: convertedEndDate,
       startTime,
@@ -147,21 +162,31 @@ export const createRental = async (req: Request, res: Response) => {
 
     await rental.save();
 
-    // Busca o nome do espaço para a notificação
-    const space = await RentalModel.findById(rental._id).populate("space", "space_name");
-    const spaceName = space?.space?.space_name || "espaço";
+    const spaceName = space.space_name || "espaço";
+    const userName = user.name || "Usuário";
 
-    // Criar notificação automática
+    // Criar notificação para o usuário que alugou
     await NotificationModel.create({
       user: userId,
       title: "Aluguel criado com sucesso",
       message: `Seu aluguel para o espaço "${spaceName}" foi criado com sucesso de ${start_date} até ${end_date}.`,
     });
 
+    // Criar notificação para o locador
+    await NotificationModel.create({
+      user: space.owner_id,
+      title: "Novo aluguel do seu espaço",
+      message: `${userName} alugou seu espaço "${spaceName}" de ${start_date} até ${end_date}.`,
+    });
+
     return res.status(201).json(rental);
   } catch (error) {
-    console.error("Erro ao criar aluguel:", error);
-    return res.status(500).json({ error: "Erro interno ao criar aluguel." });
+    console.error("Erro detalhado ao criar aluguel:", error);
+    return res.status(500).json({ 
+      error: "Erro interno ao criar aluguel.",
+      details: error instanceof Error ? error.message : "Erro desconhecido",
+      stack: error instanceof Error ? error.stack : undefined
+    });
   }
 };
 

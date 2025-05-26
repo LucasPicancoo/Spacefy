@@ -3,6 +3,7 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 export interface IRental extends Document {
   user: Types.ObjectId;
   space: Types.ObjectId;
+  owner: Types.ObjectId;  // ID do locador
   start_date: Date;
   end_date: Date;
   startTime: string;
@@ -21,6 +22,11 @@ const rentalSchema = new Schema<IRental>(
       type: Schema.Types.ObjectId,
       ref: "Space",
       required: [true, "O espaço é obrigatório"],
+    },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: [true, "O locador é obrigatório"],
     },
     start_date: {
       type: Date,

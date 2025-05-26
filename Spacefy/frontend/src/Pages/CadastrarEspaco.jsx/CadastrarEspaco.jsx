@@ -13,6 +13,7 @@ import Etapa6 from './Etapas/Etapa6';
 import Etapa7 from './Etapas/Etapa7';
 import Etapa8 from './Etapas/Etapa8';
 import { useUser } from '../../Contexts/userContext';
+import Cookies from "js-cookie";
 
 // Mapeamento dos campos obrigatórios e suas mensagens de erro
 const CAMPOS_OBRIGATORIOS = {
@@ -189,7 +190,7 @@ const CadastrarEspaco = () => {
             setLoading(true);
             setError(null);
 
-            const token = localStorage.getItem('token');
+            const token = Cookies.get("token");
             if (!token) {
                 toast.error('Usuário não autenticado. Por favor, faça login novamente.');
                 return;

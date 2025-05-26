@@ -1,24 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FaMapMarkerAlt } from 'react-icons/fa';
-import { Loader } from '@googlemaps/js-api-loader';
-
-const loader = new Loader({
-  apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY,
-  version: 'weekly',
-  libraries: ['places'],
-});
+import { googleMapsService } from '../../services/googleMapsService';
 
 export function LocationSearch() {
   const [location, setLocation] = useState('');
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
+  const [isApiInitialized, setIsApiInitialized] = useState(false);
 
-  useEffect(() => {
-    loader.load().then(() => {
-      if (inputRef.current) {
-        autocompleteRef.current = new window.google.maps.places.Autocomplete(inputRef.current, {
-          // Retira o filtro de types para permitir resultados amplos
-          componentRestrictions: { country: 'br' },
+  const initializeAutocomplete = async () => {
+    try {
+      if (!googleMapsService.isApiLoaded()) {
+        await googleMapsService.loadGoogleMaps();
+      }
+      
+      if (inputRef.current && !autocompleteRef.current) {
+        autocompleteRef.current = googleMapsService.createAutocomplete(inputRef.current, {
           fields: ['formatted_address', 'geometry', 'place_id', 'name', 'types'],
         });
 
@@ -29,8 +26,17 @@ export function LocationSearch() {
           }
         });
       }
-    });
-  }, []);
+      setIsApiInitialized(true);
+    } catch (error) {
+      console.error('Erro ao inicializar o Autocomplete:', error);
+    }
+  };
+
+  const handleInputFocus = async () => {
+    if (!isApiInitialized) {
+      await initializeAutocomplete();
+    }
+  };
 
   return (
     <div className="flex-1 flex items-center bg-white rounded-xl px-4 py-3">
@@ -42,6 +48,7 @@ export function LocationSearch() {
         className="w-full outline-none text-gray-700 placeholder-gray-400 text-sm"
         value={location}
         onChange={(e) => setLocation(e.target.value)}
+        onFocus={handleInputFocus}
       />
     </div>
   );

@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import profile from "../../assets/Profile.svg";
 import { useUser } from "../../Contexts/userContext";
 import { authService } from "../../services/authService";
+import Cookies from "js-cookie"; // Importa a biblioteca js-cookie
 
 function LoginUsuario() {
   const navigate = useNavigate();
@@ -23,11 +24,13 @@ function LoginUsuario() {
     e.preventDefault();
 
     try {
-      const { token, user } = await authService.login(formData.email, formData.password);
+      const { token, user } = await authService.login(
+        formData.email,
+        formData.password
+      );
 
       if (token) {
-        login(token);
-        localStorage.setItem("token", token);
+        login(token); // O método login do contexto já armazena o token no cookie
         navigate("/Home", { replace: true });
       } else {
         toast.error("Erro: Token não recebido.");
@@ -95,8 +98,13 @@ function LoginUsuario() {
           </button>
 
           <div className="flex flex-col items-center mt-4">
-            <label className="block text-sm sm:text-base">Não possui uma conta?</label>
-            <button onClick={() => navigate("/cadastro")} className="text-[#1EACE3] hover:text-[#1486B8] cursor-pointer text-sm sm:text-base">
+            <label className="block text-sm sm:text-base">
+              Não possui uma conta?
+            </label>
+            <button
+              onClick={() => navigate("/cadastro")}
+              className="text-[#1EACE3] hover:text-[#1486B8] cursor-pointer text-sm sm:text-base"
+            >
               Crie uma conta
             </button>
           </div>

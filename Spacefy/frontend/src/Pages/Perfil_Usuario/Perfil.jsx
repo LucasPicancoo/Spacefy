@@ -260,20 +260,23 @@ const Perfil = () => {
                   }}
                 >
                   {viewHistory.length > 0 ? (
-                    viewHistory.map((view) => (
-                      <SpaceCard
-                        key={view._id}
-                        space={{
-                          _id: view.space_id._id,
-                          space_name: view.space_id.space_name,
-                          location: view.space_id.location,
-                          price_per_hour: view.space_id.price_per_hour,
-                          image_url: view.space_id.image_url
-                        }}
-                        onFavoriteClick={handleFavorite}
-                        isFavorite={favoriteSpaces.some(space => space._id === view.space_id._id)}
-                      />
-                    ))
+                    viewHistory.map((view) => {
+                      if (!view.space_id) return null;
+                      return (
+                        <SpaceCard
+                          key={view._id}
+                          space={{
+                            _id: view.space_id._id,
+                            space_name: view.space_id.space_name,
+                            location: view.space_id.location,
+                            price_per_hour: view.space_id.price_per_hour,
+                            image_url: view.space_id.image_url
+                          }}
+                          onFavoriteClick={handleFavorite}
+                          isFavorite={favoriteSpaces.some(space => space._id === view.space_id._id)}
+                        />
+                      );
+                    }).filter(Boolean)
                   ) : (
                     <div className="text-gray-500 text-sm px-4">Nenhum espaço visualizado recentemente.</div>
                   )}

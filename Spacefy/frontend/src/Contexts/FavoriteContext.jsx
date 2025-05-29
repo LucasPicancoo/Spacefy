@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { userService } from '../services/userService';
-import { useUser } from '../Contexts/userContext';
+import { useUser } from '../Contexts/UserContext';
 import { toast } from 'react-toastify';
 
 const FavoriteContext = createContext();

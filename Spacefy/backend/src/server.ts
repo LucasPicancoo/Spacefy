@@ -2,7 +2,9 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
-import cookieParser from "cookie-parser"; // Importar cookie-parser
+import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
 
 import userRouter from "./routes/userRoutes";
 import spaceRouter from "./routes/spaceRoutes";
@@ -17,9 +19,32 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// Configuração do Rate Limiter
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutos
+  max: 250, // limite de 250 requisições por IP
+  message: {
+    error: "Muitas requisições deste IP, por favor tente novamente após 15 minutos"
+  },
+  standardHeaders: true, // Retorna rate limit info nos headers `RateLimit-*`
+  legacyHeaders: false, // Desabilita os headers `X-RateLimit-*`
+});
+
+// Configuração do CORS
+const corsOptions = {
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // URL do frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  maxAge: 86400 // 24 horas
+};
+
+// Middlewares de segurança
+app.use(helmet());
+app.use(cors(corsOptions));
 app.use(express.json());
-app.use(cookieParser()); // Adicionar o middleware para cookies
+app.use(cookieParser());
+app.use(limiter); // Aplicar rate limiting globalmente
 
 // Rotas
 app.use("/users", userRouter);

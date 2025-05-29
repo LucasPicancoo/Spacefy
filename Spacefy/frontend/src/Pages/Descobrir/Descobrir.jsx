@@ -6,6 +6,7 @@ import { useUser } from "../../Contexts/UserContext";
 import SidebarFiltros from "../../Components/SidebarFiltros/SidebarFiltros";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FavoriteButton } from "../../Components/FavoriteButton/FavoriteButton";
+import SpaceCard from "../../Components/SpaceCard/SpaceCard";
 
 function Descobrir() {
     const navigate = useNavigate();
@@ -131,49 +132,19 @@ function Descobrir() {
         }
 
         return (
-            <>
+            <div className="w-full">
                 <span className="block text-base font-semibold mb-4">{espacos.length} Resultados encontrados</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {espacos.map((espaco) => {
-                        const rating = espaco.rating ?? '4.80';
-                        const imageUrl = Array.isArray(espaco.image_url) 
-                            ? espaco.image_url[0] 
-                            : (espaco.image_url || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
-                        return (
-                            <div 
-                                key={espaco._id} 
-                                className="w-full text-left bg-white rounded-xl shadow hover:shadow-lg transition-shadow overflow-hidden flex flex-col cursor-pointer"
-                                onClick={() => handleEspacoClick(espaco._id)}
-                            >
-                                <img 
-                                    src={imageUrl}
-                                    alt={espaco.space_name} 
-                                    className="w-full h-48 object-cover" 
-                                />
-                                <div className="p-4 flex flex-col gap-1 flex-1">
-                                    <div className="flex items-center justify-between">
-                                        <span className="font-semibold text-base">{espaco.space_name}</span>
-                                        <span className="flex items-center gap-1 text-sm text-gray-700">
-                                            <svg xmlns='http://www.w3.org/2000/svg' fill='currentColor' viewBox='0 0 20 20' className='w-4 h-4 text-yellow-400'>
-                                                <path d='M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.967a1 1 0 00.95.69h4.178c.969 0 1.371 1.24.588 1.81l-3.385 2.46a1 1 0 00-.364 1.118l1.287 3.966c.3.922-.755 1.688-1.54 1.118l-3.385-2.46a1 1 0 00-1.175 0l-3.385 2.46c-.784.57-1.838-.196-1.539-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.045 9.394c-.783-.57-.38-1.81.588-1.81h4.178a1 1 0 00.95-.69l1.286-3.967z'/>
-                                            </svg>
-                                            {rating}
-                                        </span>
-                                    </div>
-                                    <span className="text-xs text-gray-500">{espaco.location.formatted_address}</span>
-                                    <span className="text-[#1486B8] font-semibold text-base">
-                                        R$ {espaco.price_per_hour} <span className="text-xs font-normal text-gray-500">por hora</span>
-                                    </span>
-                                    <div className="flex items-center justify-between mt-2">
-                                        <span className="text-xs text-gray-500">Cabe até <b>{espaco.max_people}</b> pessoas</span>
-                                        <FavoriteButton spaceId={espaco._id} />
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+                <div className="flex flex-wrap gap-6">
+                    {espacos.map((espaco) => (
+                        <SpaceCard
+                            key={espaco._id}
+                            space={espaco}
+                            onClick={() => handleEspacoClick(espaco._id)}
+                            containerClassName="w-[280px] min-w-[280px] text-left bg-white rounded-xl shadow hover:shadow-lg transition-shadow overflow-hidden flex flex-col cursor-pointer"
+                        />
+                    ))}
                 </div>
-            </>
+            </div>
         );
     };
 

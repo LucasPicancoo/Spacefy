@@ -1,48 +1,94 @@
-import React from 'react';
-import { FaHeart, FaStar, FaClock } from "react-icons/fa";
+import React, { useState, useEffect } from 'react';
+import { FaHeart, FaStar, FaClock } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '../../Contexts/UserContext';
+import { userService } from '../../services/userService';
+import { useFavorite } from '../../Contexts/FavoriteContext';
+import { assessmentService } from '../../services/assessmentService';
+
+const truncateText = (text, maxLength = 30) => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return text.slice(0, maxLength) + '...';
+};
 
 const SpaceCard = ({ 
   space, 
-  onFavoriteClick, 
-  isFavorite = false,
+  onClick,
   showFavoriteButton = true,
-  onClick
+  className = "",
+  imageClassName = "w-full h-40 object-cover",
+  containerClassName = "w-[280px] min-w-[280px] text-left bg-white rounded-xl shadow hover:shadow-lg transition-shadow overflow-hidden flex flex-col cursor-pointer"
 }) => {
   const navigate = useNavigate();
+  const { user, isLoggedIn } = useUser();
+  const { toggleFavorite, isFavorite } = useFavorite();
+  const [rating, setRating] = useState('0');
+  const [totalReviews, setTotalReviews] = useState(0);
 
-  const handleClick = () => {
+  useEffect(() => {
+    const fetchRating = async () => {
+      try {
+        const response = await assessmentService.getAverageScoreBySpace(space._id);
+        if (response && response.averageScore !== undefined) {
+          setRating(response.averageScore.toString());
+          setTotalReviews(response.totalReviews);
+        } else {
+          setRating('0');
+          setTotalReviews(0);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar avaliações:', error);
+        setRating('0');
+        setTotalReviews(0);
+      }
+    };
+
+    if (space._id) {
+      fetchRating();
+    }
+  }, [space._id]);
+
+  const handleCardClick = async (e) => {
     if (onClick) {
-      onClick(space);
-    } else {
-      navigate(`/espaco/${space._id || space.id}`);
+      onClick(e);
+      return;
     }
+
+    if (isLoggedIn && user) {
+      try {
+        await userService.registerSpaceView(user.id, space._id);
+      } catch (error) {
+        console.error('Erro ao registrar visualização:', error);
+      }
+    }
+    navigate(`/espaco/${space._id}`);
   };
 
-  const handleFavoriteClick = (e) => {
+  const handleFavoriteClick = async (e) => {
     e.stopPropagation();
-    if (onFavoriteClick) {
-      onFavoriteClick(space._id || space.id);
+    if (!isLoggedIn || !user) return;
+    try {
+      await toggleFavorite(user.id, space._id);
+    } catch (error) {
+      console.error('Erro ao favoritar espaço:', error);
     }
   };
 
-  // Função para formatar a localização
-  const formatLocation = (location) => {
-    if (!location) return "Endereço não disponível";
-    if (typeof location === 'string') return location;
-    return location.formatted_address || "Endereço não disponível";
-  };
+  const imageUrl = Array.isArray(space.image_url) 
+    ? space.image_url[0] 
+    : (space.image_url || "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80");
 
   return (
     <div 
-      className="w-[300px] min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden flex-shrink-0 cursor-pointer"
-      onClick={handleClick}
+      className={`${containerClassName} ${className}`}
+      onClick={handleCardClick}
     >
-      <div className="relative">
+      <div className="relative w-full h-40">
         <img 
-          src={space.image_url?.[0] || space.imagem} 
-          alt={space.space_name || space.titulo} 
-          className="w-full h-40 object-cover" 
+          src={imageUrl}
+          alt={space.space_name} 
+          className={imageClassName}
         />
         {showFavoriteButton && (
           <button 
@@ -50,36 +96,30 @@ const SpaceCard = ({
             className="absolute top-4 right-4 transition-colors"
           >
             <FaHeart 
-              className={`text-xl ${isFavorite ? 'text-red-500' : 'text-white'} hover:text-red-500 transition-colors`} 
+              className={`text-xl ${isFavorite(space._id) ? 'text-red-500' : 'text-white'} hover:text-red-500 transition-colors`}
             />
           </button>
         )}
       </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="text-xl font-semibold">{space.space_name || space.titulo}</h3>
-            <p className="text-gray-600 text-sm">{formatLocation(space.location || space.cidade)}</p>
-            <p className="text-gray-500 text-xs">{space.endereco || "Rua Leonídio Valentim Ferreira"}</p> {/* TODO: Remover o endereço padrão  e implementar no backend*/}
-          </div>
-          <div className="flex items-center">
-            <FaStar className="text-yellow-400 mr-1" />
-            <span className="font-semibold">{space.nota || "4.8"}</span>
-            <span className="text-gray-500 text-xs ml-1">({space.avaliacoes || "268"})</span> {/* TODO: Remover o número de avaliações padrão e implementar no backend*/}
-          </div>
+      <div className="p-4 flex flex-col gap-1 flex-1 min-h-[120px]">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-base line-clamp-1">{space.space_name}</span>
+          <span className="flex items-center gap-1 text-sm text-gray-700 flex-shrink-0">
+            <FaStar className="text-yellow-400" />
+            {rating}
+          </span>
         </div>
-        <div className="flex justify-between items-center mt-4">
-          <div>
-            <p className="text-[#00A3FF] font-bold">
-              {typeof space.price_per_hour === 'number' 
-                ? `R$ ${space.price_per_hour}` 
-                : space.preco}
-            </p>
-            <p className="text-gray-500 text-xs">por hora</p>
-          </div>
+        <span className="text-xs text-gray-500 line-clamp-1">{truncateText(space.location?.formatted_address)}</span>
+        <span className="text-[#1486B8] font-semibold text-base">
+          R$ {space.price_per_hour} <span className="text-xs font-normal text-gray-500">por hora</span>
+        </span>
+        <div className="flex items-center justify-between mt-auto">
+          <span className="text-xs text-gray-500">
+            Cabe até <b>{space.max_people}</b> pessoas
+          </span>
           <div className="flex items-center text-gray-500 text-sm">
             <FaClock className="mr-1" />
-            <span>Clique para ver mais</span>
+            <span>{totalReviews > 0 ? `${totalReviews} avaliações` : 'Sem avaliações'}</span>
           </div>
         </div>
       </div>

@@ -253,7 +253,7 @@ const Perfil = () => {
               <div className="relative">
                 <div 
                   ref={recentCarouselRef}
-                  className="flex overflow-x-auto gap-4 pb-8 hide-scrollbar scroll-smooth"
+                  className="flex overflow-x-auto gap-6 pb-8 hide-scrollbar scroll-smooth px-4"
                   style={{
                     scrollSnapType: 'x mandatory',
                     scrollPadding: '0 16px',
@@ -272,8 +272,7 @@ const Perfil = () => {
                             price_per_hour: view.space_id.price_per_hour,
                             image_url: view.space_id.image_url
                           }}
-                          onFavoriteClick={handleFavorite}
-                          isFavorite={favoriteSpaces.some(space => space._id === view.space_id._id)}
+                          className="min-w-[300px] flex-shrink-0"
                         />
                       );
                     }).filter(Boolean)
@@ -307,7 +306,7 @@ const Perfil = () => {
               <div className="relative">
                 <div 
                   ref={ratedCarouselRef}
-                  className="flex overflow-x-auto gap-4 pb-8 hide-scrollbar scroll-smooth"
+                  className="flex overflow-x-auto gap-6 pb-8 hide-scrollbar scroll-smooth px-4"
                   style={{
                     scrollSnapType: 'x mandatory',
                     scrollPadding: '0 16px',
@@ -318,8 +317,7 @@ const Perfil = () => {
                       <SpaceCard
                         key={favorite.spaceId._id}
                         space={favorite.spaceId}
-                        onFavoriteClick={handleFavorite}
-                        isFavorite={true}
+                        className="min-w-[300px] flex-shrink-0"
                       />
                     ))
                   ) : (
@@ -363,7 +361,7 @@ const Perfil = () => {
               <div className="relative">
                 <div 
                   ref={rentedCarouselRef}
-                  className="flex overflow-x-auto gap-4 pb-8 hide-scrollbar scroll-smooth"
+                  className="flex overflow-x-auto gap-6 pb-8 hide-scrollbar scroll-smooth px-4"
                   style={{
                     scrollSnapType: 'x mandatory',
                     scrollPadding: '0 16px',
@@ -383,11 +381,10 @@ const Perfil = () => {
                             location: rental.space.location,
                             price_per_hour: rental.space.price_per_hour,
                             image_url: rental.space.image_url,
-                            nota: rental.space.nota || 4.8,
-                            avaliacoes: rental.space.avaliacoes || 0
+                            rating: rental.space.nota || 4.8,
+                            totalReviews: rental.space.avaliacoes || 0
                           }}
-                          onFavoriteClick={handleFavorite}
-                          isFavorite={favoriteSpaces.some(space => space._id === rental.space._id)}
+                          className="min-w-[300px] flex-shrink-0"
                         />
                       );
                     }).filter(Boolean)

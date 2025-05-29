@@ -8,14 +8,14 @@ export const registerViewHistory = async (req: Request, res: Response) => {
     const { user_id, space_id } = req.body;
 
     if (!user_id || !space_id) {
-      return res
-        .status(400)
-        .json({ error: "user_id e space_id são obrigatórios." });
+      res.status(400).json({ error: "user_id e space_id são obrigatórios." });
+      return;
     }
 
     // Validar se os IDs são válidos
     if (!mongoose.Types.ObjectId.isValid(user_id) || !mongoose.Types.ObjectId.isValid(space_id)) {
-      return res.status(400).json({ error: "IDs inválidos fornecidos." });
+      res.status(400).json({ error: "IDs inválidos fornecidos." });
+      return;
     }
 
     // Verificar se já existe uma visualização
@@ -23,10 +23,11 @@ export const registerViewHistory = async (req: Request, res: Response) => {
 
     if (existingView) {
       // Se já existe uma visualização, retorna ela sem atualizar a data
-      return res.status(200).json({
+      res.status(200).json({
         message: "Visualização já registrada anteriormente",
         view: existingView
       });
+      return;
     }
 
     // Contar quantas visualizações o usuário já tem
@@ -49,12 +50,14 @@ export const registerViewHistory = async (req: Request, res: Response) => {
     await newViewHistory.save();
 
     res.status(201).json(newViewHistory);
+    return;
   } catch (error) {
     console.error("Erro ao registrar visualização:", error);
     res.status(500).json({ 
       error: "Erro ao registrar visualização",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
+    return;
   }
 };
 
@@ -64,7 +67,8 @@ export const getViewHistoryByUser = async (req: Request, res: Response) => {
     const { user_id } = req.params;
 
     if (!user_id || !mongoose.Types.ObjectId.isValid(user_id)) {
-      return res.status(400).json({ error: "user_id inválido ou não fornecido." });
+      res.status(400).json({ error: "user_id inválido ou não fornecido." });
+      return;
     }
 
     // Converter limit e page para número (com fallback)
@@ -94,11 +98,13 @@ export const getViewHistoryByUser = async (req: Request, res: Response) => {
         hasPreviousPage: page > 1
       }
     });
+    return;
   } catch (error) {
     console.error("Erro ao buscar histórico:", error);
     res.status(500).json({ 
       error: "Erro ao buscar histórico de visualizações",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
+    return;
   }
 };

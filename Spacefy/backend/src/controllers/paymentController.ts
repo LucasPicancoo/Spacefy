@@ -16,8 +16,10 @@ export const createPayment = async (req: Request, res: Response) => {
       paymentId: payment._id,
       status: payment.status,
     });
+    return;
   } catch (err) {
     console.error("Erro ao criar pagamento:", err);
     res.status(500).json({ error: "Erro ao criar pagamento" });
+    return;
   }
 };

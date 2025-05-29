@@ -37,7 +37,8 @@ export const getUserNotifications = async (req: Request, res: Response) => {
     const { unreadOnly } = req.query;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'ID de usuário inválido.' });
+      res.status(400).json({ error: 'ID de usuário inválido.' });
+      return;
     }
 
     const filter: any = { user: userId };
@@ -47,10 +48,12 @@ export const getUserNotifications = async (req: Request, res: Response) => {
 
     const notifications = await NotificationModel.find(filter).sort({ createdAt: -1 });
 
-    return res.status(200).json(notifications);
+    res.status(200).json(notifications);
+    return;
   } catch (error) {
     console.error('Erro ao buscar notificações:', error);
-    return res.status(500).json({ error: 'Erro interno ao buscar notificações.' });
+    res.status(500).json({ error: 'Erro interno ao buscar notificações.' });
+    return;
   }
 };
 
@@ -59,7 +62,8 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
     const { notificationId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(notificationId)) {
-      return res.status(400).json({ error: 'ID de notificação inválido.' });
+      res.status(400).json({ error: 'ID de notificação inválido.' });
+      return;
     }
 
     const notification = await NotificationModel.findByIdAndUpdate(
@@ -69,13 +73,16 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
     );
 
     if (!notification) {
-      return res.status(404).json({ error: 'Notificação não encontrada.' });
+      res.status(404).json({ error: 'Notificação não encontrada.' });
+      return;
     }
 
-    return res.status(200).json(notification);
+    res.status(200).json(notification);
+    return;
   } catch (error) {
     console.error('Erro ao atualizar notificação:', error);
-    return res.status(500).json({ error: 'Erro interno ao atualizar notificação.' });
+    res.status(500).json({ error: 'Erro interno ao atualizar notificação.' });
+    return;
   }
 };
 
@@ -84,18 +91,22 @@ export const deleteNotification = async (req: Request, res: Response) => {
     const { notificationId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(notificationId)) {
-      return res.status(400).json({ error: 'ID de notificação inválido.' });
+      res.status(400).json({ error: 'ID de notificação inválido.' });
+      return;
     }
 
     const notification = await NotificationModel.findByIdAndDelete(notificationId);
 
     if (!notification) {
-      return res.status(404).json({ error: 'Notificação não encontrada.' });
+      res.status(404).json({ error: 'Notificação não encontrada.' });
+      return;
     }
 
-    return res.status(200).json({ message: 'Notificação deletada com sucesso.' });
+    res.status(200).json({ message: 'Notificação deletada com sucesso.' });
+    return;
   } catch (error) {
     console.error('Erro ao deletar notificação:', error);
-    return res.status(500).json({ error: 'Erro interno ao deletar notificação.' });
+    res.status(500).json({ error: 'Erro interno ao deletar notificação.' });
+    return;
   }
 };

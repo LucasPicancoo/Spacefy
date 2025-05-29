@@ -16,7 +16,8 @@ export const validateAndGetTokenData = (
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
-    return res.status(401).json({ error: "Token de autenticação ausente." });
+    res.status(401).json({ error: "Token de autenticação ausente." });
+    return
   }
 
   const token = authHeader.replace("Bearer ", "");
@@ -29,7 +30,9 @@ export const validateAndGetTokenData = (
 
     req.auth = decoded;
     next();
+    return
   } catch (error) {
-    return res.status(401).json({ error: "Token inválido ou expirado." });
+    res.status(401).json({ error: "Token inválido ou expirado." });
+    return
   }
 };

@@ -10,24 +10,24 @@ export const createAssessment = async (req: Request, res: Response) => {
 
     // Verificação de campos obrigatórios
     if (!spaceID || !userID || score === undefined) {
-      return res
-        .status(400)
-        .json({ error: "Campos obrigatórios: spaceID, userID e score." });
+      res.status(400).json({ error: "Campos obrigatórios: spaceID, userID e score." });
+      return;
     }
 
     // Validação da nota
     if (score < 0 || score > 5) {
-      return res
-        .status(400)
-        .json({ error: "A nota deve ser entre 0 e 5 estrelas." });
+      res.status(400).json({ error: "A nota deve ser entre 0 e 5 estrelas." });
+      return;
     }
 
     // Validar se os IDs são ObjectIds válidos
     if (!mongoose.Types.ObjectId.isValid(spaceID)) {
-      return res.status(400).json({ error: "ID do espaço inválido." });
+      res.status(400).json({ error: "ID do espaço inválido." });
+      return;
     }
     if (!mongoose.Types.ObjectId.isValid(userID)) {
-      return res.status(400).json({ error: "ID do usuário inválido." });
+      res.status(400).json({ error: "ID do usuário inválido." });
+      return;
     }
 
     const review = await Review.create({
@@ -38,20 +38,23 @@ export const createAssessment = async (req: Request, res: Response) => {
       evaluation_date: new Date()
     });
 
-    return res.status(201).json(review);
+    res.status(201).json(review);
+    return;
   } catch (error: any) {
     console.error("Erro ao criar avaliação:", error);
     
     if (error.code === 11000) {
-      return res.status(400).json({ 
+      res.status(400).json({ 
         error: "Erro de duplicação. Detalhes: " + error.message 
       });
+      return;
     }
     
-    return res.status(500).json({ 
+    res.status(500).json({ 
       error: "Erro ao criar avaliação.",
       details: error.message 
     });
+    return;
   }
 };
 
@@ -62,9 +65,8 @@ export const updateAssessment = async (req: Request, res: Response) => {
 
   // Validação da nota
   if (score !== undefined && (score < 0 || score > 5)) {
-    return res
-      .status(400)
-      .json({ error: "A nota deve ser entre 0 e 5 estrelas." });
+    res.status(400).json({ error: "A nota deve ser entre 0 e 5 estrelas." });
+    return;
   }
 
   try {
@@ -75,13 +77,16 @@ export const updateAssessment = async (req: Request, res: Response) => {
     );
 
     if (!review) {
-      return res.status(404).json({ error: "Avaliação não encontrada." });
+      res.status(404).json({ error: "Avaliação não encontrada." });
+      return;
     }
 
-    return res.status(200).json(review);
+    res.status(200).json(review);
+    return;
   } catch (error) {
     console.error("Erro ao atualizar avaliação:", error);
-    return res.status(500).json({ error: "Erro ao atualizar avaliação." });
+    res.status(500).json({ error: "Erro ao atualizar avaliação." });
+    return;
   }
 };
 
@@ -94,21 +99,25 @@ export const deleteAssessment = async (req: Request, res: Response) => {
     const assessment = await Review.findById(id);
 
     if (!assessment) {
-      return res.status(404).json({ error: "Avaliação não encontrada." });
+      res.status(404).json({ error: "Avaliação não encontrada." });
+      return;
     }
 
     // Verifica se o usuário é o dono da avaliação ou um administrador
     if (!req.auth || (req.auth.id !== assessment.userID.toString() && req.auth.role !== "admin")) {
-      return res.status(403).json({ 
+      res.status(403).json({ 
         error: "Acesso negado. Apenas o autor da avaliação ou um administrador podem excluí-la." 
       });
+      return;
     }
 
     const deleted = await Review.findByIdAndDelete(id);
-    return res.status(200).json({ message: "Avaliação excluída com sucesso." });
+    res.status(200).json({ message: "Avaliação excluída com sucesso." });
+    return;
   } catch (error) {
     console.error("Erro ao excluir avaliação:", error);
-    return res.status(500).json({ error: "Erro ao excluir avaliação." });
+    res.status(500).json({ error: "Erro ao excluir avaliação." });
+    return;
   }
 };
 
@@ -119,7 +128,8 @@ export const getAssessmentsBySpace = async (req: Request, res: Response) => {
   try {
     // Validação do ID do espaço
     if (!mongoose.Types.ObjectId.isValid(spaceId)) {
-      return res.status(400).json({ error: "ID do espaço inválido." });
+      res.status(400).json({ error: "ID do espaço inválido." });
+      return;
     }
 
     const assessments = await Review.find({ spaceID: spaceId })
@@ -144,24 +154,29 @@ export const getAssessmentsBySpace = async (req: Request, res: Response) => {
     }));
 
     res.status(200).json(formattedAssessments);
+    return;
   } catch (error: any) {
     console.error("Erro detalhado ao buscar avaliações:", error);
     res.status(500).json({ 
       error: "Erro ao buscar avaliações do espaço.",
       details: error.message 
     });
+    return;
   }
 };
 
 export const getAllAssessments = async (req: Request, res: Response) => {
   if (!req.auth || req.auth.role !== "admin") {
-    return res.status(403).json({ error: "Acesso negado. Usuário não autorizado. somente admin pode acessar" });
+    res.status(403).json({ error: "Acesso negado. Usuário não autorizado. somente admin pode acessar" });
+    return;
   }
   try {
     const assessments = await Review.find();
     res.status(200).json(assessments);
+    return;
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar todas as avaliações." });
+    return;
   }
 };
 
@@ -206,9 +221,11 @@ export const getTopRatedSpaces = async (req: Request, res: Response) => {
     ]);
 
     res.status(200).json(topSpaces);
+    return;
   } catch (error) {
     console.error("Erro ao buscar espaços melhor avaliados:", error);
     res.status(500).json({ error: "Erro ao buscar espaços melhor avaliados." });
+    return;
   }
 };
 
@@ -221,7 +238,8 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
   try {
     // Validação do ID do usuário
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: "ID do usuário inválido." });
+      res.status(400).json({ error: "ID do usuário inválido." });
+      return;
     }
 
     // Busca o total de avaliações para calcular o total de páginas
@@ -243,9 +261,11 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
         hasPreviousPage: page > 1
       }
     });
+    return;
   } catch (error) {
     console.error("Erro ao buscar avaliações do usuário:", error);
     res.status(500).json({ error: "Erro ao buscar avaliações do usuário." });
+    return;
   }
 };
 
@@ -255,7 +275,8 @@ export const getAverageScoreBySpace = async (req: Request, res: Response) => {
   try {
     // Validação do ID do espaço
     if (!mongoose.Types.ObjectId.isValid(spaceId)) {
-      return res.status(400).json({ error: "ID do espaço inválido." });
+      res.status(400).json({ error: "ID do espaço inválido." });
+      return;
     }
 
     const result = await Review.aggregate([
@@ -274,11 +295,12 @@ export const getAverageScoreBySpace = async (req: Request, res: Response) => {
     ]);
 
     if (result.length === 0) {
-      return res.status(404).json({ 
+      res.status(404).json({ 
         error: "Nenhuma avaliação encontrada para este espaço.",
         averageScore: 0,
         totalReviews: 0
       });
+      return;
     }
 
     res.status(200).json({
@@ -286,9 +308,11 @@ export const getAverageScoreBySpace = async (req: Request, res: Response) => {
       averageScore: Number(result[0].averageScore.toFixed(1)),
       totalReviews: result[0].totalReviews
     });
+    return;
   } catch (error) {
     console.error("Erro ao calcular média das avaliações:", error);
     res.status(500).json({ error: "Erro ao calcular média das avaliações do espaço." });
+    return;
   }
 };
 

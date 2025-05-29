@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import Header from "../../Components/Header/Header";
 import { FaHeart, FaStar, FaClock, FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { useUser } from "../../Contexts/userContext";
-import { useFavorite } from "../../contexts/FavoriteContext";
+import { useUser } from "../../Contexts/UserContext";
+import { useFavorite } from "../../Contexts/FavoriteContext";
 import { useNavigate } from "react-router-dom";
 import BecomeRenterModal from "../../Components/Modal/BecomeRenterModal";
 import { userService } from "../../services/userService";

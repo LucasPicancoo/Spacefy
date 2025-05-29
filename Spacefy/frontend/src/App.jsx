@@ -2,7 +2,7 @@ import React from 'react'
 import Router from './Routes/Router'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FavoriteProvider } from './contexts/FavoriteContext';
+import { FavoriteProvider } from './Contexts/FavoriteContext';
 
 const App = () => {
   return (

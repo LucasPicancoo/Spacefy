@@ -2,9 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FaChevronLeft, FaChevronRight, FaHeart, FaStar, FaClock } from 'react-icons/fa';
 import { assessmentService } from '../../../services/assessmentService';
 import { useNavigate } from 'react-router-dom';
-import { useUser } from '../../../Contexts/userContext';
+import { useUser } from '../../../Contexts/UserContext';
 import { userService } from '../../../services/userService';
-import { useFavorite } from '../../../contexts/FavoriteContext';
+import { useFavorite } from '../../../Contexts/FavoriteContext';
 
 const truncateText = (text, maxLength = 30) => {
   if (!text) return '';

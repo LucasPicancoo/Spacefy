@@ -1,5 +1,5 @@
-import { useFavorite } from '../../contexts/FavoriteContext';
-import { useUser } from '../../Contexts/userContext';
+import { useFavorite } from '../../Contexts/FavoriteContext';
+import { useUser } from '../../Contexts/UserContext';
 
 export function FavoriteButton({ spaceId, className = '' }) {
     const { toggleFavorite, isFavorite, loading } = useFavorite();

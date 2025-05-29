@@ -8,41 +8,46 @@ const UserContext = createContext(undefined);
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = Cookies.get("token"); // Lê o token do cookie
-
-    if (token) {
+    const initializeAuth = async () => {
       try {
-        const decodedToken = jwtDecode(token);
-        
-        // Verifica se o token expirou
-        const currentTime = Date.now() / 1000;
-        if (decodedToken.exp < currentTime) {
-          Cookies.remove("token");
+        const token = Cookies.get("token");
+
+        if (token) {
+          const decodedToken = jwtDecode(token);
+          const currentTime = Date.now() / 1000;
+
+          if (decodedToken.exp < currentTime) {
+            Cookies.remove("token");
+            setIsLoggedIn(false);
+            setUser(null);
+          } else {
+            setUser({
+              id: decodedToken.id,
+              name: decodedToken.name,
+              surname: decodedToken.surname,
+              email: decodedToken.email,
+              telephone: decodedToken.telephone,
+              role: decodedToken.role,
+            });
+            setIsLoggedIn(true);
+          }
+        } else {
           setIsLoggedIn(false);
           setUser(null);
-          return;
         }
-
-        setUser({
-          id: decodedToken.id,
-          name: decodedToken.name,
-          surname: decodedToken.surname,
-          email: decodedToken.email,
-          telephone: decodedToken.telephone,
-          role: decodedToken.role,
-        });
-        setIsLoggedIn(true);
       } catch (error) {
-        console.error("Erro ao decodificar o token", error);
+        console.error("Erro ao inicializar autenticação:", error);
         setIsLoggedIn(false);
         setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      setIsLoggedIn(false);
-      setUser(null);
-    }
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (token) => {
@@ -64,8 +69,6 @@ export function UserProvider({ children }) {
         sameSite: "strict", // Protege contra CSRF
         expires: 1, // Expira em 1 dia
       });
-
-      window.location.href = "/Descobrir"; // Redireciona o usuário após o login
     } catch (error) {
       console.error("Erro ao decodificar o token", error);
       setIsLoggedIn(false);
@@ -81,7 +84,7 @@ export function UserProvider({ children }) {
   };
 
   return (
-    <UserContext.Provider value={{ user, isLoggedIn, login, logout }}>
+    <UserContext.Provider value={{ user, isLoggedIn, login, logout, isLoading }}>
       {children}
     </UserContext.Provider>
   );

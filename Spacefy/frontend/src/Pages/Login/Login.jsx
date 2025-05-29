@@ -31,7 +31,7 @@ function LoginUsuario() {
 
       if (token) {
         login(token); // O método login do contexto já armazena o token no cookie
-        navigate("/Home", { replace: true });
+        navigate("/Descobrir", { replace: true });
       } else {
         toast.error("Erro: Token não recebido.");
       }

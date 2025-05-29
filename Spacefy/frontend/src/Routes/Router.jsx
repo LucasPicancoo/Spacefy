@@ -12,22 +12,24 @@ import EditarPerfilUsuario from '../Pages/Perfil_Usuario/EditarPerfilUsuario'
 import NotFound from '../Pages/NotFound/NotFound'
 import Messages from '../Pages/Messages/Messages'
 import Reservas from '../Pages/Reservas/Reservas'
+import ProtectedRoute from '../Components/ProtectedRoute'
+
 const AppRoutes = () => {
   return (
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<Home />} />
+        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/cadastro" element={<CadastroUsuario />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/Perfil" element={<Perfil />} />
-        <Route path="/Descobrir" element={<Descobrir />} />
-        <Route path="/espaco/:id" element={<Espaço />} />
-        <Route path="/Dashboard" element={<Dashboard />} />
-        <Route path="/CadastrarEspaco" element={<CadastrarEspaco />} />
-        <Route path="/EditarPerfilUsuario" element={<EditarPerfilUsuario />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/reservas" element={<Reservas />} />
+        <Route path="/Perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+        <Route path="/Descobrir" element={<ProtectedRoute><Descobrir /></ProtectedRoute>} />
+        <Route path="/espaco/:id" element={<ProtectedRoute><Espaço /></ProtectedRoute>} />
+        <Route path="/Dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/CadastrarEspaco" element={<ProtectedRoute><CadastrarEspaco /></ProtectedRoute>} />
+        <Route path="/EditarPerfilUsuario" element={<ProtectedRoute><EditarPerfilUsuario /></ProtectedRoute>} />
+        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+        <Route path="/reservas" element={<ProtectedRoute><Reservas /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

@@ -5,7 +5,7 @@ import { userService } from "../../services/userService";
 import { useUser } from "../../Contexts/UserContext";
 import SidebarFiltros from "../../Components/SidebarFiltros/SidebarFiltros";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FavoriteButton } from "../../components/FavoriteButton/FavoriteButton";
+import { FavoriteButton } from "../../../Components/FavoriteButton/FavoriteButton";
 
 function Descobrir() {
     const navigate = useNavigate();

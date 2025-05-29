@@ -12,7 +12,7 @@ import Etapa5 from './Etapas/Etapa5';
 import Etapa6 from './Etapas/Etapa6';
 import Etapa7 from './Etapas/Etapa7';
 import Etapa8 from './Etapas/Etapa8';
-import { useUser } from '../../Contexts/userContext';
+import { useUser } from '../../Contexts/UserContext';
 import Cookies from "js-cookie";
 
 // Mapeamento dos campos obrigatórios e suas mensagens de erro

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useUser } from "../../Contexts/userContext";
+import { useUser } from "../../Contexts/UserContext";
 import { rentalService } from "../../services/rentalService";
 
 export default function Dashboard_Reservas() {

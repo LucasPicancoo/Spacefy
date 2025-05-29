@@ -1,6 +1,6 @@
 import React from "react";
 import Header from "../Components/Header/Header";
-import { useUser } from "../Contexts/userContext";
+import { useUser } from "../Contexts/UserContext";
 
 const Perfil = () => {
   const { user, isLoggedIn } = useUser();

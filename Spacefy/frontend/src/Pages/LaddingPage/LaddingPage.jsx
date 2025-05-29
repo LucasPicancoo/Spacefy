@@ -1,7 +1,7 @@
 import React from "react";
 import Header from "../../Components/Header/Header.jsx";
 import Footer from "../../Components/Footer/Footer.jsx";
-import { useUser } from "../../Contexts/userContext.jsx";
+import { useUser } from "../../Contexts/UserContext.jsx";
 import Banner from "./Banner/Banner.jsx";
 import LoginBanner from "./LoginBanner/LoginBanner.jsx";
 import IdealSpaceSection from "./IdealSpaceSection/IdealSpaceSection.jsx";

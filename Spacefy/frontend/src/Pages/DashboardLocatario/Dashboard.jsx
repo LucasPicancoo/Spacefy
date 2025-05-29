@@ -6,7 +6,7 @@ import Dashboard_Reservas from "./Dashboard_Reservas";
 import Dashboard_Perfil from "./Dashboard_Perfil";
 import Dashboard_Mensagens from "./Dashboard_Mensagens";
 import Dashboard_Espaco from "./Dashboard_Espaco";
-import { useUser } from '../../Contexts/userContext';
+import { useUser } from '../../Contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {

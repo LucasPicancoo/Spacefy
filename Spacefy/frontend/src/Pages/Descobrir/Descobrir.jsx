@@ -2,7 +2,7 @@ import Header from "../../Components/Header/Header";
 import { useState, useEffect } from "react";
 import { spaceService } from "../../services/spaceService";
 import { userService } from "../../services/userService";
-import { useUser } from "../../Contexts/userContext";
+import { useUser } from "../../Contexts/UserContext";
 import SidebarFiltros from "../../Components/SidebarFiltros/SidebarFiltros";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FavoriteButton } from "../../components/FavoriteButton/FavoriteButton";

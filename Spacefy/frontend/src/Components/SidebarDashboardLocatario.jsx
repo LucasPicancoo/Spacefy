@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { MdOutlineKeyboardArrowDown, MdOutlineKeyboardArrowUp } from "react-icons/md";
 import { spaceService } from "../services/spaceService";
-import { useUser } from "../Contexts/userContext";
+import { useUser } from "../Contexts/UserContext";
 
 export default function SidebarDashboardLocatario({ onPageChange, paginaAtual, subEspacoSelecionado }) {
   const [espacos, setEspacos] = useState([]);

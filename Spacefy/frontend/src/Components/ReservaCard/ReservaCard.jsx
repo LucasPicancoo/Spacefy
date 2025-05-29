@@ -6,7 +6,7 @@ import ptBR from 'date-fns/locale/pt-BR';
 import { useNavigate } from "react-router-dom";
 import { rentalService } from "../../services/rentalService";
 import { toast } from 'react-toastify';
-import { useUser } from "../../Contexts/userContext";
+import { useUser } from "../../Contexts/UserContext";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');

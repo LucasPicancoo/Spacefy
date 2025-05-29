@@ -4,7 +4,7 @@ import Header from "../../Components/Header/Header";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import profile from "../../assets/Profile.svg";
-import { useUser } from "../../Contexts/userContext";
+import { useUser } from "../../Contexts/UserContext";
 import { authService } from "../../services/authService";
 import Cookies from "js-cookie"; // Importa a biblioteca js-cookie
 

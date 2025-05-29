@@ -5,7 +5,7 @@ import { MdCalendarToday } from "react-icons/md";
 import { FaWifi } from "react-icons/fa";
 import CommentsModal from "../../Components/CommentsModal";
 import { spaceService } from "../../services/spaceService";
-import { useUser } from "../../Contexts/userContext";
+import { useUser } from "../../Contexts/UserContext";
 
 function renderStars(avaliacao) {
   const stars = [];

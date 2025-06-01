@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { rentalService } from "../../services/rentalService";
 import { toast } from 'react-toastify';
 import { useUser } from "../../Contexts/UserContext";
-import ReservaModal from "../../Components/Modal/ReservaModal";
+import ReservaModal from "../../Pages/Espaço/ReservaModal";
 
 function ReservaCard({ space }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -27,6 +27,16 @@ function ReservaCard({ space }) {
                 return;
             }
 
+            // Validação dos campos obrigatórios
+            if (!reservationData.startDate || !reservationData.endDate || !reservationData.startTime || !reservationData.endTime || !reservationData.totalPrice) {
+                toast.error('Todos os campos são obrigatórios para realizar a reserva.');
+                return;
+            }
+            if (!(reservationData.startDate instanceof Date) || !(reservationData.endDate instanceof Date) || !(reservationData.startTime instanceof Date) || !(reservationData.endTime instanceof Date)) {
+                toast.error('Datas e horários inválidos.');
+                return;
+            }
+
             setIsLoading(true);
 
             // Formatar as datas para o formato esperado pelo backend (YYYY-MM-DD)
@@ -42,8 +52,8 @@ function ReservaCard({ space }) {
             const rentalData = {
                 userId: user.id,
                 spaceId: space._id,
-                start_date: formatDate(reservationData.date),
-                end_date: formatDate(reservationData.date),
+                start_date: formatDate(reservationData.startDate),
+                end_date: formatDate(reservationData.endDate),
                 startTime: formatTime(reservationData.startTime),
                 endTime: formatTime(reservationData.endTime),
                 value: reservationData.totalPrice

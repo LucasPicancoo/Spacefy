@@ -18,4 +18,7 @@ const BlockedDatesSchema: Schema = new Schema({
   }]
 });
 
+// Adiciona índice composto único
+BlockedDatesSchema.index({ space_id: 1 }, { unique: true });
+
 export default mongoose.model<IBlockedDates>("BlockedDates", BlockedDatesSchema); 

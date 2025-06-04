@@ -8,14 +8,14 @@ export const createOrUpdateBlockedDates = async (req: Request, res: Response) =>
     const { space_id, blocked_dates } = req.body;
 
     // Validação do ID do espaço
-    if (!mongoose.Types.ObjectId.isValid(space_id)) {
-      res.status(400).json({ error: "ID do espaço inválido" });
+    if (!space_id || !mongoose.Types.ObjectId.isValid(space_id)) {
+      res.status(400).json({ error: "ID do espaço inválido ou não fornecido" });
       return;
     }
 
     // Validação das datas
-    if (!Array.isArray(blocked_dates)) {
-      res.status(400).json({ error: "É necessário fornecer um array de datas bloqueadas" });
+    if (!Array.isArray(blocked_dates) || blocked_dates.length === 0) {
+      res.status(400).json({ error: "É necessário fornecer um array não vazio de datas bloqueadas" });
       return;
     }
 
@@ -45,9 +45,9 @@ export const createOrUpdateBlockedDates = async (req: Request, res: Response) =>
 
     // Busca ou cria um novo registro de datas bloqueadas
     const blockedDates = await BlockedDatesModel.findOneAndUpdate(
-      { space_id },
+      { space_id: new mongoose.Types.ObjectId(space_id) },
       { 
-        space_id,
+        space_id: new mongoose.Types.ObjectId(space_id),
         blocked_dates: uniqueDates
       },
       { 

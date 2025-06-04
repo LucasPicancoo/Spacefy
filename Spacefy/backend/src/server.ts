@@ -14,6 +14,7 @@ import viewHistoryRouter from "./routes/viewhistoryRoutes";
 import rentalRoutes from "./routes/rentalRoutes"; 
 import assessmentRoutes from "./routes/assessmentRoutes";
 import notificationRoutes from "./routes/notificationRoutes";
+import blockedDatesRouter from "./routes/blockedDatesRoutes";
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use("/view-history", viewHistoryRouter);
 app.use("/rentals", rentalRoutes); 
 app.use("/assessment", assessmentRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/blocked-dates", blockedDatesRouter);
 
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;

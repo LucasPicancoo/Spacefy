@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaCalendarAlt } from "react-icons/fa";
 import "./custom-datepicker.css";
+import { blockedDatesService } from "../../services/blockedDatesService";
 
 function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [dateRange, setDateRange] = useState([null, null]);
@@ -11,10 +12,36 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [endTime, setEndTime] = useState(null);
     const [totalHours, setTotalHours] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
+    const [blockedDates, setBlockedDates] = useState([]);
+    const [showBlockedDates, setShowBlockedDates] = useState(false);
 
     useEffect(() => {
         calculateTotalHours();
     }, [startTime, endTime, dateRange]);
+
+    useEffect(() => {
+        if (isOpen && space?._id) {
+            fetchBlockedDates();
+        }
+    }, [isOpen, space?._id]);
+
+    const fetchBlockedDates = async () => {
+        try {
+            const dates = await blockedDatesService.getBlockedDatesBySpaceId(space._id);
+            setBlockedDates(dates.blocked_dates || []);
+        } catch (error) {
+            console.error("Erro ao buscar datas bloqueadas:", error);
+        }
+    };
+
+    const isDateBlocked = (date) => {
+        return blockedDates.some(blockedDate => {
+            const blocked = new Date(blockedDate);
+            return date.getDate() === blocked.getDate() &&
+                   date.getMonth() === blocked.getMonth() &&
+                   date.getFullYear() === blocked.getFullYear();
+        });
+    };
 
     const calculateTotalHours = () => {
         if (!startTime || !endTime) {
@@ -115,6 +142,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                 placeholderText="Selecione o intervalo"
                                 calendarClassName="custom-calendar"
                                 inline
+                                filterDate={date => !isDateBlocked(date)}
                             />
                             <div className="mt-6 text-xl font-bold text-[#00A3FF] text-center">
                                 {space?.price_per_hour ? `R$ ${space.price_per_hour.toFixed(2)}` : '--'}
@@ -156,6 +184,24 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                             </div>
                         </div>
                     </div>
+
+                    {/* Seção de Datas Bloqueadas */}
+                    {blockedDates.length > 0 && (
+                        <div className="mt-4 p-4 bg-gray-50 rounded-md">
+                            <div className="flex items-center gap-2 mb-2">
+                                <FaCalendarAlt className="text-[#00A3FF]" />
+                                <h3 className="font-semibold text-[#363636]">Datas Bloqueadas:</h3>
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                {blockedDates.map((date, index) => (
+                                    <div key={index} className="bg-white p-2 rounded text-sm text-center">
+                                        {new Date(date).toLocaleDateString('pt-BR')}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {totalHours > 0 && (
                         <div className="mt-4 p-4 bg-gray-50 rounded-md text-center">
                             <div className="font-bold text-lg mb-2">Total:</div>

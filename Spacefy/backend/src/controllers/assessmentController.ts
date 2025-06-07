@@ -294,9 +294,10 @@ export const getAverageScoreBySpace = async (req: Request, res: Response) => {
       }
     ]);
 
+    // Retorna média 0 se não houver avaliações
     if (result.length === 0) {
-      res.status(404).json({ 
-        error: "Nenhuma avaliação encontrada para este espaço.",
+      res.status(200).json({
+        spaceId,
         averageScore: 0,
         totalReviews: 0
       });

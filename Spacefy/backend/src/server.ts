@@ -83,7 +83,6 @@ interface AuthenticatedSocket extends Socket {
 // Socket.IO middleware para autenticação
 io.use((socket: AuthenticatedSocket, next) => {
   const token = socket.handshake.auth.token;
-  console.log('Token recebido:', token ? 'Token presente' : 'Token ausente');
 
   if (!token) {
     console.log('Token não fornecido');
@@ -93,7 +92,6 @@ io.use((socket: AuthenticatedSocket, next) => {
   try {
     // Remover 'Bearer ' se existir
     const cleanToken = token.startsWith('Bearer ') ? token.slice(7) : token;
-    console.log('Tentando verificar token...');
     
     const decoded = jwt.verify(cleanToken, process.env.JWT_KEY || 'seu_jwt_secret') as { 
       id: string; 
@@ -102,8 +100,6 @@ io.use((socket: AuthenticatedSocket, next) => {
       surname: string;
       email: string;
     };
-
-    console.log('Token decodificado:', decoded);
     
     socket.user = {
       id: decoded.id,
@@ -112,15 +108,12 @@ io.use((socket: AuthenticatedSocket, next) => {
     
     next();
   } catch (err) {
-    console.error('Erro ao verificar token:', err);
     next(new Error('Token inválido'));
   }
 });
 
 // Lógica do Socket.IO
 io.on('connection', (socket: AuthenticatedSocket) => {
-  console.log('Usuário conectado:', socket.user?.id);
-
   // Entrar em uma sala de conversa
   socket.on('join_conversation', (conversationId) => {
     socket.join(conversationId);
@@ -147,7 +140,6 @@ io.on('connection', (socket: AuthenticatedSocket) => {
       // Enviar mensagem para todos na sala
       io.to(conversationId).emit('new_message', message);
     } catch (error: any) {
-      console.error('Erro ao enviar mensagem:', error);
       socket.emit('message_error', { error: error.message });
     }
   });
@@ -160,10 +152,6 @@ io.on('connection', (socket: AuthenticatedSocket) => {
     } catch (error) {
       console.error('Erro ao marcar mensagem como lida:', error);
     }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('Usuário desconectado:', socket.user?.id);
   });
 });
 

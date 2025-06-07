@@ -26,21 +26,12 @@ export const messageController = {
   // Obter todas as conversas do usuário
   async getUserConversations(req: AuthenticatedRequest, res: Response<IConversation[] | IMessageResponse>) {
     try {
-      console.log('User ID from token:', req.auth?.id);
-      
-      // Primeiro, vamos verificar se existem mensagens
-      const allMessages = await Message.find({});
-      console.log('Total messages in DB:', allMessages.length);
-      
-      // Verificar mensagens específicas do usuário
       const userMessages = await Message.find({
         $or: [
           { senderId: req.auth?.id },
           { receiverId: req.auth?.id }
         ]
       });
-      console.log('User messages:', userMessages.length);
-      console.log('Sample message:', userMessages[0]);
 
       const conversations = await Message.aggregate([
         {
@@ -117,9 +108,6 @@ export const messageController = {
           }
         }
       ]);
-
-      console.log('Conversations found:', conversations.length);
-      console.log('Sample conversation:', conversations[0]);
 
       // Se não houver conversas, vamos criar uma conversa a partir das mensagens existentes
       if (conversations.length === 0 && userMessages.length > 0) {

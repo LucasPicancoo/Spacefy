@@ -14,8 +14,8 @@ export const createOrUpdateBlockedDates = async (req: Request, res: Response) =>
     }
 
     // Validação das datas
-    if (!Array.isArray(blocked_dates) || blocked_dates.length === 0) {
-      res.status(400).json({ error: "É necessário fornecer um array não vazio de datas bloqueadas" });
+    if (!Array.isArray(blocked_dates)) {
+      res.status(400).json({ error: "É necessário fornecer um array de datas bloqueadas" });
       return;
     }
 

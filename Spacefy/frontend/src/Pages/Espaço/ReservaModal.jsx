@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FaTimes, FaCalendarAlt } from "react-icons/fa";
+import { FaTimes, FaCalendarAlt, FaExclamationTriangle } from "react-icons/fa";
 import "./custom-datepicker.css";
 import { blockedDatesService } from "../../services/blockedDatesService";
 
@@ -14,6 +14,17 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [totalPrice, setTotalPrice] = useState(0);
     const [blockedDates, setBlockedDates] = useState([]);
     const [showBlockedDates, setShowBlockedDates] = useState(false);
+    const [dateRangeError, setDateRangeError] = useState("");
+
+    const diasSemana = {
+        'domingo': 0,
+        'segunda': 1,
+        'terca': 2,
+        'quarta': 3,
+        'quinta': 4,
+        'sexta': 5,
+        'sabado': 6
+    };
 
     useEffect(() => {
         calculateTotalHours();
@@ -35,12 +46,22 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     };
 
     const isDateBlocked = (date) => {
-        return blockedDates.some(blockedDate => {
+        // Verifica se a data está na lista de datas bloqueadas
+        const isBlockedDate = blockedDates.some(blockedDate => {
             const blocked = new Date(blockedDate);
-            return date.getDate() === blocked.getDate() &&
-                   date.getMonth() === blocked.getMonth() &&
-                   date.getFullYear() === blocked.getFullYear();
+            // Ajusta para o fuso horário local
+            const localBlocked = new Date(blocked.getTime() + blocked.getTimezoneOffset() * 60000);
+            
+            return date.getDate() === localBlocked.getDate() &&
+                   date.getMonth() === localBlocked.getMonth() &&
+                   date.getFullYear() === localBlocked.getFullYear();
         });
+
+        // Verifica se o dia da semana está permitido
+        const dayOfWeek = date.getDay();
+        const isAllowedWeekDay = space?.week_days?.some(day => diasSemana[day] === dayOfWeek);
+
+        return isBlockedDate || !isAllowedWeekDay;
     };
 
     const calculateTotalHours = () => {
@@ -96,6 +117,35 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const isDateRangeValid = startDate instanceof Date && endDate instanceof Date;
     const isTimeValid = startTime instanceof Date && endTime instanceof Date;
 
+    const hasBlockedDatesInRange = (start, end) => {
+        if (!start || !end) return false;
+        
+        const currentDate = new Date(start);
+        while (currentDate <= end) {
+            if (isDateBlocked(currentDate)) {
+                return true;
+            }
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        return false;
+    };
+
+    const handleDateRangeChange = (dates) => {
+        const [start, end] = dates;
+        setDateRange(dates);
+        
+        if (start && end) {
+            if (hasBlockedDatesInRange(start, end)) {
+                setDateRangeError("Existem datas bloqueadas ou não disponíveis no intervalo selecionado.");
+                setDateRange([null, null]);
+            } else {
+                setDateRangeError("");
+            }
+        } else {
+            setDateRangeError("");
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!isDateRangeValid || !isTimeValid) {
@@ -135,7 +185,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                 selectsRange
                                 startDate={startDate}
                                 endDate={endDate}
-                                onChange={setDateRange}
+                                onChange={handleDateRangeChange}
                                 dateFormat="dd/MM/yyyy"
                                 minDate={new Date()}
                                 className="w-full p-2 border border-gray-300 rounded-md text-center"
@@ -144,6 +194,12 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                 inline
                                 filterDate={date => !isDateBlocked(date)}
                             />
+                            {dateRangeError && (
+                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm flex items-center gap-2">
+                                    <FaExclamationTriangle />
+                                    {dateRangeError}
+                                </div>
+                            )}
                             <div className="mt-6 text-xl font-bold text-[#00A3FF] text-center">
                                 {space?.price_per_hour ? `R$ ${space.price_per_hour.toFixed(2)}` : '--'}
                                 <span className="text-base font-normal text-gray-600">/hora</span>

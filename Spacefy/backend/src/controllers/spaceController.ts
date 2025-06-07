@@ -308,9 +308,7 @@ export const createSpace = async (req: Request, res: Response) => {
       space_type,
       space_description,
       space_amenities,
-      week_days,
-      opening_time,
-      closing_time,
+      weekly_days,
       space_rules,
       price_per_hour,
       owner_name,
@@ -330,9 +328,7 @@ export const createSpace = async (req: Request, res: Response) => {
       !space_type ||
       !price_per_hour ||
       !space_amenities ||
-      !week_days ||
-      !opening_time ||
-      !closing_time ||
+      !weekly_days ||
       !owner_name ||
       !document_number ||
       !document_photo ||
@@ -343,6 +339,43 @@ export const createSpace = async (req: Request, res: Response) => {
     ) {
       res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
       return;
+    }
+
+    // Validação dos horários
+    if (!Array.isArray(weekly_days)) {
+      res.status(400).json({ error: "O formato dos horários está inválido." });
+      return;
+    }
+
+    // Validação dos horários para cada dia
+    for (const day of weekly_days) {
+      if (!day.day || !Array.isArray(day.time_ranges)) {
+        res.status(400).json({ error: "Formato inválido para os horários." });
+        return;
+      }
+
+      // Validação dos horários específicos
+      for (const range of day.time_ranges) {
+        if (!range.open || !range.close) {
+          res.status(400).json({ error: "Horários de abertura e fechamento são obrigatórios." });
+          return;
+        }
+
+        // Validação do formato dos horários (HH:mm)
+        const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        if (!timeRegex.test(range.open) || !timeRegex.test(range.close)) {
+          res.status(400).json({ error: "Formato de horário inválido. Use HH:mm." });
+          return;
+        }
+
+        // Validação se o horário de fechamento é posterior ao de abertura
+        const openTime = new Date(`2000-01-01T${range.open}`);
+        const closeTime = new Date(`2000-01-01T${range.close}`);
+        if (closeTime <= openTime) {
+          res.status(400).json({ error: "O horário de fechamento deve ser posterior ao de abertura." });
+          return;
+        }
+      }
     }
 
     // Valida o endereço usando o Google Maps API
@@ -406,9 +439,7 @@ export const createSpace = async (req: Request, res: Response) => {
       space_type,
       space_description,
       space_amenities,
-      week_days,
-      opening_time,
-      closing_time,
+      weekly_days,
       space_rules,
       price_per_hour,
       owner_name,

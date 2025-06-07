@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 
 // Array com os dias da semana para os checkboxes
 const DIAS_SEMANA = [
-    { id: 'domingo', label: 'Domingo' },
-    { id: 'segunda', label: 'Segunda-feira' },
-    { id: 'terca', label: 'Terça-feira' },
-    { id: 'quarta', label: 'Quarta-feira' },
-    { id: 'quinta', label: 'Quinta-feira' },
-    { id: 'sexta', label: 'Sexta-feira' },
-    { id: 'sabado', label: 'Sábado' }
+    { id: 'domingo', label: 'Domingo', order: 0 },
+    { id: 'segunda', label: 'Segunda-feira', order: 1 },
+    { id: 'terca', label: 'Terça-feira', order: 2 },
+    { id: 'quarta', label: 'Quarta-feira', order: 3 },
+    { id: 'quinta', label: 'Quinta-feira', order: 4 },
+    { id: 'sexta', label: 'Sexta-feira', order: 5 },
+    { id: 'sabado', label: 'Sábado', order: 6 }
 ];
 
 // Componente para campos de horário
@@ -85,47 +85,249 @@ const CheckboxDia = ({ dia, checked, onChange }) => (
     </div>
 );
 
-// Componente principal da Etapa 3 - Disponibilidade e Horários
-const Etapa3 = ({ formData, onUpdate }) => {
-    // Função para gerenciar mudanças nos campos
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        
-        // Atualiza horários de abertura e fechamento
-        if (name === 'opening_time' || name === 'closing_time') {
-            onUpdate({
-                ...formData,
-                [name]: value
-            });
-            return;
-        }
+// Componente para horários de um dia específico
+const HorariosDia = ({ dia, timeRanges, onAddTimeRange, onRemoveTimeRange, onUpdateTimeRange }) => {
+    // Função para validar o formato do horário
+    const isValidTimeFormat = (time) => {
+        if (!time) return false;
+        const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+        return timeRegex.test(time);
+    };
 
-        // Atualiza preço por hora
-        if (name === 'price_per_hour') {
-            onUpdate({
-                ...formData,
-                [name]: parseFloat(value)
-            });
-            return;
-        }
+    // Função para validar se o horário de fechamento é posterior ao de abertura
+    const isValidTimeRange = (open, close) => {
+        if (!open || !close) return false;
+        const openTime = new Date(`2000-01-01T${open}`);
+        const closeTime = new Date(`2000-01-01T${close}`);
+        return closeTime > openTime;
+    };
 
-        // Atualiza dias da semana selecionados
-        if (name.startsWith('week_days.')) {
-            const day = name.split('.')[1];
-            const currentDays = formData.week_days || [];
+    // Função para validar se o horário se sobrepõe a outros horários
+    const hasTimeOverlap = (newOpen, newClose, currentIndex) => {
+        return timeRanges.some((range, index) => {
+            if (index === currentIndex) return false;
+            const rangeOpen = new Date(`2000-01-01T${range.open}`);
+            const rangeClose = new Date(`2000-01-01T${range.close}`);
+            const newOpenTime = new Date(`2000-01-01T${newOpen}`);
+            const newCloseTime = new Date(`2000-01-01T${newClose}`);
             
-            if (checked) {
-                onUpdate({
-                    ...formData,
-                    week_days: [...currentDays, day]
-                });
-            } else {
-                onUpdate({
-                    ...formData,
-                    week_days: currentDays.filter(d => d !== day)
-                });
+            return (
+                (newOpenTime >= rangeOpen && newOpenTime < rangeClose) ||
+                (newCloseTime > rangeOpen && newCloseTime <= rangeClose) ||
+                (newOpenTime <= rangeOpen && newCloseTime >= rangeClose)
+            );
+        });
+    };
+
+    // Função para validar e atualizar o horário
+    const handleTimeUpdate = (index, field, value) => {
+        const currentRange = timeRanges[index];
+        const newRange = { ...currentRange, [field]: value };
+
+        // Se ambos os horários estiverem preenchidos, valida
+        if (newRange.open && newRange.close) {
+            if (!isValidTimeFormat(newRange.open) || !isValidTimeFormat(newRange.close)) {
+                alert('Por favor, insira um horário válido no formato HH:mm');
+                return;
+            }
+
+            if (!isValidTimeRange(newRange.open, newRange.close)) {
+                alert('O horário de fechamento deve ser posterior ao de abertura');
+                return;
+            }
+
+            if (hasTimeOverlap(newRange.open, newRange.close, index)) {
+                alert('Este horário se sobrepõe a outro horário já definido');
+                return;
             }
         }
+
+        onUpdateTimeRange(dia.id, index, field, value);
+    };
+
+    return (
+        <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+            <h4 className="font-medium text-gray-900">{dia.label}</h4>
+            {timeRanges.map((range, index) => (
+                <div key={index} className="flex items-center space-x-4">
+                    <CampoHorario
+                        label="Abertura"
+                        id={`${dia.id}-open-${index}`}
+                        name="open"
+                        value={range.open}
+                        onChange={(e) => handleTimeUpdate(index, 'open', e.target.value)}
+                    />
+                    <CampoHorario
+                        label="Fechamento"
+                        id={`${dia.id}-close-${index}`}
+                        name="close"
+                        value={range.close}
+                        onChange={(e) => handleTimeUpdate(index, 'close', e.target.value)}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => onRemoveTimeRange(dia.id, index)}
+                        className="mt-6 px-3 py-2 text-sm text-red-600 hover:text-red-800"
+                    >
+                        Remover
+                    </button>
+                </div>
+            ))}
+            <button
+                type="button"
+                onClick={() => onAddTimeRange(dia.id)}
+                className="mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-800"
+            >
+                + Adicionar Horário
+            </button>
+        </div>
+    );
+};
+
+// Componente principal da Etapa 4 - Disponibilidade e Horários
+const Etapa4 = ({ formData, onUpdate }) => {
+    const [selectedDays, setSelectedDays] = useState(
+        formData.weekly_days || DIAS_SEMANA.map(dia => ({
+            day: dia.id,
+            time_ranges: []
+        }))
+    );
+
+    // Ordena os dias selecionados de acordo com a ordem da semana
+    const sortedSelectedDays = useMemo(() => {
+        return [...selectedDays].sort((a, b) => {
+            const dayA = DIAS_SEMANA.find(dia => dia.id === a.day);
+            const dayB = DIAS_SEMANA.find(dia => dia.id === b.day);
+            return dayA.order - dayB.order;
+        });
+    }, [selectedDays]);
+
+    // Função para gerenciar mudanças nos checkboxes dos dias
+    const handleDayChange = (e) => {
+        const { id, checked } = e.target;
+        const updatedDays = [...selectedDays];
+        const dayIndex = updatedDays.findIndex(d => d.day === id);
+
+        if (checked && dayIndex === -1) {
+            updatedDays.push({
+                day: id,
+                time_ranges: []
+            });
+        } else if (!checked && dayIndex !== -1) {
+            updatedDays.splice(dayIndex, 1);
+        }
+
+        setSelectedDays(updatedDays);
+        onUpdate({
+            ...formData,
+            weekly_days: updatedDays
+        });
+    };
+
+    // Função para adicionar um novo horário para um dia
+    const handleAddTimeRange = (dayId) => {
+        const updatedDays = selectedDays.map(day => {
+            if (day.day === dayId) {
+                // Verifica se já existe um horário vazio
+                const hasEmptyTimeRange = day.time_ranges.some(
+                    range => !range.open || !range.close
+                );
+                
+                if (hasEmptyTimeRange) {
+                    alert('Por favor, complete o horário atual antes de adicionar um novo');
+                    return day;
+                }
+
+                return {
+                    ...day,
+                    time_ranges: [...day.time_ranges, { open: '', close: '' }]
+                };
+            }
+            return day;
+        });
+
+        setSelectedDays(updatedDays);
+        onUpdate({
+            ...formData,
+            weekly_days: updatedDays
+        });
+    };
+
+    // Função para remover um horário de um dia
+    const handleRemoveTimeRange = (dayId, index) => {
+        const updatedDays = selectedDays.map(day => {
+            if (day.day === dayId) {
+                return {
+                    ...day,
+                    time_ranges: day.time_ranges.filter((_, i) => i !== index)
+                };
+            }
+            return day;
+        });
+
+        setSelectedDays(updatedDays);
+        onUpdate({
+            ...formData,
+            weekly_days: updatedDays
+        });
+    };
+
+    // Função para atualizar um horário específico
+    const handleUpdateTimeRange = (dayId, index, field, value) => {
+        const updatedDays = selectedDays.map(day => {
+            if (day.day === dayId) {
+                const updatedRanges = [...day.time_ranges];
+                updatedRanges[index] = {
+                    ...updatedRanges[index],
+                    [field]: value
+                };
+                return {
+                    ...day,
+                    time_ranges: updatedRanges
+                };
+            }
+            return day;
+        });
+
+        setSelectedDays(updatedDays);
+        onUpdate({
+            ...formData,
+            weekly_days: updatedDays
+        });
+    };
+
+    // Função para atualizar o preço
+    const handlePriceChange = (e) => {
+        onUpdate({
+            ...formData,
+            price_per_hour: parseFloat(e.target.value)
+        });
+    };
+
+    // Função para replicar os horários do primeiro dia para os demais
+    const handleReplicateTimeRanges = () => {
+        if (selectedDays.length < 2) {
+            return; // Precisa ter pelo menos 2 dias selecionados
+        }
+
+        const firstDayTimeRanges = selectedDays[0].time_ranges;
+        if (firstDayTimeRanges.length === 0) {
+            return; // O primeiro dia precisa ter horários definidos
+        }
+
+        const updatedDays = selectedDays.map((day, index) => {
+            if (index === 0) return day; // Mantém o primeiro dia como está
+            return {
+                ...day,
+                time_ranges: [...firstDayTimeRanges] // Replica os horários
+            };
+        });
+
+        setSelectedDays(updatedDays);
+        onUpdate({
+            ...formData,
+            weekly_days: updatedDays
+        });
     };
 
     return (
@@ -141,6 +343,14 @@ const Etapa3 = ({ formData, onUpdate }) => {
             </div>
 
             <div className="space-y-6">
+                {/* Campo de preço */}
+                <div className="bg-gray-50 p-4 rounded-lg">
+                    <CampoPreco
+                        value={formData.price_per_hour}
+                        onChange={handlePriceChange}
+                    />
+                </div>
+
                 {/* Seção de dias da semana */}
                 <div>
                     <h4 className="text-lg font-medium text-gray-900 mb-4">
@@ -151,40 +361,43 @@ const Etapa3 = ({ formData, onUpdate }) => {
                             <CheckboxDia
                                 key={dia.id}
                                 dia={dia}
-                                checked={formData.week_days?.includes(dia.id) || false}
-                                onChange={handleChange}
+                                checked={selectedDays.some(d => d.day === dia.id)}
+                                onChange={handleDayChange}
                             />
                         ))}
                     </div>
                 </div>
 
-                {/* Seção de horários */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <CampoHorario
-                        label="Horário de Abertura"
-                        id="opening_time"
-                        name="opening_time"
-                        value={formData.opening_time}
-                        onChange={handleChange}
-                    />
+                {/* Botão para replicar horários */}
+                {selectedDays.length > 1 && (
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={handleReplicateTimeRanges}
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                            Replicar Horários do Primeiro Dia
+                        </button>
+                    </div>
+                )}
 
-                    <CampoHorario
-                        label="Horário de Fechamento"
-                        id="closing_time"
-                        name="closing_time"
-                        value={formData.closing_time}
-                        onChange={handleChange}
-                    />
-                </div>
-
-                {/* Campo de preço */}
-                <CampoPreco
-                    value={formData.price_per_hour}
-                    onChange={handleChange}
-                />
+                {/* Seção de horários para cada dia selecionado (agora ordenados) */}
+                {sortedSelectedDays.map((dayData) => {
+                    const dia = DIAS_SEMANA.find(d => d.id === dayData.day);
+                    return (
+                        <HorariosDia
+                            key={dayData.day}
+                            dia={dia}
+                            timeRanges={dayData.time_ranges}
+                            onAddTimeRange={handleAddTimeRange}
+                            onRemoveTimeRange={handleRemoveTimeRange}
+                            onUpdateTimeRange={handleUpdateTimeRange}
+                        />
+                    );
+                })}
             </div>
         </div>
     );
 };
 
-export default Etapa3; 
+export default Etapa4; 

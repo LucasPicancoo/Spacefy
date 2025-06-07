@@ -131,10 +131,14 @@ io.on('connection', (socket: AuthenticatedSocket) => {
     try {
       const { conversationId, receiverId, content } = data;
       
+      if (!receiverId) {
+        throw new Error('ID do destinatário é obrigatório');
+      }
+
       const message = new Message({
         conversationId,
         senderId: socket.user?.id,
-        receiverId,
+        receiverId: new mongoose.Types.ObjectId(receiverId),
         content
       });
 
@@ -142,8 +146,9 @@ io.on('connection', (socket: AuthenticatedSocket) => {
 
       // Enviar mensagem para todos na sala
       io.to(conversationId).emit('new_message', message);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Erro ao enviar mensagem:', error);
+      socket.emit('message_error', { error: error.message });
     }
   });
 

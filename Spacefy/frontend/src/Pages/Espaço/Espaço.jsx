@@ -3,23 +3,26 @@ import Footer from "../../Components/Footer/Footer";
 import ReservaCard from "../../Components/ReservaCard/ReservaCard";
 import ComentariosModal from "../../Components/Modal/ComentariosModal";
 import { useState, useRef, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight, FaChevronDown, FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaChevronDown, FaStar, FaRegStar, FaStarHalfAlt, FaEnvelope } from "react-icons/fa";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale, setDefaultLocale } from "react-datepicker";
 import ptBR from 'date-fns/locale/pt-BR';
 import { spaceService } from "../../services/spaceService";
 import { assessmentService } from "../../services/assessmentService";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import AvaliacaoGeral from "./AvaliacaoGeral";
 import ComentariosUsuarios from "./ComentariosUsuarios";
 import MapaEspaço from "./MapaEspaço";
+import { useUser } from "../../Contexts/UserContext";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
 
 function Espaço() {
     const { id } = useParams();
+    const navigate = useNavigate();
+    const { user, isLoggedIn } = useUser();
     const [currentPage, setCurrentPage] = useState(0);
     const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
     const [space, setSpace] = useState(null);
@@ -73,6 +76,17 @@ function Espaço() {
         }
     };
 
+    const handleMessageLocator = () => {
+        if (!isLoggedIn) {
+            // Redirecionar para login se não estiver autenticado
+            navigate('/login');
+            return;
+        }
+        
+        // Redirecionar para a página de mensagens com o ID do locador
+        navigate(`/messages?receiverId=${space.owner_id}`);
+    };
+
     if (loading) {
         return <div className="flex justify-center items-center h-screen">Carregando...</div>;
     }
@@ -85,7 +99,16 @@ function Espaço() {
         <div>
             <Header />
             <div className="">
-                <h1 className="text-3xl font-bold ml-10 mt-10 mb-8">{space.space_name}</h1>
+                <div className="flex justify-between items-center mx-10 mt-10 mb-8">
+                    <h1 className="text-3xl font-bold">{space.space_name}</h1>
+                    <button
+                        onClick={handleMessageLocator}
+                        className="flex items-center gap-2 bg-[#00A3FF] text-white px-4 py-2 rounded-lg hover:bg-[#0088cc] transition-colors"
+                    >
+                        <FaEnvelope />
+                        <span>Mensagem para o Locador</span>
+                    </button>
+                </div>
 
                 {/* Carousel de fotos */}
                 <section className="overflow-hidden">

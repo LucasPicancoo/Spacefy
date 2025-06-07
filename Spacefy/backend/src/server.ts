@@ -23,7 +23,7 @@ const app = express();
 // Configuração do Rate Limiter
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 250, // limite de 250 requisições por IP
+  max: 9999999, // limite de 250 requisições por IP
   message: {
     error: "Muitas requisições deste IP, por favor tente novamente após 15 minutos"
   },

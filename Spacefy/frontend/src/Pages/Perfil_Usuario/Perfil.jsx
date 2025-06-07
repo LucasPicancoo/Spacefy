@@ -201,7 +201,7 @@ const Perfil = () => {
                 </div>
                 <div>
                   <h2 className="text-lg font-bold">{user?.name} {user?.surname}</h2>
-                  <p className="text-gray-600 text-sm">Usuário</p>
+                  <p className="text-gray-600 text-sm">{user?.role}</p>
                 </div>
               </div>
               <div className="space-y-3">

@@ -26,14 +26,12 @@ const CAMPOS_OBRIGATORIOS = {
     state: 'Estado',
     zipCode: 'CEP',
     space_type: 'Tipo do espaço',
-    opening_time: 'Horário de início',
-    closing_time: 'Horário de fim',
+    weekly_days: 'Dias da semana e horários',
     owner_name: 'Nome do proprietário',
     document_number: 'CPF/CNPJ',
     owner_phone: 'Telefone',
     owner_email: 'Email',
     space_amenities: 'Comodidades',
-    week_days: 'Dias da semana',
     document_photo: 'Documento do proprietário',
     space_document_photo: 'Documento do espaço',
     image_url: 'Imagem do espaço'
@@ -111,7 +109,12 @@ const CadastrarEspaco = () => {
     // Validação dos campos obrigatórios do formulário
     const validarCamposObrigatorios = () => {
         const camposFaltantes = Object.entries(CAMPOS_OBRIGATORIOS)
-            .filter(([key]) => !formData[key])
+            .filter(([key]) => {
+                if (key === 'weekly_days') {
+                    return !formData[key] || formData[key].length === 0;
+                }
+                return !formData[key];
+            })
             .map(([_, label]) => label);
 
         if (camposFaltantes.length > 0) {
@@ -170,9 +173,8 @@ const CadastrarEspaco = () => {
             space_type: formData.space_type,
             space_description: formData.space_description || '',
             space_amenities: formData.space_amenities || [],
-            week_days: formData.week_days || [],
-            opening_time: formData.opening_time,
-            closing_time: formData.closing_time,
+            weekly_days: formData.weekly_days || [],
+            week_days: formData.weekly_days?.map(day => day.day) || [], // Mantido para compatibilidade
             space_rules: formData.space_rules || [],
             price_per_hour: parseFloat(formData.price_per_hour),
             owner_name: formData.owner_name,
@@ -216,9 +218,12 @@ const CadastrarEspaco = () => {
 
             const response = await spaceService.createSpace(dadosFormatados);
 
-            if (response.status === 201) {
-                toast.success('Espaço cadastrado com sucesso!');
-                navigate('/espacos');
+            if (response && response._id) {
+                toast.success('Espaço criado com sucesso!');
+                // Redireciona para a página do espaço criado usando o ID retornado
+                navigate(`/espaco/${response._id}`);
+            } else {
+                toast.error('Erro ao criar espaço. Tente novamente.');
             }
         } catch (error) {
             console.error('Erro ao cadastrar espaço:', error);

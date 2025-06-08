@@ -37,10 +37,27 @@ const SpaceSchema: Schema = new Schema({
       message: "Uma ou mais comodidades não são permitidas."
     }
   },
+  weekly_days: [{
+    day: { 
+      type: String, 
+      required: true,
+      enum: ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo']
+    },
+    time_ranges: [{
+      open: { 
+        type: String, 
+        required: true,
+        match: [/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de horário inválido (HH:mm)"]
+      },
+      close: { 
+        type: String, 
+        required: true,
+        match: [/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de horário inválido (HH:mm)"]
+      }
+    }]
+  }],
   week_days: { type: [String], required: true },
-  opening_time: { type: String, required: true },
   price_per_hour: { type: Number, required: true }, // Preço por hora do aluguel (obrigatório)
-  closing_time: { type: String, required: true },
   space_rules: { 
     type: [String], 
     required: false,
@@ -102,16 +119,24 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
     throw new Error("Selecione pelo menos uma comodidade.")
   }
 
-  if (!this.week_days) {
-    throw new Error("Os dias da semana não foram informados.");
+  if (!this.weekly_days || this.weekly_days.length === 0) {
+    throw new Error("Os dias da semana e horários não foram informados.");
   }
 
-  if (!this.opening_time) {
-    throw new Error("O horário de abertura não foi informado.");
-  }
+  // Validação dos horários
+  for (const day of this.weekly_days) {
+    if (!day.time_ranges || day.time_ranges.length === 0) {
+      throw new Error(`Nenhum horário definido para ${day.day}`);
+    }
 
-  if (!this.closing_time) {
-    throw new Error("O horário de fechamento não foi informado.");
+    for (const range of day.time_ranges) {
+      const openTime = new Date(`2000-01-01T${range.open}`);
+      const closeTime = new Date(`2000-01-01T${range.close}`);
+      
+      if (closeTime <= openTime) {
+        throw new Error(`O horário de fechamento deve ser posterior ao de abertura para ${day.day}`);
+      }
+    }
   }
 
   if (!this.owner_name) {

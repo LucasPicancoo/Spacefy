@@ -421,6 +421,13 @@ export const createSpace = async (req: Request, res: Response) => {
         return;
       }
 
+      // Validação do dia da semana
+      const validDays = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+      if (!validDays.includes(day.day.toLowerCase())) {
+        res.status(400).json({ error: `Dia da semana inválido: ${day.day}` });
+        return;
+      }
+
       // Validação dos horários específicos
       for (const range of day.time_ranges) {
         if (!range.open || !range.close) {
@@ -444,6 +451,9 @@ export const createSpace = async (req: Request, res: Response) => {
         }
       }
     }
+
+    // Extrai os dias da semana para o formato antigo (para compatibilidade)
+    const week_days = weekly_days.map(day => day.day.toLowerCase());
 
     // Valida o endereço usando o Google Maps API
     const googleMapsService = new GoogleMapsService();
@@ -507,6 +517,7 @@ export const createSpace = async (req: Request, res: Response) => {
       space_description,
       space_amenities,
       weekly_days,
+      week_days,
       space_rules,
       price_per_hour,
       owner_name,

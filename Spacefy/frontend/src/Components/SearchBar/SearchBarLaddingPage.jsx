@@ -11,6 +11,7 @@ export default function SearchBarLaddingPage() {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [numberOfPeople, setNumberOfPeople] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
   const navigate = useNavigate();
   const today = startOfDay(new Date());
 
@@ -21,10 +22,25 @@ export default function SearchBarLaddingPage() {
     }
   };
 
+  const handleLocationSelect = (location) => {
+    setSelectedLocation(location);
+  };
+
+  const handleSearch = () => {
+    const filtros = {
+      location: selectedLocation,
+      pessoasMin: numberOfPeople,
+      dataInicio: startDate,
+      dataFim: endDate
+    };
+
+    navigate('/Descobrir', { state: { filtros } });
+  };
+
   return (
     <div className="w-full max-w-5xl mx-auto flex items-center gap-2 bg-[#1486B8] rounded-xl p-4" style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}>
       {/* Campo de Localização com autocomplete */}
-      <LocationSearch />
+      <LocationSearch onLocationSelect={handleLocationSelect} />
 
       {/* Campo de Datas */}
       <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3">
@@ -63,7 +79,7 @@ export default function SearchBarLaddingPage() {
       {/* Botão de Pesquisa */}
       <button
         type="button"
-        onClick={() => navigate('/Descobrir')}
+        onClick={handleSearch}
         className="bg-[#1EACE3] hover:bg-[#32C6FF] hover:scale-[1.05] text-white font-medium px-8 py-2.5 rounded-lg transition-all duration-300 cursor-pointer"
         style={{ boxShadow: '0 7px 10px rgba(0, 0, 0, 0.30)' }}
       >

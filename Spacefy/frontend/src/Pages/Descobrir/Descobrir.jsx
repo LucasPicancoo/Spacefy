@@ -23,14 +23,21 @@ function Descobrir() {
         areaMin: '',
         areaMax: '',
         pessoasMin: '',
-        caracteristicas: []
+        caracteristicas: [],
+        location: '',
+        dataInicio: null,
+        dataFim: null
     });
 
     useEffect(() => {
         // Verifica se há filtros na navegação
         if (location.state?.filtros) {
-            setFiltros(location.state.filtros);
-            buscarEspacos(location.state.filtros);
+            const novosFiltros = {
+                ...filtros,
+                ...location.state.filtros
+            };
+            setFiltros(novosFiltros);
+            buscarEspacos(novosFiltros);
         } else {
             buscarEspacos();
         }
@@ -70,6 +77,10 @@ function Descobrir() {
             
             if (filtrosParaBusca.caracteristicas && filtrosParaBusca.caracteristicas.length > 0) {
                 params.append('amenities', filtrosParaBusca.caracteristicas.join(','));
+            }
+
+            if (filtrosParaBusca.location) {
+                params.append('location', filtrosParaBusca.location);
             }
 
             // Adiciona o parâmetro de ordenação
@@ -155,6 +166,7 @@ function Descobrir() {
                 <SidebarFiltros 
                     onFiltrosChange={handleFiltrosChange} 
                     onBuscar={handleBuscar}
+                    filtrosIniciais={filtros}
                 />
                 
                 {/* Conteúdo principal (cards com scroll) */}

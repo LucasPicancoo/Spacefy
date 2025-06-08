@@ -2,11 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaMapMarkerAlt } from 'react-icons/fa';
 import { googleMapsService } from '../../services/googleMapsService';
 
-export function LocationSearch() {
-  const [location, setLocation] = useState('');
+export function LocationSearch({ onLocationSelect, initialLocation }) {
+  const [location, setLocation] = useState(initialLocation || '');
   const inputRef = useRef(null);
   const autocompleteRef = useRef(null);
   const [isApiInitialized, setIsApiInitialized] = useState(false);
+
+  useEffect(() => {
+    setLocation(initialLocation || '');
+  }, [initialLocation]);
 
   const initializeAutocomplete = async () => {
     try {
@@ -24,6 +28,7 @@ export function LocationSearch() {
           const place = autocompleteRef.current.getPlace();
           if (place && place.formatted_address) {
             setLocation(place.formatted_address);
+            onLocationSelect(place.formatted_address);
           }
         });
       }
@@ -39,8 +44,16 @@ export function LocationSearch() {
     }
   };
 
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setLocation(newValue);
+    if (!newValue) {
+      onLocationSelect('');
+    }
+  };
+
   return (
-    <div className="flex-1 flex items-center bg-white rounded-xl px-4 py-3">
+    <div className="flex-1 flex items-center bg-white rounded-xl px-4 py-3 location-search">
       <FaMapMarkerAlt className="text-gray-400 mr-2 text-lg" />
       <input
         type="text"
@@ -48,7 +61,7 @@ export function LocationSearch() {
         placeholder="Localização"
         className="w-full outline-none text-gray-700 placeholder-gray-400 text-sm"
         value={location}
-        onChange={(e) => setLocation(e.target.value)}
+        onChange={handleInputChange}
         onFocus={handleInputFocus}
       />
     </div>

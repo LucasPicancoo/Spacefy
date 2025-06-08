@@ -1,15 +1,38 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { startOfDay } from 'date-fns';
+import { LocationSearch } from '../SearchBar/LocationSearch';
 
-function SidebarFiltros({ onFiltrosChange, onBuscar }) {
+function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
     // Estados para os filtros
-    const [ordenarPor, setOrdenarPor] = useState('asc');
-    const [tipoEspaco, setTipoEspaco] = useState('');
-    const [valorMin, setValorMin] = useState('');
-    const [valorMax, setValorMax] = useState('');
-    const [areaMin, setAreaMin] = useState('');
-    const [areaMax, setAreaMax] = useState('');
-    const [pessoasMin, setPessoasMin] = useState('');
-    const [caracteristicas, setCaracteristicas] = useState([]);
+    const [ordenarPor, setOrdenarPor] = useState(filtrosIniciais?.ordenarPor || 'asc');
+    const [tipoEspaco, setTipoEspaco] = useState(filtrosIniciais?.tipoEspaco || '');
+    const [valorMin, setValorMin] = useState(filtrosIniciais?.valorMin || '');
+    const [valorMax, setValorMax] = useState(filtrosIniciais?.valorMax || '');
+    const [areaMin, setAreaMin] = useState(filtrosIniciais?.areaMin || '');
+    const [areaMax, setAreaMax] = useState(filtrosIniciais?.areaMax || '');
+    const [pessoasMin, setPessoasMin] = useState(filtrosIniciais?.pessoasMin || '');
+    const [caracteristicas, setCaracteristicas] = useState(filtrosIniciais?.caracteristicas || []);
+    const [location, setLocation] = useState(filtrosIniciais?.location || '');
+    const [startDate, setStartDate] = useState(filtrosIniciais?.dataInicio || null);
+    const [endDate, setEndDate] = useState(filtrosIniciais?.dataFim || null);
+    const today = startOfDay(new Date());
+
+    // Atualiza os estados quando os filtros iniciais mudam
+    useEffect(() => {
+        if (filtrosIniciais) {
+            setOrdenarPor(filtrosIniciais.ordenarPor || 'asc');
+            setTipoEspaco(filtrosIniciais.tipoEspaco || '');
+            setValorMin(filtrosIniciais.valorMin || '');
+            setValorMax(filtrosIniciais.valorMax || '');
+            setAreaMin(filtrosIniciais.areaMin || '');
+            setAreaMax(filtrosIniciais.areaMax || '');
+            setPessoasMin(filtrosIniciais.pessoasMin || '');
+            setCaracteristicas(filtrosIniciais.caracteristicas || []);
+            setLocation(filtrosIniciais.location || '');
+            setStartDate(filtrosIniciais.dataInicio || null);
+            setEndDate(filtrosIniciais.dataFim || null);
+        }
+    }, [filtrosIniciais]);
 
     // Mock de opções
     const opcoesOrdenar = [
@@ -116,6 +139,9 @@ function SidebarFiltros({ onFiltrosChange, onBuscar }) {
         setAreaMax('');
         setPessoasMin('');
         setCaracteristicas([]);
+        setLocation('');
+        setStartDate(null);
+        setEndDate(null);
         
         // Notifica o componente pai sobre a limpeza dos filtros
         onFiltrosChange({
@@ -126,7 +152,10 @@ function SidebarFiltros({ onFiltrosChange, onBuscar }) {
             areaMin: '',
             areaMax: '',
             pessoasMin: '',
-            caracteristicas: []
+            caracteristicas: [],
+            location: '',
+            dataInicio: null,
+            dataFim: null
         });
     };
 
@@ -158,7 +187,6 @@ function SidebarFiltros({ onFiltrosChange, onBuscar }) {
                 setAreaMax(areaMaxNum >= 0 ? areaMaxNum : '');
                 break;
             case 'pessoasMin':
-                // Garante que o valor seja um número positivo maior que zero
                 numPessoas = parseInt(valor);
                 if (numPessoas > 0) {
                     setPessoasMin(numPessoas);
@@ -173,6 +201,15 @@ function SidebarFiltros({ onFiltrosChange, onBuscar }) {
                         : [...prev, valor];
                     return newCaracteristicas;
                 });
+                break;
+            case 'location':
+                setLocation(valor);
+                break;
+            case 'dataInicio':
+                setStartDate(valor);
+                break;
+            case 'dataFim':
+                setEndDate(valor);
                 break;
             default:
                 break;
@@ -195,6 +232,9 @@ function SidebarFiltros({ onFiltrosChange, onBuscar }) {
             areaMax,
             pessoasMin,
             caracteristicas,
+            location,
+            dataInicio: startDate,
+            dataFim: endDate,
             [campo]: getCaracteristicasValue()
         });
     };
@@ -202,13 +242,53 @@ function SidebarFiltros({ onFiltrosChange, onBuscar }) {
     return (
         <aside className="w-[320px] bg-white border-r border-gray-100 flex flex-col h-[calc(100vh-64px)] sticky top-16">
             <div className="p-6 flex flex-col gap-8 overflow-y-auto flex-1">
+                {/* Localização */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-800 mb-2">Localização</label>
+                    <LocationSearch 
+                        onLocationSelect={(loc) => handleFiltroChange('location', loc)}
+                        initialLocation={location}
+                    />
+                </div>
+
+                {/* Datas */}
+                <div>
+                    <label className="block text-sm font-medium text-gray-800 mb-2">Período</label>
+                    <div className="flex gap-2">
+                        <div className="w-[140px]">
+                            <input
+                                type="date"
+                                value={startDate ? startDate.toISOString().split('T')[0] : ''}
+                                onChange={(e) => {
+                                    const date = e.target.value ? new Date(e.target.value) : null;
+                                    handleFiltroChange('dataInicio', date);
+                                }}
+                                min={today.toISOString().split('T')[0]}
+                                className="w-full border-0 bg-gray-50 rounded-lg px-2 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset text-sm cursor-text"
+                            />
+                        </div>
+                        <div className="w-[140px]">
+                            <input
+                                type="date"
+                                value={endDate ? endDate.toISOString().split('T')[0] : ''}
+                                onChange={(e) => {
+                                    const date = e.target.value ? new Date(e.target.value) : null;
+                                    handleFiltroChange('dataFim', date);
+                                }}
+                                min={startDate ? startDate.toISOString().split('T')[0] : today.toISOString().split('T')[0]}
+                                className="w-full border-0 bg-gray-50 rounded-lg px-2 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset text-sm cursor-text"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* Ordenar Por */}
                 <div>
                     <label className="block text-sm font-medium text-gray-800 mb-2">Ordenar Por</label>
                     <select 
                         value={ordenarPor} 
                         onChange={e => handleFiltroChange('ordenarPor', e.target.value)} 
-                        className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset"
+                        className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset cursor-pointer"
                     >
                         {opcoesOrdenar.map(op => (
                             <option key={op.value} value={op.value}>
@@ -224,7 +304,7 @@ function SidebarFiltros({ onFiltrosChange, onBuscar }) {
                     <select 
                         value={tipoEspaco} 
                         onChange={e => handleFiltroChange('tipoEspaco', e.target.value)} 
-                        className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset"
+                        className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset cursor-pointer"
                     >
                         {opcoesTipo.map(op => (
                             <option key={op.value} value={op.value}>

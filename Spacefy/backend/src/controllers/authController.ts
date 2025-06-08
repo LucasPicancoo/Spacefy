@@ -39,7 +39,6 @@ export const login = async (req: Request, res: Response) => {
 
     // Armazena o token no cookie
     res.cookie("token", token, {
-      httpOnly: true, // Impede acesso ao cookie via JavaScript no navegador
       secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
       sameSite: "strict", // Protege contra CSRF
       maxAge: 24 * 60 * 60 * 1000, // 1 dia

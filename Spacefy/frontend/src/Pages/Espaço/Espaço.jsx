@@ -15,6 +15,7 @@ import AvaliacaoGeral from "./AvaliacaoGeral";
 import ComentariosUsuarios from "./ComentariosUsuarios";
 import MapaEspaço from "./MapaEspaço";
 import { useUser } from "../../Contexts/UserContext";
+import MiniChat from "../../Components/MiniChat/MiniChat";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
@@ -239,6 +240,7 @@ function Espaço() {
                     comments={assessments}
                 />
             )}
+            <MiniChat />
         </div>
     )
 }

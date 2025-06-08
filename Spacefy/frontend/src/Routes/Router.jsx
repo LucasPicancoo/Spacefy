@@ -13,24 +13,27 @@ import NotFound from '../Pages/NotFound/NotFound'
 import Messages from '../Pages/Messages/Messages'
 import Reservas from '../Pages/Reservas/Reservas'
 import ProtectedRoute from '../Components/ProtectedRoute'
+import { ChatProvider } from '../Contexts/ChatContext'
 
 const AppRoutes = () => {
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/cadastro" element={<CadastroUsuario />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/Perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-        <Route path="/Descobrir" element={<Descobrir />} />
-        <Route path="/espaco/:id" element={<Espaço />} />
-        <Route path="/Dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/CadastrarEspaco" element={<ProtectedRoute><CadastrarEspaco /></ProtectedRoute>} />
-        <Route path="/EditarPerfilUsuario" element={<ProtectedRoute><EditarPerfilUsuario /></ProtectedRoute>} />
-        <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-        <Route path="/reservas" element={<ProtectedRoute><Reservas /></ProtectedRoute>} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+      <ChatProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/cadastro" element={<CadastroUsuario />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/Perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
+          <Route path="/Descobrir" element={<Descobrir />} />
+          <Route path="/espaco/:id" element={<Espaço />} />
+          <Route path="/Dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/CadastrarEspaco" element={<ProtectedRoute><CadastrarEspaco /></ProtectedRoute>} />
+          <Route path="/EditarPerfilUsuario" element={<ProtectedRoute><EditarPerfilUsuario /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+          <Route path="/reservas" element={<ProtectedRoute><Reservas /></ProtectedRoute>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ChatProvider>
     </Router>
   )
 }

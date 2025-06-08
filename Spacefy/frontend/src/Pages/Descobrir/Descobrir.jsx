@@ -7,6 +7,7 @@ import SidebarFiltros from "../../Components/SidebarFiltros/SidebarFiltros";
 import { useNavigate, useLocation } from "react-router-dom";
 import { FavoriteButton } from "../../Components/FavoriteButton/FavoriteButton";
 import SpaceCard from "../../Components/SpaceCard/SpaceCard";
+import MiniChat from "../../Components/MiniChat/MiniChat";
 
 function Descobrir() {
     const navigate = useNavigate();
@@ -160,7 +161,7 @@ function Descobrir() {
     };
 
     return (
-        <div className="h-screen flex flex-col">
+        <div className="min-h-screen bg-gray-50">
             <Header />
             <div className="flex bg-gray-50 flex-1 overflow-hidden">
                 <SidebarFiltros 
@@ -201,6 +202,7 @@ function Descobrir() {
                     </div>
                 </main>
             </div>
+            <MiniChat />
         </div>
     );
 }

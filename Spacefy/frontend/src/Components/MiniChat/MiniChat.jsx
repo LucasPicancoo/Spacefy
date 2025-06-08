@@ -1,21 +1,60 @@
-import { useState } from 'react';
 import { FaComments } from 'react-icons/fa';
+import { openAIService } from '../../services/openAIService';
+import { useNavigate } from 'react-router-dom';
+import { useChat } from '../../Contexts/ChatContext';
 
 const MiniChat = () => {
-  const [isMinimized, setIsMinimized] = useState(true);
-  const [messages, setMessages] = useState([
-    { id: 1, text: 'Olá! Como posso ajudar?', sender: 'bot' },
-  ]);
-  const [newMessage, setNewMessage] = useState('');
+  const navigate = useNavigate();
+  const {
+    isMinimized,
+    setIsMinimized,
+    messages,
+    setMessages,
+    newMessage,
+    setNewMessage,
+    isLoading,
+    setIsLoading
+  } = useChat();
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (newMessage.trim()) {
-      setMessages([
-        ...messages,
-        { id: messages.length + 1, text: newMessage, sender: 'user' },
-      ]);
+      const userMessage = { id: messages.length + 1, text: newMessage, sender: 'user' };
+      setMessages(prev => [...prev, userMessage]);
       setNewMessage('');
+      setIsLoading(true);
+
+      try {
+        const response = await openAIService.processUserPrompt(newMessage);
+        const botMessage = { 
+          id: messages.length + 2, 
+          text: 'Encontrei alguns espaços que podem te interessar! Vou mostrar para você.', 
+          sender: 'bot' 
+        };
+        setMessages(prev => [...prev, botMessage]);
+
+        // Prepara os filtros com base na resposta do OpenAI
+        const filtros = {
+          tipoEspaco: response.tipo_espaco || '',
+          location: response.cidade || '',
+          caracteristicas: response.comodidades || [],
+          regras: response.regras || [],
+          ordenarPor: 'asc'
+        };
+
+        // Navega para a página de descobrir com os filtros
+        navigate('/Descobrir', { state: { filtros } });
+        setIsMinimized(true);
+      } catch (error) {
+        const errorMessage = { 
+          id: messages.length + 2, 
+          text: 'Desculpe, ocorreu um erro ao processar sua mensagem.', 
+          sender: 'bot' 
+        };
+        setMessages(prev => [...prev, errorMessage]);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -31,7 +70,7 @@ const MiniChat = () => {
         <div className="bg-white rounded-lg shadow-xl w-80 h-96 flex flex-col border-2 border-[#00A3FF]">
           {/* Header */}
           <div className="bg-[#00A3FF] text-white p-3 rounded-t-lg flex justify-between items-center">
-            <h3 className="font-semibold">Assistente Virtual</h3>
+            <h3 className="font-semibold">Spax - Assistente Virtual</h3>
             <button
               onClick={() => setIsMinimized(true)}
               className="hover:text-gray-200 transition-colors cursor-pointer"
@@ -71,6 +110,17 @@ const MiniChat = () => {
                 </div>
               </div>
             ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-gray-100 text-gray-800 rounded-lg p-3">
+                  <div className="flex space-x-2">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Input */}

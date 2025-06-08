@@ -20,6 +20,7 @@ import notificationRoutes from "./routes/notificationRoutes";
 import blockedDatesRouter from "./routes/blockedDatesRoutes";
 import messageRoutes from "./routes/messageRoutes";
 import Message from "./models/Message";
+import openaiRoutes from "./routes/openaiRoutes";
 
 dotenv.config();
 
@@ -71,6 +72,7 @@ app.use("/assessment", assessmentRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/blocked-dates", blockedDatesRouter);
 app.use("/messages", messageRoutes);
+app.use("/chat", openaiRoutes);
 
 // Interface para o Socket com usuário
 interface AuthenticatedSocket extends Socket {

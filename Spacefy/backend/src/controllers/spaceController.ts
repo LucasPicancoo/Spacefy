@@ -56,6 +56,7 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
     const {
       space_type,
       min_price,
+      location,
       max_price,
       min_area,
       max_area,
@@ -102,6 +103,72 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
           return;
         }
         filter.price_per_hour.$lte = maxPriceNum;
+      }
+    }
+
+    // Validação de localização
+    if (location) {
+      if (typeof location !== 'string') {
+        res.status(400).json({ error: "A localização deve ser uma string" });
+        return;
+      }
+
+      try {
+        // Primeira tentativa: Usa o Google Maps API para validar e formatar o endereço
+        const googleMapsService = new GoogleMapsService();
+        const addressValidation = await googleMapsService.validateAddress({
+          street: location,
+          number: '',
+          complement: '',
+          neighborhood: '',
+          city: '',
+          state: '',
+          zipCode: ''
+        });
+
+        if (addressValidation.isValid && addressValidation.formattedAddress) {
+          // Extrai componentes do endereço formatado
+          const addressComponents = addressValidation.formattedAddress.split(',');
+          const city = addressComponents[addressComponents.length - 2]?.trim() || '';
+          const state = addressComponents[addressComponents.length - 1]?.trim() || '';
+
+          // Cria uma expressão regular para busca flexível
+          const searchRegex = new RegExp(location, 'i');
+
+          // Busca espaços que contenham o endereço em qualquer parte do formatted_address
+          filter['location.formatted_address'] = searchRegex;
+
+          // Se tiver cidade e estado, adiciona como filtros adicionais
+          if (city) {
+            filter['location.formatted_address'] = {
+              $regex: new RegExp(city, 'i')
+            };
+          }
+
+          if (state) {
+            filter['location.formatted_address'] = {
+              $regex: new RegExp(state, 'i')
+            };
+          }
+        } else {
+          // Se a validação do Google Maps falhar, faz uma busca direta
+          throw new Error('Falha na validação do Google Maps');
+        }
+      } catch (error) {
+        // Segunda tentativa: Busca direta no banco de dados
+        console.log('Usando busca direta no banco de dados para:', location);
+        
+        // Cria uma expressão regular para busca flexível
+        const searchRegex = new RegExp(location, 'i');
+        
+        // Busca em todos os campos de localização
+        filter.$or = [
+          { 'location.formatted_address': searchRegex },
+          { 'location.street': searchRegex },
+          { 'location.city': searchRegex },
+          { 'location.state': searchRegex },
+          { 'location.neighborhood': searchRegex }
+        ];
       }
     }
 

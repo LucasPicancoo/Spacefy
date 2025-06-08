@@ -19,12 +19,11 @@ const AppRoutes = () => {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
         <Route path="/cadastro" element={<CadastroUsuario />} />
         <Route path="/login" element={<Login />} />
         <Route path="/Perfil" element={<ProtectedRoute><Perfil /></ProtectedRoute>} />
-        <Route path="/Descobrir" element={<ProtectedRoute><Descobrir /></ProtectedRoute>} />
-        <Route path="/espaco/:id" element={<ProtectedRoute><Espaço /></ProtectedRoute>} />
+        <Route path="/Descobrir" element={<Descobrir />} />
+        <Route path="/espaco/:id" element={<Espaço />} />
         <Route path="/Dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/CadastrarEspaco" element={<ProtectedRoute><CadastrarEspaco /></ProtectedRoute>} />
         <Route path="/EditarPerfilUsuario" element={<ProtectedRoute><EditarPerfilUsuario /></ProtectedRoute>} />

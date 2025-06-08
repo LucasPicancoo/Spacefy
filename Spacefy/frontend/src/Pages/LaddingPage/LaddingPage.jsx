@@ -9,6 +9,7 @@ import ExperienceSection from "./ExperienceSection/ExperienceSection.jsx";
 import TopRatedSection from "./TopRatedSection/TopRatedSection.jsx";
 import FAQSection from "./FAQSection/FAQSection.jsx";
 import ScrollToTopButton from "../../Components/ScrollToTopButton/ScrollToTopButton.jsx";
+import MiniChat from "../../Components/MiniChat/MiniChat.jsx";
 
 const Landing = () => {
   const { isLoggedIn } = useUser();
@@ -23,6 +24,7 @@ const Landing = () => {
       <TopRatedSection />
       <FAQSection />
       <Footer />
+      <MiniChat />
       <ScrollToTopButton />
     </>
   );

@@ -88,7 +88,9 @@ const ExperienceSection = () => {
             />
             <div className="p-4">
               <h3 className="text-xl font-semibold truncate mb-1">{space.space_name}</h3>
-              <p className="text-gray-600 text-sm mb-1">{space.location}</p>
+              <p className="text-gray-600 text-sm mb-1">
+                {typeof space.location === 'object' ? space.location.formatted_address : space.location}
+              </p>
               <p className="text-[#00A3FF] font-semibold text-sm">
                 R$ {space.price_per_hour.toLocaleString('pt-BR')}/hora
               </p>

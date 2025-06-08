@@ -10,7 +10,7 @@ import { GoogleMapsService } from "../services/googleMapsService";
 // Listar todos os espaços
 export const getAllSpaces = async (req: Request, res: Response) => {
   try {
-    const spaces = await SpaceModel.find();
+    const spaces = await SpaceModel.find().select('space_name location price_per_hour max_people image_url');
 
     if (!spaces) {
       res.status(404).json({ error: "Nenhum espaço encontrado" });

@@ -6,7 +6,7 @@ import { useUser } from "../../Contexts/UserContext";
 import { useLocation } from 'react-router-dom';
 import Cookies from 'js-cookie';
 
-export default function Messages() {
+export default function Messages({ showHeader = true }) {
   const { user, isLoggedIn } = useUser();
   const location = useLocation();
   const [conversations, setConversations] = useState([]);
@@ -182,7 +182,7 @@ export default function Messages() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header />
+      {showHeader && <Header />}
       <div className="flex w-full h-full min-h-0 bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] p-8 gap-8 box-border">
         {/* Conversas */}
         <aside className="w-72 bg-white rounded-xl shadow-lg flex flex-col min-h-0 h-full overflow-y-auto p-8 box-border">

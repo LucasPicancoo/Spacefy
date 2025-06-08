@@ -4,7 +4,7 @@ import Header from "../../Components/Header/Header";
 import Dashboard_Home from "./Dashboard_Home";
 import Dashboard_Reservas from "./Dashboard_Reservas";
 import Dashboard_Perfil from "./Dashboard_Perfil";
-import Dashboard_Mensagens from "./Dashboard_Mensagens";
+import Dashboard_Mensagens from "../Messages/Messages";
 import Dashboard_Espaco from "./Dashboard_Espaco";
 import { useUser } from '../../Contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
@@ -52,7 +52,7 @@ export default function Dashboard() {
       case 'Avaliacoes':
         return <div className="p-8">Página de Avaliações</div>;
       case 'Mensagens':
-        return <Dashboard_Mensagens />;
+        return <Dashboard_Mensagens showHeader={false} />;
       case 'Perfil':
         return <Dashboard_Perfil />;
       case 'Espaco':

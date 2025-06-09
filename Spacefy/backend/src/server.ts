@@ -7,6 +7,9 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import http from "http";
 import { Server as SocketIOServer } from "socket.io";
+import { validateAndGetTokenData } from "./middlewares/token";
+import { AuthenticationData } from "./types/auth";
+import jwt from "jsonwebtoken";
 
 import userRouter from "./routes/userRoutes";
 import spaceRouter from "./routes/spaceRoutes";
@@ -66,6 +69,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// Middleware de autenticação para Socket.IO usando o validateAndGetTokenData
+io.use((socket, next) => {
+  const token = socket.handshake.auth.token;
+  
+  if (!token) {
+    return next(new Error("Token não fornecido"));
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_KEY as string) as AuthenticationData;
+    socket.data.user = decoded;
+    next();
+  } catch (error) {
+    return next(new Error("Token inválido"));
+  }
+});
 
 // Rotas
 app.use("/users", userRouter);
@@ -80,45 +99,75 @@ app.use("/blocked-dates", blockedDatesRouter);
 app.use("/chat", chatRoutes);
 app.use("/openai", openaiRoutes);
 
-  io.on("connection", (socket) => {
+io.on("connection", (socket) => {
   console.log("Usuário conectado:", socket.id);
+  const userId = socket.data.user.id;
+  console.log("ID do usuário autenticado:", userId);
 
-  socket.on("join", (userId) => {
-    socket.join(userId);
+  socket.on("join", (roomId) => {
+    console.log(`Usuário ${userId} entrou na sala ${roomId}`);
+    socket.join(roomId);
   });
 
-  socket.on("send_message", async (data) => {
+  socket.on("send_message", async (data: { senderId: string; receiverId: string; message: string }) => {
     const { senderId, receiverId, message } = data;
+    console.log("Tentando enviar mensagem:", { senderId, receiverId, message });
 
-    let conversation = await Conversation.findOne({
-      $or: [
-        { senderId, receiverId },
-        { senderId: receiverId, receiverId: senderId }
-      ]
-    });
-
-    if (!conversation) {
-      conversation = await Conversation.create({
-        senderId,
-        receiverId,
-        lastMessage: message,
-        read: false
-      });
-    } else {
-      conversation.lastMessage = message;
-      conversation.read = false;
-      await conversation.save();
+    // Verifica se o usuário autenticado é o remetente
+    if (senderId !== userId) {
+      console.log("Erro: Usuário não autorizado a enviar mensagem como outro usuário");
+      socket.emit("error", { message: "Você não tem permissão para enviar mensagens como outro usuário." });
+      return;
     }
 
-    const newMessage = await Message.create({
-      conversationId: conversation._id,
-      senderId,
-      receiverId,
-      message,
-      timestamp: new Date()
-    });
+    // Validação dos dados
+    if (!senderId || !receiverId || !message) {
+      console.log("Erro: Dados incompletos para enviar mensagem");
+      socket.emit("error", { message: "Dados incompletos para enviar mensagem." });
+      return;
+    }
 
-    io.to(receiverId).emit("receive_message", newMessage);
+    try {
+      let conversation = await Conversation.findOne({
+        $or: [
+          { senderId, receiverId },
+          { senderId: receiverId, receiverId: senderId }
+        ]
+      });
+
+      if (!conversation) {
+        console.log("Criando nova conversa");
+        conversation = await Conversation.create({
+          senderId,
+          receiverId,
+          lastMessage: message,
+          read: false
+        });
+      } else {
+        console.log("Atualizando conversa existente");
+        conversation.lastMessage = message;
+        conversation.read = false;
+        await conversation.save();
+      }
+
+      const newMessage = await Message.create({
+        conversationId: conversation._id,
+        senderId,
+        receiverId,
+        message,
+        timestamp: new Date()
+      });
+
+      console.log("Mensagem criada:", newMessage);
+      console.log("Emitindo mensagem para:", receiverId);
+      
+      // Emitir para a sala do destinatário
+      io.to(receiverId).emit("receive_message", newMessage);
+      console.log("Mensagem emitida com sucesso");
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+      socket.emit("error", { message: "Erro ao enviar mensagem." });
+    }
   });
 
   socket.on("disconnect", () => {

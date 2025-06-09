@@ -15,6 +15,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [blockedDates, setBlockedDates] = useState([]);
     const [showBlockedDates, setShowBlockedDates] = useState(false);
     const [dateRangeError, setDateRangeError] = useState("");
+    const [timeError, setTimeError] = useState("");
 
     const diasSemana = {
         'domingo': 0,
@@ -35,6 +36,18 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             fetchBlockedDates();
         }
     }, [isOpen, space?._id]);
+
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isOpen]);
 
     const fetchBlockedDates = async () => {
         try {
@@ -161,6 +174,92 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         });
     };
 
+    const isTimeInOperatingHours = (time) => {
+        if (!time || !space?.weekly_days) return false;
+
+        const dayOfWeek = startDate ? startDate.getDay() : new Date().getDay();
+        const dayName = Object.keys(diasSemana).find(key => diasSemana[key] === dayOfWeek);
+        
+        const daySchedule = space.weekly_days.find(day => day.day === dayName);
+        if (!daySchedule) return false;
+
+        const timeHour = time.getHours();
+        const timeMinute = time.getMinutes();
+        const timeInMinutes = timeHour * 60 + timeMinute;
+
+        return daySchedule.time_ranges.some(range => {
+            const [openHour, openMinute] = range.open.split(':').map(Number);
+            const [closeHour, closeMinute] = range.close.split(':').map(Number);
+            
+            const openInMinutes = openHour * 60 + openMinute;
+            const closeInMinutes = closeHour * 60 + closeMinute;
+            
+            return timeInMinutes >= openInMinutes && timeInMinutes <= closeInMinutes;
+        });
+    };
+
+    const validateTimeRange = (start, end) => {
+        if (!start || !end || !space?.weekly_days) return false;
+
+        const dayOfWeek = startDate ? startDate.getDay() : new Date().getDay();
+        const dayName = Object.keys(diasSemana).find(key => diasSemana[key] === dayOfWeek);
+        const daySchedule = space.weekly_days.find(day => day.day === dayName);
+        
+        if (!daySchedule) return false;
+
+        const startHour = start.getHours();
+        const startMinute = start.getMinutes();
+        const endHour = end.getHours();
+        const endMinute = end.getMinutes();
+        
+        const startInMinutes = startHour * 60 + startMinute;
+        const endInMinutes = endHour * 60 + endMinute;
+
+        // Verifica se o horário de início e fim estão dentro do mesmo intervalo de funcionamento
+        return daySchedule.time_ranges.some(range => {
+            const [openHour, openMinute] = range.open.split(':').map(Number);
+            const [closeHour, closeMinute] = range.close.split(':').map(Number);
+            
+            const openInMinutes = openHour * 60 + openMinute;
+            const closeInMinutes = closeHour * 60 + closeMinute;
+            
+            return startInMinutes >= openInMinutes && 
+                   endInMinutes <= closeInMinutes && 
+                   startInMinutes < endInMinutes;
+        });
+    };
+
+    const handleStartTimeChange = (time) => {
+        setTimeError("");
+        if (!isTimeInOperatingHours(time)) {
+            setTimeError("Este horário não está dentro do período de funcionamento.");
+            return;
+        }
+        setStartTime(time);
+        if (endTime && !validateTimeRange(time, endTime)) {
+            setEndTime(null);
+            setTimeError("O horário de término selecionado não é mais válido para este horário de início.");
+        }
+    };
+
+    const handleEndTimeChange = (time) => {
+        setTimeError("");
+        if (!isTimeInOperatingHours(time)) {
+            setTimeError("Este horário não está dentro do período de funcionamento.");
+            return;
+        }
+        if (startTime && validateTimeRange(startTime, time)) {
+            setEndTime(time);
+        } else {
+            setEndTime(null);
+            setTimeError("O horário de término deve estar dentro do mesmo período de funcionamento do horário de início.");
+        }
+    };
+
+    const filterTime = (time) => {
+        return isTimeInOperatingHours(time);
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -213,7 +312,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                     <span className="text-[#00A3FF] font-bold mb-1">Início</span>
                                     <DatePicker
                                         selected={startTime}
-                                        onChange={setStartTime}
+                                        onChange={handleStartTimeChange}
                                         showTimeSelect
                                         showTimeSelectOnly
                                         timeIntervals={30}
@@ -221,13 +320,14 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                         dateFormat="HH:mm"
                                         className="w-full p-2 border border-gray-300 rounded-md text-center"
                                         placeholderText="Selecione o horário"
+                                        filterTime={filterTime}
                                     />
                                 </div>
                                 <div className="flex flex-col items-center w-1/2">
                                     <span className="text-[#00A3FF] font-bold mb-1">Término</span>
                                     <DatePicker
                                         selected={endTime}
-                                        onChange={setEndTime}
+                                        onChange={handleEndTimeChange}
                                         showTimeSelect
                                         showTimeSelectOnly
                                         timeIntervals={30}
@@ -235,9 +335,16 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                         dateFormat="HH:mm"
                                         className="w-full p-2 border border-gray-300 rounded-md text-center"
                                         placeholderText="Selecione o horário"
+                                        filterTime={filterTime}
                                     />
                                 </div>
                             </div>
+                            {timeError && (
+                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm flex items-center gap-2">
+                                    <FaExclamationTriangle />
+                                    {timeError}
+                                </div>
+                            )}
                         </div>
                     </div>
 

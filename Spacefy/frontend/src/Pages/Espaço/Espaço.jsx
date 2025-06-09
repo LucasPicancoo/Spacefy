@@ -16,6 +16,8 @@ import ComentariosUsuarios from "./ComentariosUsuarios";
 import MapaEspaço from "./MapaEspaço";
 import { useUser } from "../../Contexts/UserContext";
 import MiniChat from "../../Components/MiniChat/MiniChat";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
@@ -88,6 +90,10 @@ function Espaço() {
         navigate(`/messages?receiverId=${space.owner_id}`);
     };
 
+    const handleReservaSuccess = () => {
+        toast.success('Reserva concluída!');
+    };
+
     if (loading) {
         return <div className="flex justify-center items-center h-screen">Carregando...</div>;
     }
@@ -99,6 +105,18 @@ function Espaço() {
     return (
         <div>
             <Header />
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+                hideProgressBar={false}
+                newestOnTop
+                closeOnClick
+                rtl={false}
+                pauseOnFocusLoss
+                draggable
+                pauseOnHover
+                theme="light"
+            />
             <div className="">
                 <div className="flex justify-between items-center mx-10 mt-10 mb-8">
                     <h1 className="text-3xl font-bold">{space.space_name}</h1>
@@ -217,7 +235,7 @@ function Espaço() {
                     </div>
 
                     {/* Coluna da direita - Card de reserva */}
-                    <ReservaCard space={space} />
+                    <ReservaCard space={space} onReservaSuccess={handleReservaSuccess} />
                 </div>
 
                 {/* Avaliação Geral */}

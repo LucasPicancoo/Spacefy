@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { useUser } from "../../Contexts/UserContext";
 import ReservaModal from "../../Pages/Espaço/ReservaModal";
 
-function ReservaCard({ space }) {
+function ReservaCard({ space, onReservaSuccess }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { user, isLoggedIn } = useUser();
@@ -60,8 +60,8 @@ function ReservaCard({ space }) {
             };
 
             await rentalService.createRental(rentalData);
-            toast.success('Reserva realizada com sucesso!');
             setIsModalOpen(false);
+            onReservaSuccess();
             
         } catch (error) {
             toast.error(error.message || 'Erro ao realizar a reserva');

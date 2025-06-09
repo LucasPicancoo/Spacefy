@@ -4,6 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { FaTimes, FaCalendarAlt, FaExclamationTriangle } from "react-icons/fa";
 import "./custom-datepicker.css";
 import { blockedDatesService } from "../../services/blockedDatesService";
+import { rentalService } from "../../services/rentalService";
 
 function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [dateRange, setDateRange] = useState([null, null]);
@@ -13,7 +14,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [totalHours, setTotalHours] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
     const [blockedDates, setBlockedDates] = useState([]);
-    const [showBlockedDates, setShowBlockedDates] = useState(false);
+    const [rentedDates, setRentedDates] = useState([]);
     const [dateRangeError, setDateRangeError] = useState("");
     const [timeError, setTimeError] = useState("");
 
@@ -27,6 +28,16 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         'sabado': 6
     };
 
+    const clearFormData = () => {
+        setDateRange([null, null]);
+        setStartTime(null);
+        setEndTime(null);
+        setTotalHours(0);
+        setTotalPrice(0);
+        setDateRangeError("");
+        setTimeError("");
+    };
+
     useEffect(() => {
         calculateTotalHours();
     }, [startTime, endTime, dateRange]);
@@ -34,6 +45,9 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     useEffect(() => {
         if (isOpen && space?._id) {
             fetchBlockedDates();
+            fetchRentedDates();
+        } else {
+            clearFormData();
         }
     }, [isOpen, space?._id]);
 
@@ -55,6 +69,15 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             setBlockedDates(dates.blocked_dates || []);
         } catch (error) {
             console.error("Erro ao buscar datas bloqueadas:", error);
+        }
+    };
+
+    const fetchRentedDates = async () => {
+        try {
+            const response = await rentalService.getRentedDatesBySpace(space._id);
+            setRentedDates(response.dates || []);
+        } catch (error) {
+            console.error("Erro ao buscar datas reservadas:", error);
         }
     };
 
@@ -152,6 +175,16 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                 setDateRange([null, null]);
             } else {
                 setDateRangeError("");
+                // Validar se os horários selecionados estão disponíveis na nova data
+                if (startTime && endTime) {
+                    const isStartTimeBlocked = isTimeBlocked(startTime);
+                    const isEndTimeBlocked = isTimeBlocked(endTime);
+                    if (isStartTimeBlocked || isEndTimeBlocked) {
+                        setTimeError("Os horários selecionados não estão disponíveis para esta data.");
+                        setStartTime(null);
+                        setEndTime(null);
+                    }
+                }
             }
         } else {
             setDateRangeError("");
@@ -171,6 +204,12 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             totalHours,
             totalPrice
         });
+        clearFormData();
+    };
+
+    const handleClose = () => {
+        clearFormData();
+        onClose();
     };
 
     const isTimeInOperatingHours = (time) => {
@@ -255,8 +294,29 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         }
     };
 
+    const isTimeBlocked = (time) => {
+        if (!time || !startDate) return false;
+
+        const selectedDate = startDate.toISOString().split('T')[0];
+        const rentedDate = rentedDates.find(date => date.date === selectedDate);
+
+        if (!rentedDate) return false;
+
+        const timeHour = time.getHours();
+        const timeMinute = time.getMinutes();
+        const timeInMinutes = timeHour * 60 + timeMinute;
+
+        const [startHour, startMinute] = rentedDate.startTime.split(':').map(Number);
+        const [endHour, endMinute] = rentedDate.endTime.split(':').map(Number);
+
+        const startInMinutes = startHour * 60 + startMinute;
+        const endInMinutes = endHour * 60 + endMinute;
+
+        return timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
+    };
+
     const filterTime = (time) => {
-        return isTimeInOperatingHours(time);
+        return isTimeInOperatingHours(time) && !isTimeBlocked(time);
     };
 
     if (!isOpen) return null;
@@ -265,7 +325,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 w-full max-w-3xl shadow-lg relative">
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="text-gray-500 hover:text-gray-700 absolute right-6 top-6 z-10"
                     aria-label="Fechar modal"
                 >

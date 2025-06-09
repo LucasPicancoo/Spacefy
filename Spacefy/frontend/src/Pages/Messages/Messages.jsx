@@ -1,10 +1,43 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaPaperclip } from "react-icons/fa";
 import Header from "../../Components/Header/Header";
-import { initializeSocket, getConversations, getMessages, sendMessage, joinConversation } from "../../services/messageService";
 import { useUser } from "../../Contexts/UserContext";
 import { useLocation } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { messageService } from "../../services/messageService";
+
+// Dados mock para as mensagens
+const mockMessages = {
+  "1": [
+    {
+      _id: "1",
+      content: "Olá, tudo bem?",
+      senderId: "2",
+      createdAt: new Date().toISOString()
+    },
+    {
+      _id: "2",
+      content: "Tudo ótimo! E com você?",
+      senderId: "1",
+      createdAt: new Date().toISOString()
+    }
+  ],
+  "2": [
+    {
+      _id: "3",
+      content: "Quando podemos começar?",
+      senderId: "3",
+      createdAt: new Date(Date.now() - 86400000).toISOString()
+    }
+  ],
+  "3": [
+    {
+      _id: "4",
+      content: "O projeto está aprovado!",
+      senderId: "4",
+      createdAt: new Date(Date.now() - 172800000).toISOString()
+    }
+  ]
+};
 
 export default function Messages({ showHeader = true }) {
   const { user, isLoggedIn } = useUser();
@@ -13,140 +46,85 @@ export default function Messages({ showHeader = true }) {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const token = Cookies.get('token');
-    if (token) {
-      const socket = initializeSocket(token);
-      setSocket(socket);
-
-      socket.on('new_message', (message) => {
-        setMessages(prev => [...prev, message]);
-        scrollToBottom();
+    const loadConversations = async () => {
+      try {
+        setLoading(true);
+        const data = await messageService.getConversations(user.id);
         
-        // Atualizar a lista de conversas quando uma nova mensagem é recebida
-        loadConversations(token);
-      });
+        // Transformar os dados para o formato esperado pelo componente
+        const formattedConversations = data.map(conv => ({
+          _id: conv._id,
+          name: `${conv.senderId.name} ${conv.senderId.surname}`,
+          role: "usuário", // Você pode ajustar isso baseado em alguma lógica específica
+          lastMessage: {
+            content: conv.lastMessage,
+            createdAt: conv.updatedAt
+          },
+          otherUserId: conv.receiverId._id,
+          read: conv.read
+        }));
 
-      socket.on('message_error', (data) => {
-        console.error('Erro ao enviar mensagem:', data.error);
-        // Aqui você pode adicionar uma notificação de erro para o usuário
-      });
+        setConversations(formattedConversations);
+        
+        // Verificar se há um receiverId na URL
+        const params = new URLSearchParams(location.search);
+        const receiverId = params.get('receiverId');
 
-      return () => {
-        socket.disconnect();
-      };
-    }
-  }, []);
+        if (receiverId) {
+          const existingConversation = formattedConversations.find(conv => 
+            conv.otherUserId === receiverId
+          );
 
-  const loadConversations = async (token) => {
-    try {
-      const data = await getConversations(token);
-      // Adicionar informações do usuário para cada conversa
-      const conversationsWithUserInfo = data.map(conv => {
-        return {
-          ...conv,
-          lastMessageTime: conv.lastMessage?.createdAt
-        };
-      });
-      
-      setConversations(conversationsWithUserInfo);
-      
-      // Verificar se há um receiverId na URL
-      const params = new URLSearchParams(location.search);
-      const receiverId = params.get('receiverId');
-
-      if (receiverId) {
-        // Procurar se já existe uma conversa com este usuário
-        const existingConversation = conversationsWithUserInfo.find(conv => 
-          conv.otherUserId === receiverId
-        );
-
-        if (existingConversation) {
-          setSelectedConversation(existingConversation);
-        } else {
-          // Criar uma nova conversa
-          const newConversation = {
-            _id: `conv-${receiverId}`,
-            lastMessage: {
-              senderId: user.id,
-              receiverId: receiverId,
-              content: "Nova conversa iniciada",
-              createdAt: new Date().toISOString()
-            },
-            otherUserId: receiverId,
-            name: "Nova conversa",
-            role: "usuario" // Será atualizado quando a primeira mensagem for enviada
-          };
-          setSelectedConversation(newConversation);
+          if (existingConversation) {
+            setSelectedConversation(existingConversation);
+          }
+        } else if (formattedConversations.length > 0) {
+          setSelectedConversation(formattedConversations[0]);
         }
-      } else if (conversationsWithUserInfo.length > 0 && !selectedConversation) {
-        setSelectedConversation(conversationsWithUserInfo[0]);
+      } catch (err) {
+        setError('Erro ao carregar conversas');
+        console.error('Erro ao carregar conversas:', err);
+      } finally {
+        setLoading(false);
       }
-      
-      setIsInitialized(true);
-    } catch (error) {
-      console.error('Erro ao carregar conversas:', error);
-    }
-  };
+    };
 
-  useEffect(() => {
-    const token = Cookies.get('token');
-    if (token && !isInitialized) {
-      loadConversations(token);
+    if (user?.id) {
+      loadConversations();
     }
-  }, [isInitialized]);
+  }, [location.search, user?.id]);
 
   useEffect(() => {
     if (selectedConversation) {
-      const token = Cookies.get('token');
-      if (token) {
-        loadMessages(selectedConversation._id, token);
-        joinConversation(selectedConversation._id);
-      }
+      // Carregar mensagens mock para a conversa selecionada
+      setMessages(mockMessages[selectedConversation._id] || []);
+      scrollToBottom();
     }
   }, [selectedConversation]);
-
-  const loadMessages = async (conversationId, token) => {
-    try {
-      const data = await getMessages(conversationId, token);
-      setMessages(data);
-      scrollToBottom();
-    } catch (error) {
-      console.error('Erro ao carregar mensagens:', error);
-    }
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSendMessage = async (e) => {
+  const handleSendMessage = (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedConversation) return;
 
-    const token = Cookies.get('token');
-    const messageData = {
-      conversationId: selectedConversation._id,
-      receiverId: selectedConversation.otherUserId,
-      content: newMessage
+    const newMessageObj = {
+      _id: Date.now().toString(),
+      content: newMessage,
+      senderId: user.id,
+      createdAt: new Date().toISOString()
     };
 
+    setMessages(prev => [...prev, newMessageObj]);
     setNewMessage("");
-    
-    try {
-      await sendMessage(messageData.conversationId, messageData.receiverId, messageData.content);
-      
-      // Atualizar a lista de conversas após enviar a mensagem
-      if (token) {
-        await loadConversations(token);
-      }
-    } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
-    }
+    scrollToBottom();
   };
 
   const formatTime = (dateString) => {
@@ -175,6 +153,28 @@ export default function Messages({ showHeader = true }) {
     return <div className="flex justify-center items-center h-screen">Por favor, faça login para acessar as mensagens</div>;
   }
 
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen">
+        {showHeader && <Header />}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-xl text-gray-600">Carregando conversas...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-screen">
+        {showHeader && <Header />}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-xl text-red-600">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen">
       {showHeader && <Header />}
@@ -196,14 +196,19 @@ export default function Messages({ showHeader = true }) {
                 <div className="flex justify-between items-start">
                   <div className="truncate font-bold">{conversation.name}</div>
                   <div className={`text-xs ${selectedConversation?._id === conversation._id ? "text-white/80" : "text-gray-500"}`}>
-                    {formatTime(conversation.lastMessageTime)}
+                    {formatTime(conversation.lastMessage.createdAt)}
                   </div>
                 </div>
                 <div className={`text-xs truncate ${selectedConversation?._id === conversation._id ? "text-white/80" : "text-gray-500"}`}>
-                  {conversation.lastMessage?.content || "Nenhuma mensagem"}
+                  {conversation.lastMessage.content || "Nenhuma mensagem"}
                 </div>
-                <div className={`text-xs ${selectedConversation?._id === conversation._id ? "text-white/60" : "text-gray-400"}`}>
-                  {formatDate(conversation.lastMessageTime)}
+                <div className="flex justify-between items-center">
+                  <div className={`text-xs ${selectedConversation?._id === conversation._id ? "text-white/60" : "text-gray-400"}`}>
+                    {formatDate(conversation.lastMessage.createdAt)}
+                  </div>
+                  {!conversation.read && (
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  )}
                 </div>
               </button>
             ))}

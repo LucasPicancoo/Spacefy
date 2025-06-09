@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Array com os dias da semana para os checkboxes
 const DIAS_SEMANA = [
@@ -99,7 +101,13 @@ const HorariosDia = ({ dia, timeRanges, onAddTimeRange, onRemoveTimeRange, onUpd
         if (!open || !close) return false;
         const openTime = new Date(`2000-01-01T${open}`);
         const closeTime = new Date(`2000-01-01T${close}`);
-        return closeTime > openTime;
+        
+        // Se o horário de fechamento for menor que o de abertura, assumimos que é no dia seguinte
+        if (closeTime <= openTime) {
+            closeTime.setDate(closeTime.getDate() + 1);
+        }
+        
+        return true;
     };
 
     // Função para validar se o horário se sobrepõe a outros horários
@@ -307,19 +315,23 @@ const Etapa4 = ({ formData, onUpdate }) => {
     // Função para replicar os horários do primeiro dia para os demais
     const handleReplicateTimeRanges = () => {
         if (selectedDays.length < 2) {
-            return; // Precisa ter pelo menos 2 dias selecionados
+            toast.error('Selecione pelo menos dois dias para replicar os horários');
+            return;
         }
 
-        const firstDayTimeRanges = selectedDays[0].time_ranges;
-        if (firstDayTimeRanges.length === 0) {
-            return; // O primeiro dia precisa ter horários definidos
+        // Encontra o primeiro dia selecionado na ordem da semana
+        const firstSelectedDay = sortedSelectedDays[0];
+        
+        if (!firstSelectedDay.time_ranges || firstSelectedDay.time_ranges.length === 0) {
+            toast.error('O primeiro dia selecionado precisa ter horários definidos');
+            return;
         }
 
-        const updatedDays = selectedDays.map((day, index) => {
-            if (index === 0) return day; // Mantém o primeiro dia como está
+        const updatedDays = selectedDays.map(day => {
+            if (day.day === firstSelectedDay.day) return day; // Mantém o primeiro dia como está
             return {
                 ...day,
-                time_ranges: [...firstDayTimeRanges] // Replica os horários
+                time_ranges: JSON.parse(JSON.stringify(firstSelectedDay.time_ranges)) // Cria uma cópia profunda dos horários
             };
         });
 
@@ -328,6 +340,8 @@ const Etapa4 = ({ formData, onUpdate }) => {
             ...formData,
             weekly_days: updatedDays
         });
+
+        toast.success('Horários replicados com sucesso!');
     };
 
     return (

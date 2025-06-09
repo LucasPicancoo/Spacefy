@@ -157,11 +157,30 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         return false;
     };
 
+    const hasOvernightSchedule = () => {
+        if (!space?.weekly_days) return false;
+
+        return space.weekly_days.some(day => {
+            return day.time_ranges.some(range => {
+                const [openHour, openMinute] = range.open.split(':').map(Number);
+                const [closeHour, closeMinute] = range.close.split(':').map(Number);
+                
+                const openInMinutes = openHour * 60 + openMinute;
+                const closeInMinutes = closeHour * 60 + closeMinute;
+                
+                return closeInMinutes < openInMinutes;
+            });
+        });
+    };
+
     const handleDateRangeChange = (dates) => {
         const [start, end] = dates;
         
-        // Se tentar selecionar datas diferentes, mantém apenas a primeira data
-        if (start && end && start.getDate() !== end.getDate()) {
+        // Verifica se o espaço tem horário noturno
+        const isOvernight = hasOvernightSchedule();
+        
+        // Se não for horário noturno e tentar selecionar datas diferentes, mantém apenas a primeira data
+        if (!isOvernight && start && end && start.getDate() !== end.getDate()) {
             setDateRange([start, start]);
             setDateRangeError("Não é possível selecionar datas diferentes. O espaço só pode ser alugado no mesmo dia.");
             return;
@@ -232,6 +251,11 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             const openInMinutes = openHour * 60 + openMinute;
             const closeInMinutes = closeHour * 60 + closeMinute;
             
+            // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+            if (closeInMinutes < openInMinutes) {
+                return timeInMinutes >= openInMinutes || timeInMinutes <= closeInMinutes;
+            }
+            
             return timeInMinutes >= openInMinutes && timeInMinutes <= closeInMinutes;
         });
     };
@@ -261,6 +285,20 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             const openInMinutes = openHour * 60 + openMinute;
             const closeInMinutes = closeHour * 60 + closeMinute;
             
+            // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+            if (closeInMinutes < openInMinutes) {
+                // Para horários que atravessam a meia-noite
+                if (startInMinutes >= openInMinutes) {
+                    // Se o início for após a abertura, o fim deve ser antes da meia-noite
+                    return endInMinutes <= 1440 && startInMinutes < endInMinutes;
+                } else if (endInMinutes <= closeInMinutes) {
+                    // Se o fim for antes do fechamento, o início deve ser após a meia-noite
+                    return startInMinutes >= 0 && startInMinutes < endInMinutes;
+                }
+                return false;
+            }
+            
+            // Para horários normais (não atravessam a meia-noite)
             return startInMinutes >= openInMinutes && 
                    endInMinutes <= closeInMinutes && 
                    startInMinutes < endInMinutes;
@@ -286,11 +324,42 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             setTimeError("Este horário não está dentro do período de funcionamento.");
             return;
         }
-        if (startTime && validateTimeRange(startTime, time)) {
+
+        if (!startTime) {
             setEndTime(time);
+            return;
+        }
+
+        const startHour = startTime.getHours();
+        const startMinute = startTime.getMinutes();
+        const endHour = time.getHours();
+        const endMinute = time.getMinutes();
+        
+        const startInMinutes = startHour * 60 + startMinute;
+        const endInMinutes = endHour * 60 + endMinute;
+
+        // Verifica se o espaço tem horário noturno
+        const isOvernight = hasOvernightSchedule();
+
+        if (isOvernight) {
+            // Para espaços com horário noturno, permite que o horário de término seja do dia seguinte
+            if (endInMinutes <= startInMinutes) {
+                // Se o horário de término for menor que o de início, assumimos que é do dia seguinte
+                setEndTime(time);
+                setTimeError("");
+            } else {
+                setEndTime(time);
+                setTimeError("");
+            }
         } else {
-            setEndTime(null);
-            setTimeError("O horário de término deve estar dentro do mesmo período de funcionamento do horário de início.");
+            // Para espaços sem horário noturno, mantém a validação original
+            if (validateTimeRange(startTime, time)) {
+                setEndTime(time);
+                setTimeError("");
+            } else {
+                setEndTime(null);
+                setTimeError("O horário de término deve estar dentro do mesmo período de funcionamento do horário de início.");
+            }
         }
     };
 
@@ -311,6 +380,11 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
 
         const startInMinutes = startHour * 60 + startMinute;
         const endInMinutes = endHour * 60 + endMinute;
+
+        // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+        if (endInMinutes < startInMinutes) {
+            return timeInMinutes >= startInMinutes || timeInMinutes <= endInMinutes;
+        }
 
         return timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
     };

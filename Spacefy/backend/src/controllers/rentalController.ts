@@ -282,21 +282,27 @@ export const getRentedDatesBySpace = async (req: Request, res: Response) => {
       return;
     }
 
-    const rentals = await RentalModel.find({ space: spaceId }).select("start_date end_date");
+    const rentals = await RentalModel.find({ space: spaceId }).select("start_date end_date startTime endTime");
 
     if (!rentals.length) {
       res.status(200).json({ dates: [] });
       return;
     }
 
-    // Gerar array com todas as datas reservadas
-    const allRentedDates = rentals.reduce((dates: Date[], rental) => {
+    // Gerar array com todas as datas reservadas e seus horários
+    const allRentedDates = rentals.reduce((dates: any[], rental) => {
       const datesBetween = getDatesBetween(rental.start_date, rental.end_date);
-      return [...dates, ...datesBetween];
+      return [...dates, ...datesBetween.map(date => ({
+        date: date.toISOString().split("T")[0],
+        startTime: rental.startTime,
+        endTime: rental.endTime
+      }))];
     }, []);
 
-    // Remover duplicatas e ordenar as datas
-    const uniqueDates = [...new Set(allRentedDates.map((date) => date.toISOString().split("T")[0]))].sort();
+    // Remover duplicatas mantendo os horários
+    const uniqueDates = Array.from(new Map(
+      allRentedDates.map(item => [item.date, item])
+    ).values()).sort((a, b) => a.date.localeCompare(b.date));
 
     res.status(200).json({ dates: uniqueDates });
     return;

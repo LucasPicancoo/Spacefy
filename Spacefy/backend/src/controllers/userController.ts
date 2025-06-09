@@ -134,6 +134,59 @@ export const updateUser = async (req: Request, res: Response) => {
   }
 };
 
+// Atualizar usuário para locatário
+export const updateToLocatario = async (req: Request, res: Response) => {
+  try {
+    if (!req.auth) {
+      res.status(401).json({ error: "Autenticação necessária" });
+      return;
+    }
+
+    const { id } = req.params;
+    const { cpfOrCnpj } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: "ID de usuário inválido." });
+      return;
+    }
+
+    if (!cpfOrCnpj) {
+      res.status(400).json({ error: "O campo CPF/CNPJ é obrigatório para locatários." });
+      return;
+    }
+
+    // Verifica se o usuário que está fazendo a requisição é o próprio usuário ou um admin
+    if (req.auth.id !== id && req.auth.role !== "admin") {
+      res.status(403).json({ error: "Você não tem permissão para realizar esta ação." });
+      return;
+    }
+
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      id,
+      { 
+        role: "locatario",
+        cpfOrCnpj 
+      },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!updatedUser) {
+      res.status(404).json({ error: "Usuário não encontrado." });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Usuário atualizado para locatário com sucesso.",
+      user: updatedUser
+    });
+    return;
+  } catch (error) {
+    console.error("Erro ao atualizar usuário para locatário:", error);
+    res.status(500).json({ error: "Erro ao atualizar usuário para locatário." });
+    return;
+  }
+};
+
 // Favoritar ou desfavoritar um espaço
 export const toggleFavoriteSpace = async (req: Request, res: Response) => {
   const { userId } = req.params;

@@ -6,6 +6,7 @@ import {
   deleteUser,
   toggleFavoriteSpace,
   getUserFavorites,
+  updateToLocatario,
 } from "../controllers/userController";
 
 import { validateAndGetTokenData } from "../middlewares/token";
@@ -28,6 +29,9 @@ userRouter.delete("/deleteUser/:id", validateAndGetTokenData, deleteUser);
 userRouter.post("/:userId/favorite", validateAndGetTokenData, toggleFavoriteSpace);
 
 //Rota para buscar os favoritos de um usuário
-userRouter.get("/:userId/favorites", validateAndGetTokenData, getUserFavorites);
+userRouter.get("/favorites/:userId", validateAndGetTokenData, getUserFavorites);
+
+// Rota para atualizar para locatário
+userRouter.put("/updateToLocatario/:id", validateAndGetTokenData, updateToLocatario);
 
 export default userRouter;

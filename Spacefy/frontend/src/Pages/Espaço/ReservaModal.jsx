@@ -84,13 +84,6 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             return;
         }
 
-        // Se for intervalo de datas, calcular diferença de dias
-        let days = 1;
-        if (startDate && endDate) {
-            const diffTime = Math.abs(endDate - startDate);
-            days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        }
-
         // Criar datas completas combinando data e hora
         const startDateTime = startDate ? new Date(startDate) : null;
         if (startDateTime && startTime) {
@@ -113,11 +106,9 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         const diffHours = diffMs / (1000 * 60 * 60);
         // Arredondar para 2 casas decimais
         const roundedHours = Math.round(diffHours * 100) / 100;
-        // Se for intervalo de dias, multiplicar pelas horas por dia
-        const total = days > 1 ? days * roundedHours : roundedHours;
 
-        setTotalHours(total > 0 ? total : 0);
-        setTotalPrice((total > 0 ? total : 0) * (space?.price_per_hour || 0));
+        setTotalHours(roundedHours > 0 ? roundedHours : 0);
+        setTotalPrice((roundedHours > 0 ? roundedHours : 0) * (space?.price_per_hour || 0));
     };
 
     const formatPrice = (price) => {
@@ -145,6 +136,14 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
 
     const handleDateRangeChange = (dates) => {
         const [start, end] = dates;
+        
+        // Se tentar selecionar datas diferentes, mantém apenas a primeira data
+        if (start && end && start.getDate() !== end.getDate()) {
+            setDateRange([start, start]);
+            setDateRangeError("Não é possível selecionar datas diferentes. O espaço só pode ser alugado no mesmo dia.");
+            return;
+        }
+
         setDateRange(dates);
         
         if (start && end) {

@@ -5,40 +5,6 @@ import { useUser } from "../../Contexts/UserContext";
 import { useLocation } from 'react-router-dom';
 import { messageService } from "../../services/messageService";
 
-// Dados mock para as mensagens
-const mockMessages = {
-  "1": [
-    {
-      _id: "1",
-      content: "Olá, tudo bem?",
-      senderId: "2",
-      createdAt: new Date().toISOString()
-    },
-    {
-      _id: "2",
-      content: "Tudo ótimo! E com você?",
-      senderId: "1",
-      createdAt: new Date().toISOString()
-    }
-  ],
-  "2": [
-    {
-      _id: "3",
-      content: "Quando podemos começar?",
-      senderId: "3",
-      createdAt: new Date(Date.now() - 86400000).toISOString()
-    }
-  ],
-  "3": [
-    {
-      _id: "4",
-      content: "O projeto está aprovado!",
-      senderId: "4",
-      createdAt: new Date(Date.now() - 172800000).toISOString()
-    }
-  ]
-};
-
 export default function Messages({ showHeader = true }) {
   const { user, isLoggedIn } = useUser();
   const location = useLocation();
@@ -100,11 +66,30 @@ export default function Messages({ showHeader = true }) {
   }, [location.search, user?.id]);
 
   useEffect(() => {
-    if (selectedConversation) {
-      // Carregar mensagens mock para a conversa selecionada
-      setMessages(mockMessages[selectedConversation._id] || []);
-      scrollToBottom();
-    }
+    const loadMessages = async () => {
+      if (selectedConversation) {
+        try {
+          setLoading(true);
+          const data = await messageService.getConversationHistory(selectedConversation._id);
+          // Mapear os dados da API para o formato esperado pelo componente
+          const formattedMessages = data.map(msg => ({
+            _id: msg._id,
+            content: msg.message,
+            senderId: msg.senderId,
+            createdAt: msg.timestamp
+          }));
+          setMessages(formattedMessages);
+          scrollToBottom();
+        } catch (err) {
+          setError('Erro ao carregar mensagens');
+          console.error('Erro ao carregar mensagens:', err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadMessages();
   }, [selectedConversation]);
 
   const scrollToBottom = () => {

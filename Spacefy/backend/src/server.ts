@@ -46,7 +46,7 @@ const limiter = rateLimit({
 
 // Configuração do CORS
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000', // URL do frontend
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173', // URL do frontend
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

@@ -1,8 +1,8 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
 export interface IConversation extends Document {
-  senderId: string;
-  receiverId: string;
+  senderId: Types.ObjectId;
+  receiverId: Types.ObjectId;
   lastMessage: string;
   read: boolean;
   updatedAt: Date;
@@ -11,8 +11,8 @@ export interface IConversation extends Document {
 
 const conversationSchema = new Schema<IConversation>(
   {
-    senderId: { type: String, required: true },
-    receiverId: { type: String, required: true },
+    senderId: { type: Schema.Types.ObjectId, ref: 'user', required: true },
+    receiverId: { type: Schema.Types.ObjectId, ref: 'user', required: true },
     lastMessage: { type: String, required: true },
     read: { type: Boolean, default: false },
   },

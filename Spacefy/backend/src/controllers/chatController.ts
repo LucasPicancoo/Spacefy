@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Conversation from "../models/Conversation";
 import Message from "../models/Message";
+import User from "../models/userModel";
 
 export const getUserConversations = async (req: Request, res: Response) => {
   const { userId } = req.params;
@@ -8,7 +9,10 @@ export const getUserConversations = async (req: Request, res: Response) => {
   try {
     const conversations = await Conversation.find({
       $or: [{ senderId: userId }, { receiverId: userId }],
-    }).sort({ updatedAt: -1 });
+    })
+    .populate('senderId', 'name surname')
+    .populate('receiverId', 'name surname')
+    .sort({ updatedAt: -1 });
 
     res.status(200).json(conversations);
     return;

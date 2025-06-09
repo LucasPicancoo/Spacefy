@@ -6,6 +6,18 @@ import User from "../models/userModel";
 export const getUserConversations = async (req: Request, res: Response) => {
   const { userId } = req.params;
 
+  // Verifica se o usuário está autenticado
+  if (!req.auth) {
+    res.status(401).json({ error: "Usuário não autenticado." });
+    return;
+  }
+
+  // Verifica se o userId corresponde ao ID do usuário autenticado
+  if (userId !== req.auth.id) {
+    res.status(403).json({ error: "Você não tem permissão para ver as conversas de outro usuário." });
+    return;
+  }
+
   try {
     const conversations = await Conversation.find({
       $or: [{ senderId: userId }, { receiverId: userId }],
@@ -28,6 +40,18 @@ export const sendMessage = async (req: Request, res: Response) => {
 
   if (!senderId || !receiverId || !message) {
     res.status(400).json({ error: "Dados incompletos para enviar mensagem." });
+    return;
+  }
+
+  // Verifica se o usuário está autenticado
+  if (!req.auth) {
+    res.status(401).json({ error: "Usuário não autenticado." });
+    return;
+  }
+
+  // Verifica se o senderId corresponde ao ID do usuário autenticado
+  if (senderId !== req.auth.id) {
+    res.status(403).json({ error: "Você não tem permissão para enviar mensagens como outro usuário." });
     return;
   }
 

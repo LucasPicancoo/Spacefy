@@ -1,7 +1,73 @@
 import { FaStar, FaRegCommentDots } from "react-icons/fa";
 import { FaRegUserCircle } from "react-icons/fa";
+import { useState, useEffect } from "react";
+import { spaceService } from "../../services/spaceService";
+import { assessmentService } from "../../services/assessmentService";
+import { rentalService } from "../../services/rentalService";
+import { useUser } from "../../Contexts/UserContext";
 
 export default function Dashboard_Home() {
+  const [totalEspacos, setTotalEspacos] = useState(0);
+  const [mediaAvaliacoes, setMediaAvaliacoes] = useState(0);
+  const [totalReservas, setTotalReservas] = useState(0);
+  const { user } = useUser();
+
+  useEffect(() => {
+    const buscarDados = async () => {
+      try {
+        // Buscar espaços do locatário
+        const espacosData = await spaceService.getSpacesByOwnerId(user.id);
+        setTotalEspacos(espacosData.length);
+
+        // Calcular média das avaliações
+        if (espacosData.length > 0) {
+          let somaTotalAvaliacoes = 0;
+          let totalReviews = 0;
+
+          // Buscar avaliações de cada espaço
+          for (const espaco of espacosData) {
+            const avaliacao = await assessmentService.getAverageScoreBySpace(espaco._id);
+            if (avaliacao && avaliacao.totalReviews > 0) {
+              somaTotalAvaliacoes += (avaliacao.averageScore * avaliacao.totalReviews);
+              totalReviews += avaliacao.totalReviews;
+            }
+          }
+
+          // Calcular média geral
+          const mediaGeral = totalReviews > 0 ? somaTotalAvaliacoes / totalReviews : 0;
+          setMediaAvaliacoes(Number(mediaGeral.toFixed(1)));
+
+          // Buscar total de reservas
+          const reservas = await rentalService.getRentalsByOwner(user.id);
+          setTotalReservas(reservas.length);
+        }
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
+      }
+    };
+
+    if (user?.id) {
+      buscarDados();
+    }
+  }, [user?.id]);
+
+  const renderStars = (rating) => {
+    const stars = [];
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 >= 0.5;
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(<FaStar key={i} className="text-yellow-400" />);
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(<FaStar key={i} className="text-yellow-400 opacity-50" />);
+      } else {
+        stars.push(<FaStar key={i} className="text-yellow-400 opacity-50" />);
+      }
+    }
+    return stars;
+  };
+
   return (
     <>
       {/* Cards superiores */}
@@ -10,19 +76,15 @@ export default function Dashboard_Home() {
           {/* Card 1: Total de Espaços */}
           <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
             <span className="text-xl font-semibold">Espaços</span>
-            <span className="text-4xl font-bold mt-2">3</span>
+            <span className="text-4xl font-bold mt-2">{totalEspacos}</span>
           </div>
 
           {/* Card 2: Avaliação Média */}
           <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
             <span className="text-xl font-semibold">Avaliações</span>
             <div className="flex items-center mt-2">
-              <FaStar className="text-yellow-400" />
-              <FaStar className="text-yellow-400" />
-              <FaStar className="text-yellow-400" />
-              <FaStar className="text-yellow-400" />
-              <FaStar className="text-yellow-400 opacity-50" />
-              <span className="ml-2 text-3xl font-bold">4,5</span>
+              {renderStars(mediaAvaliacoes)}
+              <span className="ml-2 text-3xl font-bold">{mediaAvaliacoes}</span>
             </div>
           </div>
 
@@ -38,7 +100,7 @@ export default function Dashboard_Home() {
           {/* Card 4: Total de Reservas */}
           <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
             <span className="text-xl font-semibold">Reservas</span>
-            <span className="text-4xl font-bold mt-2">3</span>
+            <span className="text-4xl font-bold mt-2">{totalReservas}</span>
           </div>
         </div>
       </div>

@@ -29,4 +29,10 @@ export const userService = {
         return response.data;
     },
 
+    // Atualizar usuário para locatário
+    async updateToLocatario(userId, cpfOrCnpj) {
+        const response = await api.put(`/users/updateToLocatario/${userId}`, { cpfOrCnpj });
+        return response.data;
+    },
+
 };

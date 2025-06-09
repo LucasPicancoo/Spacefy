@@ -83,8 +83,15 @@ export function UserProvider({ children }) {
     window.location.href = "/"; // Redirecionamento após logout
   };
 
+  const updateUser = (newUserData) => {
+    setUser(prevUser => ({
+      ...prevUser,
+      ...newUserData
+    }));
+  };
+
   return (
-    <UserContext.Provider value={{ user, isLoggedIn, login, logout, isLoading }}>
+    <UserContext.Provider value={{ user, isLoggedIn, login, logout, updateUser, isLoading }}>
       {children}
     </UserContext.Provider>
   );

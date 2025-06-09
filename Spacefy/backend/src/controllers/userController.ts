@@ -7,6 +7,7 @@ import { IPopulatedFavorite } from "../types/favorite";
 import "../models/spaceModel"; // Importando o modelo de espaço para o populate funcionar
 import RentalModel from "../models/rentalModel";
 import SpaceModel from "../models/spaceModel";
+import { Authenticator } from "../middlewares/authenticator";
 // Deixando aqui algumas importações caso necessário
 // import { ObjectId } from "mongoose";
 // import { IBaseUser } from "../types/user";
@@ -175,9 +176,28 @@ export const updateToLocatario = async (req: Request, res: Response) => {
       return;
     }
 
+    // Gera um novo token com os dados atualizados
+    const authenticator = new Authenticator();
+    const token = authenticator.generateToken({
+      id: updatedUser._id.toString(),
+      name: updatedUser.name,
+      surname: updatedUser.surname,
+      email: updatedUser.email,
+      telephone: updatedUser.telephone,
+      role: updatedUser.role,
+    });
+
+    // Atualiza o token no cookie
+    res.cookie("token", token, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 dia
+    });
+
     res.status(200).json({
       message: "Usuário atualizado para locatário com sucesso.",
-      user: updatedUser
+      user: updatedUser,
+      token
     });
     return;
   } catch (error) {

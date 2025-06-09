@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
+import { useUser } from '../../Contexts/UserContext';
+import { userService } from '../../services/userService';
+import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const BecomeRenterModal = ({ isOpen, onClose }) => {
   const [document, setDocument] = useState('');
   const [documentType, setDocumentType] = useState('cpf'); // 'cpf' ou 'cnpj'
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const { user, login, updateUser } = useUser();
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     const requiredLength = documentType === 'cpf' ? 11 : 14;
@@ -14,9 +21,24 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    // Aqui você pode adicionar a lógica para processar o documento
-    console.log('Documento:', document);
-    onClose();
+    try {
+      setIsLoading(true);
+      const response = await userService.updateToLocatario(user.id, document);
+      
+      // Atualiza o token com os novos dados do usuário
+      if (response.token) {
+        login(response.token);
+        updateUser({ role: 'locatario' });
+        toast.success('Você agora é um locatário!');
+        onClose();
+        // Recarrega a página para atualizar todos os componentes
+        window.location.reload();
+      }
+    } catch (error) {
+      setError(error.response?.data?.error || 'Erro ao atualizar para locatário. Tente novamente.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleDocumentChange = (e) => {
@@ -124,9 +146,10 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
             </button>
             <button 
               type="submit"
-              className="px-6 py-3 text-base font-medium text-white bg-[#00A3FF] rounded-md hover:bg-[#0084CC] cursor-pointer"
+              disabled={isLoading}
+              className="px-6 py-3 text-base font-medium text-white bg-[#00A3FF] rounded-md hover:bg-[#0084CC] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Confirmar
+              {isLoading ? 'Processando...' : 'Confirmar'}
             </button>
           </div>
         </form>

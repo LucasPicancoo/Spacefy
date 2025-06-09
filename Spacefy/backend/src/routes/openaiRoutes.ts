@@ -1,10 +1,8 @@
 import { Router } from "express";
-import { handleChatRequest } from "../controllers/openAiController";
+import { handleChatRequest } from "../controllers/openaiController";
 
 const router = Router();
 
-router.post("/processar-pesquisa", async (req, res) => {
-  await handleChatRequest(req, res);
-});
+router.post("/processar-pesquisa", handleChatRequest);
 
 export default router;

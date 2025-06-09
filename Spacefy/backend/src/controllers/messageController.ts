@@ -111,12 +111,23 @@ export const messageController = {
 
       // Se não houver conversas, vamos criar uma conversa a partir das mensagens existentes
       if (conversations.length === 0 && userMessages.length > 0) {
+        const otherUserId = userMessages[0].senderId.toString() === req.auth?.id 
+          ? userMessages[0].receiverId 
+          : userMessages[0].senderId;
+
+        // Buscar informações do outro usuário
+        const otherUser = await User.findById(otherUserId);
+        
+        if (!otherUser) {
+          throw new Error('Usuário não encontrado');
+        }
+
         const conversation = {
           _id: userMessages[0].conversationId,
           lastMessage: userMessages[0],
-          name: 'Usuário', // Nome temporário
-          otherUserId: userMessages[0].senderId.toString() === req.auth?.id ? userMessages[0].receiverId : userMessages[0].senderId,
-          role: 'usuario' // Role temporária
+          name: `${otherUser.name} ${otherUser.surname}`,
+          otherUserId: otherUserId,
+          role: otherUser.role
         };
         conversations.push(conversation);
       }

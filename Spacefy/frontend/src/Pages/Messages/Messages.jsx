@@ -47,14 +47,8 @@ export default function Messages({ showHeader = true }) {
       const data = await getConversations(token);
       // Adicionar informações do usuário para cada conversa
       const conversationsWithUserInfo = data.map(conv => {
-        const otherUserId = conv.lastMessage?.senderId === user.id 
-          ? conv.lastMessage?.receiverId 
-          : conv.lastMessage?.senderId;
-        
         return {
           ...conv,
-          otherUserId,
-          name: conv.lastMessage?.senderName || conv.lastMessage?.receiverName || "Usuário",
           lastMessageTime: conv.lastMessage?.createdAt
         };
       });
@@ -84,7 +78,8 @@ export default function Messages({ showHeader = true }) {
               createdAt: new Date().toISOString()
             },
             otherUserId: receiverId,
-            name: "Nova conversa"
+            name: "Nova conversa",
+            role: "usuario" // Será atualizado quando a primeira mensagem for enviada
           };
           setSelectedConversation(newConversation);
         }
@@ -224,7 +219,10 @@ export default function Messages({ showHeader = true }) {
                 <div className="w-8 h-8 rounded-full bg-[#1486B8] flex items-center justify-center text-white">
                   {selectedConversation.name?.[0] || "U"}
                 </div>
-                <span className="text-xl font-semibold">{selectedConversation.name || "Nova conversa"}</span>
+                <div className="flex flex-col">
+                  <span className="text-xl font-semibold">{selectedConversation.name}</span>
+                  <span className="text-sm text-gray-500 capitalize">{selectedConversation.role}</span>
+                </div>
               </div>
               
               {/* Mensagens */}

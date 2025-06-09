@@ -15,6 +15,7 @@ export default function Messages({ showHeader = true }) {
   const messagesEndRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const socketInitialized = useRef(false);
 
   useEffect(() => {
     const loadConversations = async () => {
@@ -23,17 +24,24 @@ export default function Messages({ showHeader = true }) {
         const data = await messageService.getConversations(user.id);
         
         // Transformar os dados para o formato esperado pelo componente
-        const formattedConversations = data.map(conv => ({
-          _id: conv._id,
-          name: `${conv.senderId.name} ${conv.senderId.surname}`,
-          role: "usuário", // Você pode ajustar isso baseado em alguma lógica específica
-          lastMessage: {
-            content: conv.lastMessage,
-            createdAt: conv.updatedAt
-          },
-          otherUserId: conv.receiverId._id,
-          read: conv.read
-        }));
+        const formattedConversations = data.map(conv => {
+          // Determinar quem é o outro usuário na conversa
+          const otherUser = conv.senderId._id === user.id ? conv.receiverId : conv.senderId;
+          
+          return {
+            _id: conv._id,
+            name: `${otherUser.name} ${otherUser.surname}`,
+            role: "usuário",
+            lastMessage: {
+              content: conv.lastMessage,
+              createdAt: conv.updatedAt
+            },
+            otherUserId: otherUser._id,
+            read: conv.read
+          };
+        });
+
+        console.log('Conversas formatadas:', formattedConversations);
 
         setConversations(formattedConversations);
         
@@ -65,6 +73,7 @@ export default function Messages({ showHeader = true }) {
     }
   }, [location.search, user?.id]);
 
+  // Efeito para carregar mensagens quando uma conversa é selecionada
   useEffect(() => {
     const loadMessages = async () => {
       if (selectedConversation) {
@@ -92,24 +101,130 @@ export default function Messages({ showHeader = true }) {
     loadMessages();
   }, [selectedConversation]);
 
+  // Efeito para entrar na sala quando uma conversa é selecionada
+  useEffect(() => {
+    if (selectedConversation) {
+      // Entrar apenas na sala da conversa
+      messageService.joinRoom(selectedConversation._id);
+      console.log('Entrou na sala da conversa:', selectedConversation._id);
+    }
+  }, [selectedConversation]);
+
+  // Efeito para configurar os listeners do socket
+  useEffect(() => {
+    console.log('Configurando listeners do socket');
+    
+    // Configurar listeners do socket
+    messageService.onMessageReceived((message) => {
+      console.log('Mensagem recebida no componente:', message);
+      
+      // Atualizar a lista de conversas
+      setConversations(prevConversations => {
+        return prevConversations.map(conv => {
+          if (conv._id === message.conversationId) {
+            return {
+              ...conv,
+              lastMessage: {
+                content: message.message,
+                createdAt: message.timestamp
+              }
+            };
+          }
+          return conv;
+        });
+      });
+
+      // Se a mensagem pertence à conversa atual, adicionar ao chat
+      if (selectedConversation && message.conversationId === selectedConversation._id) {
+        setMessages(prevMessages => {
+          // Verificar se a mensagem já existe
+          const messageExists = prevMessages.some(m => m._id === message._id);
+          if (messageExists) return prevMessages;
+          
+          return [...prevMessages, {
+            _id: message._id,
+            content: message.message,
+            senderId: message.senderId,
+            createdAt: message.timestamp
+          }];
+        });
+        scrollToBottom();
+      }
+    });
+
+    messageService.onError((error) => {
+      console.error('Erro no socket:', error);
+      setError('Erro na conexão do chat: ' + error.message);
+    });
+
+    // Cleanup function
+    return () => {
+      console.log('Limpando listeners do socket');
+      const socket = messageService.getSocket();
+      if (socket) {
+        socket.off('receive_message');
+        socket.off('message');
+        socket.off('error');
+      }
+    };
+  }, [selectedConversation]); // Adicionando selectedConversation como dependência
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedConversation) return;
 
-    const newMessageObj = {
-      _id: Date.now().toString(),
-      content: newMessage,
-      senderId: user.id,
-      createdAt: new Date().toISOString()
-    };
+    // Determinar o destinatário correto
+    const receiverId = selectedConversation.otherUserId;
+    
+    // Verificar se o usuário está tentando enviar mensagem para si mesmo
+    if (user.id === receiverId) {
+      setError('Você não pode enviar mensagens para si mesmo');
+      return;
+    }
 
-    setMessages(prev => [...prev, newMessageObj]);
-    setNewMessage("");
-    scrollToBottom();
+    try {
+      await messageService.sendMessage(
+        user.id,
+        receiverId,
+        newMessage,
+        selectedConversation._id
+      );
+
+      // Adicionar a mensagem localmente
+      const newMessageObj = {
+        _id: Date.now().toString(), // ID temporário
+        content: newMessage,
+        senderId: user.id,
+        createdAt: new Date().toISOString()
+      };
+
+      setMessages(prev => [...prev, newMessageObj]);
+      setNewMessage("");
+      scrollToBottom();
+
+      // Atualizar a lista de conversas
+      const updatedConversations = conversations.map(conv => {
+        if (conv._id === selectedConversation._id) {
+          return {
+            ...conv,
+            lastMessage: {
+              content: newMessage,
+              createdAt: new Date().toISOString()
+            }
+          };
+        }
+        return conv;
+      });
+      setConversations(updatedConversations);
+
+    } catch (error) {
+      console.error('Erro ao enviar mensagem:', error);
+      setError('Erro ao enviar mensagem: ' + error.message);
+    }
   };
 
   const formatTime = (dateString) => {

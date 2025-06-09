@@ -240,8 +240,8 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
     };
 
     return (
-        <aside className="w-[320px] bg-white border-r border-gray-100 flex flex-col h-[calc(100vh-64px)] sticky top-16">
-            <div className="p-6 flex flex-col gap-8 overflow-y-auto flex-1">
+        <aside className="w-[320px] min-w-[320px] max-w-[320px] bg-white border-r border-gray-100 flex flex-col h-[calc(100vh-64px)] sticky top-16 overflow-hidden">
+            <div className="p-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden flex-1">
                 {/* Localização */}
                 <div>
                     <label className="block text-sm font-medium text-gray-800 mb-2">Localização</label>

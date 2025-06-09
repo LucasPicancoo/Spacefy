@@ -10,7 +10,7 @@ export const userService = {
 
     // Buscar todos os espaços favoritados do usuário
     async getFavoriteSpaces(userId) {
-        const response = await api.get(`/users/${userId}/favorites`);
+        const response = await api.get(`/users/favorites/${userId}`);
         return response.data; // Retorna a lista de espaços favoritados
     },
 

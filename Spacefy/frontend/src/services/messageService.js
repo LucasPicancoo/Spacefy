@@ -102,12 +102,6 @@ export const messageService = {
             console.log('Mensagem recebida via socket:', message);
             callback(message);
         });
-
-        // Adicionar listener para mensagens da sala
-        socket.on('message', (message) => {
-            console.log('Mensagem recebida da sala:', message);
-            callback(message);
-        });
     },
 
     onError(callback) {

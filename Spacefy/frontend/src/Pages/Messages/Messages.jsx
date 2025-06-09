@@ -104,38 +104,15 @@ export default function Messages({ showHeader = true }) {
   // Efeito para entrar na sala quando uma conversa é selecionada
   useEffect(() => {
     if (selectedConversation) {
-      // Entrar apenas na sala da conversa
+      // Entrar na sala da conversa
       messageService.joinRoom(selectedConversation._id);
       console.log('Entrou na sala da conversa:', selectedConversation._id);
-    }
-  }, [selectedConversation]);
 
-  // Efeito para configurar os listeners do socket
-  useEffect(() => {
-    console.log('Configurando listeners do socket');
-    
-    // Configurar listeners do socket
-    messageService.onMessageReceived((message) => {
-      console.log('Mensagem recebida no componente:', message);
-      
-      // Atualizar a lista de conversas
-      setConversations(prevConversations => {
-        return prevConversations.map(conv => {
-          if (conv._id === message.conversationId) {
-            return {
-              ...conv,
-              lastMessage: {
-                content: message.message,
-                createdAt: message.timestamp
-              }
-            };
-          }
-          return conv;
-        });
-      });
-
-      // Se a mensagem pertence à conversa atual, adicionar ao chat
-      if (selectedConversation && message.conversationId === selectedConversation._id) {
+      // Configurar listener para mensagens recebidas
+      messageService.onMessageReceived((message) => {
+        console.log('Mensagem recebida:', message);
+        
+        // Atualizar a lista de mensagens
         setMessages(prevMessages => {
           // Verificar se a mensagem já existe
           const messageExists = prevMessages.some(m => m._id === message._id);
@@ -148,26 +125,43 @@ export default function Messages({ showHeader = true }) {
             createdAt: message.timestamp
           }];
         });
+
+        // Atualizar a lista de conversas
+        setConversations(prevConversations => {
+          return prevConversations.map(conv => {
+            if (conv._id === message.conversationId) {
+              return {
+                ...conv,
+                lastMessage: {
+                  content: message.message,
+                  createdAt: message.timestamp
+                }
+              };
+            }
+            return conv;
+          });
+        });
+
         scrollToBottom();
-      }
-    });
+      });
 
-    messageService.onError((error) => {
-      console.error('Erro no socket:', error);
-      setError('Erro na conexão do chat: ' + error.message);
-    });
+      // Configurar listener para erros
+      messageService.onError((error) => {
+        console.error('Erro no socket:', error);
+        setError('Erro na conexão do chat: ' + error.message);
+      });
 
-    // Cleanup function
-    return () => {
-      console.log('Limpando listeners do socket');
-      const socket = messageService.getSocket();
-      if (socket) {
-        socket.off('receive_message');
-        socket.off('message');
-        socket.off('error');
-      }
-    };
-  }, [selectedConversation]); // Adicionando selectedConversation como dependência
+      // Cleanup function
+      return () => {
+        console.log('Saindo da sala da conversa:', selectedConversation._id);
+        const socket = messageService.getSocket();
+        if (socket) {
+          socket.off('receive_message');
+          socket.off('error');
+        }
+      };
+    }
+  }, [selectedConversation]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -194,32 +188,9 @@ export default function Messages({ showHeader = true }) {
         selectedConversation._id
       );
 
-      // Adicionar a mensagem localmente
-      const newMessageObj = {
-        _id: Date.now().toString(), // ID temporário
-        content: newMessage,
-        senderId: user.id,
-        createdAt: new Date().toISOString()
-      };
-
-      setMessages(prev => [...prev, newMessageObj]);
+      // Limpar o campo de mensagem
       setNewMessage("");
       scrollToBottom();
-
-      // Atualizar a lista de conversas
-      const updatedConversations = conversations.map(conv => {
-        if (conv._id === selectedConversation._id) {
-          return {
-            ...conv,
-            lastMessage: {
-              content: newMessage,
-              createdAt: new Date().toISOString()
-            }
-          };
-        }
-        return conv;
-      });
-      setConversations(updatedConversations);
 
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);

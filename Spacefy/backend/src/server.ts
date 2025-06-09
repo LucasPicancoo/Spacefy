@@ -1,5 +1,5 @@
 import express from "express";
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
@@ -24,6 +24,7 @@ import openaiRoutes from "./routes/openaiRoutes";
 import chatRoutes from "./routes/chatRoutes";
 import Conversation from "./models/Conversation";
 import Message from "./models/Message";
+import { IConversation } from "./models/Conversation";
 
 dotenv.config();
 
@@ -133,16 +134,16 @@ io.on("connection", (socket) => {
           { senderId, receiverId },
           { senderId: receiverId, receiverId: senderId }
         ]
-      });
+      }) as IConversation;
 
       if (!conversation) {
         console.log("Criando nova conversa");
         conversation = await Conversation.create({
-          senderId,
-          receiverId,
+          senderId: new Types.ObjectId(senderId),
+          receiverId: new Types.ObjectId(receiverId),
           lastMessage: message,
           read: false
-        });
+        }) as IConversation;
       } else {
         console.log("Atualizando conversa existente");
         conversation.lastMessage = message;
@@ -159,10 +160,17 @@ io.on("connection", (socket) => {
       });
 
       console.log("Mensagem criada:", newMessage);
-      console.log("Emitindo mensagem para:", receiverId);
       
-      // Emitir para a sala do destinatário
-      io.to(receiverId).emit("receive_message", newMessage);
+      // Garantir que o ID da conversa é uma string
+      const conversationId = conversation._id?.toString();
+      if (!conversationId) {
+        throw new Error("ID da conversa inválido");
+      }
+      
+      console.log("Emitindo mensagem para a sala:", conversationId);
+      
+      // Emitir para a sala da conversa
+      io.to(conversationId).emit("receive_message", newMessage);
       console.log("Mensagem emitida com sucesso");
     } catch (error) {
       console.error("Erro ao enviar mensagem:", error);

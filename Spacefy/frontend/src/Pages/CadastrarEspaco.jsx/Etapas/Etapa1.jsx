@@ -177,14 +177,14 @@ const Etapa1 = ({ formData, onUpdate }) => {
                 <CampoTextArea
                     label={
                         <>
-                            Descrição do espaço <span className="text-xs text-gray-400">(Max 250 caracteres)</span>
+                            Descrição do espaço <span className="text-xs text-gray-400">(Max 750 caracteres)</span>
                         </>
                     }
                     id="space_description"
                     name="space_description"
                     value={formData.space_description}
                     onChange={handleChange}
-                    maxLength={250}
+                    maxLength={750}
                     placeholder="Descreva brevemente o espaço, características, diferenciais, etc."
                 />
             </div>

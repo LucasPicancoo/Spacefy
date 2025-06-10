@@ -36,9 +36,16 @@ export const rentalService = {
 
     getRentedDatesBySpace: async (spaceId) => {
         try {
+            console.log('Chamando API para espaço:', spaceId);
             const response = await api.get(`/rentals/space/${spaceId}/dates`);
+            console.log('Resposta da API:', response);
             return response.data;
         } catch (error) {
+            console.error('Erro detalhado:', error);
+            if (error.response) {
+                console.error('Dados do erro:', error.response.data);
+                console.error('Status do erro:', error.response.status);
+            }
             throw error;
         }
     }

@@ -149,9 +149,39 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         
         const currentDate = new Date(start);
         while (currentDate <= end) {
+            // Verifica se a data está bloqueada
             if (isDateBlocked(currentDate)) {
                 return true;
             }
+
+            // Verifica se existe reserva nesta data
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const rentedDate = rentedDates.find(date => date.date === dateStr);
+            
+            if (rentedDate) {
+                // Se for a data inicial, verifica se o horário de início é anterior ao horário reservado
+                if (currentDate.getTime() === start.getTime() && startTime) {
+                    const [startHour, startMinute] = rentedDate.startTime.split(':').map(Number);
+                    const startInMinutes = startHour * 60 + startMinute;
+                    const selectedStartInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+                    
+                    if (selectedStartInMinutes < startInMinutes) {
+                        return true;
+                    }
+                }
+                
+                // Se for a data final, verifica se o horário de término é posterior ao horário reservado
+                if (currentDate.getTime() === end.getTime() && endTime) {
+                    const [endHour, endMinute] = rentedDate.endTime.split(':').map(Number);
+                    const endInMinutes = endHour * 60 + endMinute;
+                    const selectedEndInMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+                    
+                    if (selectedEndInMinutes > endInMinutes) {
+                        return true;
+                    }
+                }
+            }
+
             currentDate.setDate(currentDate.getDate() + 1);
         }
         return false;
@@ -190,7 +220,25 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         
         if (start && end) {
             if (hasBlockedDatesInRange(start, end)) {
-                setDateRangeError("Existem datas bloqueadas ou não disponíveis no intervalo selecionado.");
+                const currentDate = new Date(start);
+                let hasReservation = false;
+                
+                while (currentDate <= end) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const rentedDate = rentedDates.find(date => date.date === dateStr);
+                    
+                    if (rentedDate) {
+                        hasReservation = true;
+                        break;
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                if (hasReservation) {
+                    setDateRangeError("Existem reservas no intervalo selecionado. Por favor, escolha outro período.");
+                } else {
+                    setDateRangeError("Existem datas bloqueadas ou não disponíveis no intervalo selecionado.");
+                }
                 setDateRange([null, null]);
             } else {
                 setDateRangeError("");
@@ -274,35 +322,43 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         const endHour = end.getHours();
         const endMinute = end.getMinutes();
         
-        const startInMinutes = startHour * 60 + startMinute;
-        const endInMinutes = endHour * 60 + endMinute;
+        let startInMinutes = startHour * 60 + startMinute;
+        let endInMinutes = endHour * 60 + endMinute;
 
-        // Verifica se o horário de início e fim estão dentro do mesmo intervalo de funcionamento
-        return daySchedule.time_ranges.some(range => {
-            const [openHour, openMinute] = range.open.split(':').map(Number);
-            const [closeHour, closeMinute] = range.close.split(':').map(Number);
-            
-            const openInMinutes = openHour * 60 + openMinute;
-            const closeInMinutes = closeHour * 60 + closeMinute;
-            
-            // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
-            if (closeInMinutes < openInMinutes) {
-                // Para horários que atravessam a meia-noite
-                if (startInMinutes >= openInMinutes) {
-                    // Se o início for após a abertura, o fim deve ser antes da meia-noite
-                    return endInMinutes <= 1440 && startInMinutes < endInMinutes;
-                } else if (endInMinutes <= closeInMinutes) {
-                    // Se o fim for antes do fechamento, o início deve ser após a meia-noite
-                    return startInMinutes >= 0 && startInMinutes < endInMinutes;
-                }
+        // Verifica se o espaço tem horário noturno
+        const isOvernight = hasOvernightSchedule();
+
+        // Ajusta para reservas noturnas (fim menor que início)
+        let totalMinutes = endInMinutes - startInMinutes;
+        if (totalMinutes <= 0) {
+            if (!isOvernight) {
+                setTimeError("O horário de término deve ser posterior ao horário de início.");
                 return false;
             }
-            
-            // Para horários normais (não atravessam a meia-noite)
-            return startInMinutes >= openInMinutes && 
-                   endInMinutes <= closeInMinutes && 
-                   startInMinutes < endInMinutes;
-        });
+            totalMinutes += 24 * 60;
+        }
+
+        // Para cada intervalo de 30 minutos entre início e fim, verifica se está dentro de algum range de funcionamento
+        for (let i = 0; i <= totalMinutes; i += 30) {
+            let currentMinutes = (startInMinutes + i) % (24 * 60);
+            const isInOperating = daySchedule.time_ranges.some(range => {
+                const [openHour, openMinute] = range.open.split(':').map(Number);
+                const [closeHour, closeMinute] = range.close.split(':').map(Number);
+                const openInMinutes = openHour * 60 + openMinute;
+                const closeInMinutes = closeHour * 60 + closeMinute;
+                if (closeInMinutes < openInMinutes) {
+                    // Noturno
+                    return currentMinutes >= openInMinutes || currentMinutes <= closeInMinutes;
+                }
+                return currentMinutes >= openInMinutes && currentMinutes <= closeInMinutes;
+            });
+            if (!isInOperating) {
+                setTimeError("O período selecionado inclui horários fora do período de funcionamento.");
+                return false;
+            }
+        }
+
+        return true;
     };
 
     const handleStartTimeChange = (time) => {
@@ -320,46 +376,17 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
 
     const handleEndTimeChange = (time) => {
         setTimeError("");
-        if (!isTimeInOperatingHours(time)) {
-            setTimeError("Este horário não está dentro do período de funcionamento.");
-            return;
-        }
-
+        
         if (!startTime) {
             setEndTime(time);
             return;
         }
 
-        const startHour = startTime.getHours();
-        const startMinute = startTime.getMinutes();
-        const endHour = time.getHours();
-        const endMinute = time.getMinutes();
-        
-        const startInMinutes = startHour * 60 + startMinute;
-        const endInMinutes = endHour * 60 + endMinute;
-
-        // Verifica se o espaço tem horário noturno
-        const isOvernight = hasOvernightSchedule();
-
-        if (isOvernight) {
-            // Para espaços com horário noturno, permite que o horário de término seja do dia seguinte
-            if (endInMinutes <= startInMinutes) {
-                // Se o horário de término for menor que o de início, assumimos que é do dia seguinte
-                setEndTime(time);
-                setTimeError("");
-            } else {
-                setEndTime(time);
-                setTimeError("");
-            }
+        if (validateTimeRange(startTime, time)) {
+            setEndTime(time);
+            setTimeError("");
         } else {
-            // Para espaços sem horário noturno, mantém a validação original
-            if (validateTimeRange(startTime, time)) {
-                setEndTime(time);
-                setTimeError("");
-            } else {
-                setEndTime(null);
-                setTimeError("O horário de término deve estar dentro do mesmo período de funcionamento do horário de início.");
-            }
+            setEndTime(null);
         }
     };
 

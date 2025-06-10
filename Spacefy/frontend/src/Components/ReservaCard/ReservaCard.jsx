@@ -4,6 +4,7 @@ import { rentalService } from "../../services/rentalService";
 import { toast } from 'react-toastify';
 import { useUser } from "../../Contexts/UserContext";
 import ReservaModal from "../../Pages/Espaço/ReservaModal";
+import WeatherGoogle from "../../Components/WeatherGoogle/WeatherGoogle";
 
 function ReservaCard({ space, onReservaSuccess }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -106,6 +107,9 @@ function ReservaCard({ space, onReservaSuccess }) {
                     >
                         {isLoading ? 'Processando...' : 'Reservar Agora'}
                     </button>
+                    <div className="mt-4">
+                                <WeatherGoogle location={space.location} />
+                            </div>
                 </div>
             </div>
 

@@ -6,12 +6,14 @@ import Dashboard_Reservas from "./Dashboard_Reservas";
 import Dashboard_Perfil from "./Dashboard_Perfil";
 import Dashboard_Mensagens from "../Messages/Messages";
 import Dashboard_Espaco from "./Dashboard_Espaco";
+import Dashboard_Editar_Espaco from "./Dashboard_Editar_Espaco";
 import { useUser } from '../../Contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
   const [paginaAtual, setPaginaAtual] = useState('Home');
   const [subEspacoSelecionado, setSubEspacoSelecionado] = useState(0);
+  const [espacoParaEditar, setEspacoParaEditar] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
@@ -43,6 +45,11 @@ export default function Dashboard() {
     }
   };
 
+  const handleEditarEspaco = (espaco) => {
+    setEspacoParaEditar(espaco);
+    setPaginaAtual('EditarEspaco');
+  };
+
   const renderizarPagina = () => {
     switch (paginaAtual) {
       case 'Home':
@@ -56,7 +63,18 @@ export default function Dashboard() {
       case 'Perfil':
         return <Dashboard_Perfil />;
       case 'Espaco':
-        return <Dashboard_Espaco subEspacoSelecionado={subEspacoSelecionado} />;
+        return <Dashboard_Espaco 
+          subEspacoSelecionado={subEspacoSelecionado} 
+          onEditarEspaco={handleEditarEspaco}
+        />;
+      case 'EditarEspaco':
+        return <Dashboard_Editar_Espaco 
+          espaco={espacoParaEditar} 
+          onVoltar={() => {
+            setPaginaAtual('Espaco');
+            setEspacoParaEditar(null);
+          }}
+        />;
       default:
         return <Dashboard_Home />;
     }

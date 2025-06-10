@@ -35,4 +35,10 @@ export const userService = {
         return response.data;
     },
 
+    // Atualizar dados do usuário
+    async updateUser(userId, userData) {
+        const response = await api.put(`/users/updateUser/${userId}`, userData);
+        return response.data;
+    }
+
 };

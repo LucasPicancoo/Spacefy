@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
+import { FaStar, FaRegStar, FaStarHalfAlt, FaChevronDown } from "react-icons/fa";
 import { BsCurrencyDollar } from "react-icons/bs";
-import { MdCalendarToday } from "react-icons/md";
+import { MdCalendarToday, MdEdit } from "react-icons/md";
 import { FaWifi } from "react-icons/fa";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import CommentsModal from "../../Components/CommentsModal";
@@ -22,12 +22,16 @@ function renderStars(avaliacao) {
   return stars;
 }
 
-export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
+export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEspaco }) {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
   const [espacos, setEspacos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+<<<<<<< HEAD
   const [historicoReservas, setHistoricoReservas] = useState([]);
+=======
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+>>>>>>> a1b240a9468beafa61c03d34243789def6f68fab
   const { user } = useUser();
 
   useEffect(() => {
@@ -126,7 +130,15 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
     <div className="w-full h-full p-6 flex gap-6">
       {/* Conteúdo principal */}
       <div className="flex-1 bg-white rounded-xl shadow-lg p-6 flex flex-col gap-6">
-        <h2 className="text-3xl font-bold mb-2">{espacoSelecionado.space_name}</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold mb-2">{espacoSelecionado.space_name}</h2>
+          <button
+            onClick={() => onEditarEspaco(espacoSelecionado)}
+            className="flex items-center gap-1 bg-[#1486B8] hover:bg-[#0f6a94] text-white font-semibold py-1 px-3 rounded-lg text-sm transition duration-300 ease-in-out shadow cursor-pointer"
+          >
+            <MdEdit /> Editar
+          </button>
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_256px] gap-6">
           {/* Gráfico */}
           <div className="bg-white rounded-lg p-4 flex flex-col items-center justify-center min-h-[550px]">
@@ -181,12 +193,25 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
           </div>
           {/* Card lateral */}
           <div className="bg-gradient-to-br from-[#eaf6fd] to-[#b2d6f7] rounded-xl shadow p-4 flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-lg font-bold"><BsCurrencyDollar /> Preço</div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-lg font-bold"><BsCurrencyDollar /> Preço</div>
+            </div>
             <div className="text-base font-semibold">R$ {espacoSelecionado.price_per_hour}/hora</div>
             <div className="flex items-center gap-2 text-base font-bold mt-2"><MdCalendarToday /> Dias de funcionamento</div>
             <div className="text-sm">{espacoSelecionado.week_days.join(", ")}</div>
             <div className="flex items-center gap-2 text-base font-bold mt-2"><FaWifi /> Comodidades</div>
-            <div className="text-sm">{espacoSelecionado.space_amenities.join(", ")}</div>
+            <div className="text-sm">
+              {espacoSelecionado.space_amenities.slice(0, showAllAmenities ? undefined : 8).join(", ")}
+              {espacoSelecionado.space_amenities.length > 8 && (
+                <button
+                  onClick={() => setShowAllAmenities(!showAllAmenities)}
+                  className="ml-2 text-[#1486B8] hover:text-[#0f6a94] font-medium flex items-center gap-1 cursor-pointer"
+                >
+                  {showAllAmenities ? "Ver menos" : "Ver mais"}
+                  <FaChevronDown className={`transition-transform duration-300 ${showAllAmenities ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+            </div>
             <div className="text-base font-bold mt-2">Dias já alugados</div>
             {/* Placeholder do calendário */}
             <div className="bg-white rounded-lg p-2 shadow mt-1">

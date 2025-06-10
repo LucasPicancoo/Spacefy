@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
+import { FaStar, FaRegStar, FaStarHalfAlt, FaChevronDown } from "react-icons/fa";
 import { BsCurrencyDollar } from "react-icons/bs";
 import { MdCalendarToday, MdEdit } from "react-icons/md";
 import { FaWifi } from "react-icons/fa";
@@ -26,6 +26,7 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
   const [espacos, setEspacos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
   const { user } = useUser();
 
   useEffect(() => {
@@ -103,7 +104,18 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
             <div className="flex items-center gap-2 text-base font-bold mt-2"><MdCalendarToday /> Dias de funcionamento</div>
             <div className="text-sm">{espacoSelecionado.week_days.join(", ")}</div>
             <div className="flex items-center gap-2 text-base font-bold mt-2"><FaWifi /> Comodidades</div>
-            <div className="text-sm">{espacoSelecionado.space_amenities.join(", ")}</div>
+            <div className="text-sm">
+              {espacoSelecionado.space_amenities.slice(0, showAllAmenities ? undefined : 8).join(", ")}
+              {espacoSelecionado.space_amenities.length > 8 && (
+                <button
+                  onClick={() => setShowAllAmenities(!showAllAmenities)}
+                  className="ml-2 text-[#1486B8] hover:text-[#0f6a94] font-medium flex items-center gap-1"
+                >
+                  {showAllAmenities ? "Ver menos" : "Ver mais"}
+                  <FaChevronDown className={`transition-transform duration-300 ${showAllAmenities ? 'rotate-180' : ''}`} />
+                </button>
+              )}
+            </div>
             <div className="text-base font-bold mt-2">Dias já alugados</div>
             {/* Placeholder do calendário */}
             <div className="bg-white rounded-lg p-2 shadow mt-1">

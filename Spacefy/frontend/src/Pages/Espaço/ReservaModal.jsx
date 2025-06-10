@@ -75,6 +75,8 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const fetchRentedDates = async () => {
         try {
             const response = await rentalService.getRentedDatesBySpace(space._id);
+            console.log('Resposta do backend:', response); // Debug
+            console.log('Datas reservadas:', response.dates); // Debug
             setRentedDates(response.dates || []);
         } catch (error) {
             console.error("Erro ao buscar datas reservadas:", error);
@@ -93,11 +95,18 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                    date.getFullYear() === localBlocked.getFullYear();
         });
 
-        // Verifica se o dia da semana está permitido
-        const dayOfWeek = date.getDay();
-        const isAllowedWeekDay = space?.week_days?.some(day => diasSemana[day] === dayOfWeek);
+        // Se a data estiver bloqueada manualmente, retorna true
+        if (isBlockedDate) return true;
 
-        return isBlockedDate || !isAllowedWeekDay;
+        // Verifica se o dia da semana está configurado no espaço
+        const dayOfWeek = date.getDay();
+        const dayName = Object.keys(diasSemana).find(key => diasSemana[key] === dayOfWeek);
+        const isDayConfigured = space?.weekly_days?.some(day => day.day === dayName);
+
+        // Se o dia não estiver configurado, bloqueia
+        if (!isDayConfigured) return true;
+
+        return false;
     };
 
     const calculateTotalHours = () => {
@@ -161,22 +170,30 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             if (rentedDate) {
                 // Se for a data inicial, verifica se o horário de início é anterior ao horário reservado
                 if (currentDate.getTime() === start.getTime() && startTime) {
-                    const [startHour, startMinute] = rentedDate.startTime.split(':').map(Number);
-                    const startInMinutes = startHour * 60 + startMinute;
-                    const selectedStartInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+                    const isStartTimeBlocked = rentedDate.times.some(timeRange => {
+                        const [startHour, startMinute] = timeRange.startTime.split(':').map(Number);
+                        const startInMinutes = startHour * 60 + startMinute;
+                        const selectedStartInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+                        
+                        return selectedStartInMinutes < startInMinutes;
+                    });
                     
-                    if (selectedStartInMinutes < startInMinutes) {
+                    if (isStartTimeBlocked) {
                         return true;
                     }
                 }
                 
                 // Se for a data final, verifica se o horário de término é posterior ao horário reservado
                 if (currentDate.getTime() === end.getTime() && endTime) {
-                    const [endHour, endMinute] = rentedDate.endTime.split(':').map(Number);
-                    const endInMinutes = endHour * 60 + endMinute;
-                    const selectedEndInMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+                    const isEndTimeBlocked = rentedDate.times.some(timeRange => {
+                        const [endHour, endMinute] = timeRange.endTime.split(':').map(Number);
+                        const endInMinutes = endHour * 60 + endMinute;
+                        const selectedEndInMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+                        
+                        return selectedEndInMinutes > endInMinutes;
+                    });
                     
-                    if (selectedEndInMinutes > endInMinutes) {
+                    if (isEndTimeBlocked) {
                         return true;
                     }
                 }
@@ -280,19 +297,21 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     };
 
     const isTimeInOperatingHours = (time) => {
-        if (!time || !space?.weekly_days) return false;
+        if (!time || !space?.weekly_days || space.weekly_days.length === 0) return true;
 
         const dayOfWeek = startDate ? startDate.getDay() : new Date().getDay();
         const dayName = Object.keys(diasSemana).find(key => diasSemana[key] === dayOfWeek);
         
         const daySchedule = space.weekly_days.find(day => day.day === dayName);
-        if (!daySchedule) return false;
+        if (!daySchedule || !daySchedule.time_ranges || daySchedule.time_ranges.length === 0) return true;
 
         const timeHour = time.getHours();
         const timeMinute = time.getMinutes();
         const timeInMinutes = timeHour * 60 + timeMinute;
 
         return daySchedule.time_ranges.some(range => {
+            if (!range.open || !range.close) return true;
+            
             const [openHour, openMinute] = range.open.split(':').map(Number);
             const [closeHour, closeMinute] = range.close.split(':').map(Number);
             
@@ -306,59 +325,6 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             
             return timeInMinutes >= openInMinutes && timeInMinutes <= closeInMinutes;
         });
-    };
-
-    const validateTimeRange = (start, end) => {
-        if (!start || !end || !space?.weekly_days) return false;
-
-        const dayOfWeek = startDate ? startDate.getDay() : new Date().getDay();
-        const dayName = Object.keys(diasSemana).find(key => diasSemana[key] === dayOfWeek);
-        const daySchedule = space.weekly_days.find(day => day.day === dayName);
-        
-        if (!daySchedule) return false;
-
-        const startHour = start.getHours();
-        const startMinute = start.getMinutes();
-        const endHour = end.getHours();
-        const endMinute = end.getMinutes();
-        
-        let startInMinutes = startHour * 60 + startMinute;
-        let endInMinutes = endHour * 60 + endMinute;
-
-        // Verifica se o espaço tem horário noturno
-        const isOvernight = hasOvernightSchedule();
-
-        // Ajusta para reservas noturnas (fim menor que início)
-        let totalMinutes = endInMinutes - startInMinutes;
-        if (totalMinutes <= 0) {
-            if (!isOvernight) {
-                setTimeError("O horário de término deve ser posterior ao horário de início.");
-                return false;
-            }
-            totalMinutes += 24 * 60;
-        }
-
-        // Para cada intervalo de 30 minutos entre início e fim, verifica se está dentro de algum range de funcionamento
-        for (let i = 0; i <= totalMinutes; i += 30) {
-            let currentMinutes = (startInMinutes + i) % (24 * 60);
-            const isInOperating = daySchedule.time_ranges.some(range => {
-                const [openHour, openMinute] = range.open.split(':').map(Number);
-                const [closeHour, closeMinute] = range.close.split(':').map(Number);
-                const openInMinutes = openHour * 60 + openMinute;
-                const closeInMinutes = closeHour * 60 + closeMinute;
-                if (closeInMinutes < openInMinutes) {
-                    // Noturno
-                    return currentMinutes >= openInMinutes || currentMinutes <= closeInMinutes;
-                }
-                return currentMinutes >= openInMinutes && currentMinutes <= closeInMinutes;
-            });
-            if (!isInOperating) {
-                setTimeError("O período selecionado inclui horários fora do período de funcionamento.");
-                return false;
-            }
-        }
-
-        return true;
     };
 
     const handleStartTimeChange = (time) => {
@@ -378,16 +344,87 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         setTimeError("");
         
         if (!startTime) {
-            setEndTime(time);
+            setTimeError("Selecione primeiro o horário de início");
             return;
         }
 
-        if (validateTimeRange(startTime, time)) {
-            setEndTime(time);
-            setTimeError("");
-        } else {
+        if (!time) {
             setEndTime(null);
+            return;
         }
+
+        const startHour = startTime.getHours();
+        const startMinute = startTime.getMinutes();
+        const endHour = time.getHours();
+        const endMinute = time.getMinutes();
+        
+        let startInMinutes = startHour * 60 + startMinute;
+        let endInMinutes = endHour * 60 + endMinute;
+
+        // Se o horário de término for menor que o de início, assume que é no dia seguinte
+        if (endInMinutes <= startInMinutes) {
+            endInMinutes += 24 * 60;
+        }
+
+        // Verifica se o intervalo é de pelo menos 30 minutos
+        if (endInMinutes - startInMinutes < 30) {
+            setTimeError("O intervalo mínimo deve ser de 30 minutos");
+            return;
+        }
+
+        setEndTime(time);
+        setTimeError("");
+    };
+
+    const validateTimeRange = (start, end) => {
+        if (!start || !end || !space?.weekly_days) return true;
+
+        const dayOfWeek = startDate ? startDate.getDay() : new Date().getDay();
+        const dayName = Object.keys(diasSemana).find(key => diasSemana[key] === dayOfWeek);
+        const daySchedule = space.weekly_days.find(day => day.day === dayName);
+        
+        if (!daySchedule) return true;
+
+        const startHour = start.getHours();
+        const startMinute = start.getMinutes();
+        const endHour = end.getHours();
+        const endMinute = end.getMinutes();
+        
+        let startInMinutes = startHour * 60 + startMinute;
+        let endInMinutes = endHour * 60 + endMinute;
+
+        // Se o horário de término for menor que o de início, assume que é no dia seguinte
+        if (endInMinutes <= startInMinutes) {
+            endInMinutes += 24 * 60;
+        }
+
+        // Verifica se o intervalo é de pelo menos 30 minutos
+        if (endInMinutes - startInMinutes < 30) {
+            setTimeError("O intervalo mínimo deve ser de 30 minutos");
+            return false;
+        }
+
+        // Verifica se o horário selecionado conflita com alguma reserva existente
+        const selectedDate = startDate.toISOString().split('T')[0];
+        const rentedDate = rentedDates.find(date => date.date === selectedDate);
+
+        if (rentedDate) {
+            const [rentedStartHour, rentedStartMinute] = rentedDate.startTime.split(':').map(Number);
+            const [rentedEndHour, rentedEndMinute] = rentedDate.endTime.split(':').map(Number);
+            
+            const rentedStartInMinutes = rentedStartHour * 60 + rentedStartMinute;
+            const rentedEndInMinutes = rentedEndHour * 60 + rentedEndMinute;
+
+            // Verifica se há sobreposição de horários
+            if ((startInMinutes >= rentedStartInMinutes && startInMinutes < rentedEndInMinutes) ||
+                (endInMinutes > rentedStartInMinutes && endInMinutes <= rentedEndInMinutes) ||
+                (startInMinutes <= rentedStartInMinutes && endInMinutes >= rentedEndInMinutes)) {
+                setTimeError("Este horário conflita com uma reserva existente.");
+                return false;
+            }
+        }
+
+        return true;
     };
 
     const isTimeBlocked = (time) => {
@@ -396,28 +433,143 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         const selectedDate = startDate.toISOString().split('T')[0];
         const rentedDate = rentedDates.find(date => date.date === selectedDate);
 
-        if (!rentedDate) return false;
+        if (!rentedDate) {
+            console.log('Nenhuma reserva encontrada para a data:', selectedDate); // Debug
+            return false;
+        }
 
         const timeHour = time.getHours();
         const timeMinute = time.getMinutes();
         const timeInMinutes = timeHour * 60 + timeMinute;
 
-        const [startHour, startMinute] = rentedDate.startTime.split(':').map(Number);
-        const [endHour, endMinute] = rentedDate.endTime.split(':').map(Number);
+        console.log('Verificando horário:', timeInMinutes, 'para data:', selectedDate); // Debug
+        console.log('Reservas existentes:', rentedDate.times); // Debug
 
-        const startInMinutes = startHour * 60 + startMinute;
-        const endInMinutes = endHour * 60 + endMinute;
+        // Verifica se o horário está em algum dos intervalos reservados
+        const isBlocked = rentedDate.times.some(timeRange => {
+            const [startHour, startMinute] = timeRange.startTime.split(':').map(Number);
+            const [endHour, endMinute] = timeRange.endTime.split(':').map(Number);
 
-        // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
-        if (endInMinutes < startInMinutes) {
-            return timeInMinutes >= startInMinutes || timeInMinutes <= endInMinutes;
-        }
+            const startInMinutes = startHour * 60 + startMinute;
+            const endInMinutes = endHour * 60 + endMinute;
 
-        return timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
+            console.log('Comparando com reserva:', startInMinutes, 'até', endInMinutes); // Debug
+
+            // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+            if (endInMinutes < startInMinutes) {
+                // Para horários noturnos, verifica se o horário está dentro do período reservado
+                const isBlocked = (timeInMinutes >= startInMinutes && timeInMinutes <= 24 * 60) || 
+                                (timeInMinutes >= 0 && timeInMinutes <= endInMinutes);
+                console.log('Horário noturno bloqueado:', isBlocked); // Debug
+                return isBlocked;
+            }
+
+            // Para horários normais, verifica se está dentro do intervalo reservado
+            const isBlocked = timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
+            console.log('Horário normal bloqueado:', isBlocked); // Debug
+            return isBlocked;
+        });
+
+        console.log('Horário bloqueado:', isBlocked); // Debug
+        return isBlocked;
     };
 
     const filterTime = (time) => {
-        return isTimeInOperatingHours(time) && !isTimeBlocked(time);
+        try {
+            if (!time) return false;
+            
+            // Se não houver horários definidos, permite todos os horários
+            if (!space?.weekly_days || space.weekly_days.length === 0) {
+                return true;
+            }
+
+            const dayOfWeek = startDate ? startDate.getDay() : new Date().getDay();
+            const dayName = Object.keys(diasSemana).find(key => diasSemana[key] === dayOfWeek);
+            
+            const daySchedule = space.weekly_days.find(day => day.day === dayName);
+            if (!daySchedule || !daySchedule.time_ranges || daySchedule.time_ranges.length === 0) {
+                return true;
+            }
+
+            const timeHour = time.getHours();
+            const timeMinute = time.getMinutes();
+            const timeInMinutes = timeHour * 60 + timeMinute;
+
+            // Verifica se o horário está em algum dos intervalos permitidos
+            const isInOperatingHours = daySchedule.time_ranges.some(range => {
+                if (!range.open || !range.close) return true;
+
+                try {
+                    const [openHour, openMinute] = range.open.split(':').map(Number);
+                    const [closeHour, closeMinute] = range.close.split(':').map(Number);
+                    
+                    const openInMinutes = openHour * 60 + openMinute;
+                    const closeInMinutes = closeHour * 60 + closeMinute;
+                    
+                    // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+                    if (closeInMinutes < openInMinutes) {
+                        // Para horários noturnos, permite qualquer horário entre a abertura e o fechamento
+                        return timeInMinutes >= openInMinutes || timeInMinutes <= closeInMinutes;
+                    }
+                    
+                    // Para horários normais, verifica se está dentro do intervalo
+                    return timeInMinutes >= openInMinutes && timeInMinutes <= closeInMinutes;
+                } catch (error) {
+                    console.error('Erro ao processar intervalo de horário:', error);
+                    return true;
+                }
+            });
+
+            if (!isInOperatingHours) {
+                console.log('Horário fora do período de funcionamento'); // Debug
+                return false;
+            }
+
+            // Verifica se o horário está em algum dos intervalos já reservados
+            if (startDate) {
+                const dateStr = startDate.toISOString().split('T')[0];
+                const rentedDate = rentedDates.find(date => date.date === dateStr);
+
+                if (rentedDate) {
+                    console.log('Verificando reservas para data:', dateStr); // Debug
+                    console.log('Reservas existentes:', rentedDate.times); // Debug
+
+                    const isTimeReserved = rentedDate.times.some(timeRange => {
+                        const [startHour, startMinute] = timeRange.startTime.split(':').map(Number);
+                        const [endHour, endMinute] = timeRange.endTime.split(':').map(Number);
+                        
+                        const startInMinutes = startHour * 60 + startMinute;
+                        const endInMinutes = endHour * 60 + endMinute;
+
+                        console.log('Comparando horário:', timeInMinutes, 'com reserva:', startInMinutes, 'até', endInMinutes); // Debug
+
+                        // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+                        if (endInMinutes < startInMinutes) {
+                            // Para horários noturnos, verifica se o horário está dentro do período reservado
+                            const isReserved = (timeInMinutes >= startInMinutes && timeInMinutes <= 24 * 60) || 
+                                             (timeInMinutes >= 0 && timeInMinutes <= endInMinutes);
+                            console.log('Horário noturno reservado:', isReserved); // Debug
+                            return isReserved;
+                        }
+
+                        // Para horários normais, verifica se está dentro do intervalo reservado
+                        const isReserved = timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
+                        console.log('Horário normal reservado:', isReserved); // Debug
+                        return isReserved;
+                    });
+
+                    if (isTimeReserved) {
+                        console.log('Horário bloqueado por reserva existente'); // Debug
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Erro ao filtrar horário:', error);
+            return true;
+        }
     };
 
     if (!isOpen) return null;
@@ -481,6 +633,11 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                         className="w-full p-2 border border-gray-300 rounded-md text-center"
                                         placeholderText="Selecione o horário"
                                         filterTime={filterTime}
+                                        minTime={new Date(0, 0, 0, 0, 0)}
+                                        maxTime={new Date(0, 0, 0, 23, 59)}
+                                        timeFormat="HH:mm"
+                                        injectTimes={[]}
+                                        openToDate={new Date()}
                                     />
                                 </div>
                                 <div className="flex flex-col items-center w-1/2">
@@ -496,6 +653,11 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                         className="w-full p-2 border border-gray-300 rounded-md text-center"
                                         placeholderText="Selecione o horário"
                                         filterTime={filterTime}
+                                        minTime={new Date(0, 0, 0, 0, 0)}
+                                        maxTime={new Date(0, 0, 0, 23, 59)}
+                                        timeFormat="HH:mm"
+                                        injectTimes={[]}
+                                        openToDate={new Date()}
                                     />
                                 </div>
                             </div>

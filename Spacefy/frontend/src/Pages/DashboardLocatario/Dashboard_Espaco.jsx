@@ -3,6 +3,7 @@ import { FaStar, FaRegStar, FaStarHalfAlt } from "react-icons/fa";
 import { BsCurrencyDollar } from "react-icons/bs";
 import { MdCalendarToday } from "react-icons/md";
 import { FaWifi } from "react-icons/fa";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import CommentsModal from "../../Components/CommentsModal";
 import { spaceService } from "../../services/spaceService";
 import { useUser } from "../../Contexts/UserContext";
@@ -26,6 +27,7 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
   const [espacos, setEspacos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [historicoReservas, setHistoricoReservas] = useState([]);
   const { user } = useUser();
 
   useEffect(() => {
@@ -46,6 +48,53 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
       buscarEspacos();
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    const buscarHistoricoReservas = async () => {
+      if (espacos.length > 0) {
+        const espacoSelecionado = espacos[subEspacoSelecionado] || espacos[0];
+        try {
+          console.log('Buscando reservas para o espaço:', espacoSelecionado._id);
+          const data = await spaceService.getRentedDatesBySpace(espacoSelecionado._id);
+          console.log('Dados brutos recebidos da API:', data);
+          
+          if (!data.dates || data.dates.length === 0) {
+            console.log('Nenhuma data de reserva encontrada');
+            setHistoricoReservas([]);
+            return;
+          }
+
+          // Processar os dados para o formato do gráfico
+          const reservasPorDia = {};
+          data.dates.forEach(reserva => {
+            const dataISO = reserva.date;
+            if (!reservasPorDia[dataISO]) {
+              reservasPorDia[dataISO] = 0;
+            }
+            // Incrementa a contagem para cada horário diferente na mesma data
+            reservasPorDia[dataISO] += reserva.times.length;
+          });
+
+          console.log('Reservas por dia (contagem detalhada):', reservasPorDia);
+
+          const dadosGrafico = Object.entries(reservasPorDia)
+            .map(([dataISO, quantidade]) => ({
+              dataISO,
+              reservas: quantidade
+            }))
+            .sort((a, b) => new Date(a.dataISO) - new Date(b.dataISO));
+
+          console.log('Dados formatados para o gráfico:', dadosGrafico);
+          setHistoricoReservas(dadosGrafico);
+        } catch (error) {
+          console.error('Erro ao buscar histórico de reservas:', error);
+          setHistoricoReservas([]);
+        }
+      }
+    };
+
+    buscarHistoricoReservas();
+  }, [espacos, subEspacoSelecionado]);
 
   if (loading) {
     return (
@@ -81,9 +130,53 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0 }) {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_256px] gap-6">
           {/* Gráfico */}
           <div className="bg-white rounded-lg p-4 flex flex-col items-center justify-center min-h-[550px]">
-            {/* Placeholder do gráfico igual ao da Home */}
-            <div className="h-[550px] flex items-center justify-center bg-blue-50 rounded w-full">
-              <span className="text-gray-400">[Gráfico de linhas aqui]</span>
+            <div className="h-[550px] w-full">
+              {historicoReservas.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={historicoReservas}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="dataISO"
+                      tickFormatter={dataISO => {
+                        const [year, month, day] = dataISO.split('-');
+                        return `${day}/${month}/${year}`;
+                      }}
+                      tick={{ fontSize: 12 }}
+                      angle={-45}
+                      textAnchor="end"
+                      height={60}
+                    />
+                    <YAxis 
+                      label={{ 
+                        value: 'Número de Reservas', 
+                        angle: -90, 
+                        position: 'insideLeft',
+                        style: { textAnchor: 'middle' }
+                      }}
+                      tickFormatter={(value) => Math.round(value)}
+                      domain={[0, (dataMax) => Math.max(dataMax + 2, 5)]}
+                      allowDecimals={false}
+                      tickCount={6}
+                    />
+                    <Tooltip 
+                      formatter={(value) => [Math.round(value), 'Reservas']}
+                      labelFormatter={(label) => `Data: ${label}`}
+                    />
+                    <Line 
+                      type="linear" 
+                      dataKey="reservas" 
+                      stroke="#1486B8" 
+                      strokeWidth={2}
+                      dot={{ fill: '#1486B8' }}
+                      activeDot={{ r: 8 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full w-full flex items-center justify-center">
+                  <p className="text-gray-500 text-lg">Nenhum dado de reserva disponível para exibição</p>
+                </div>
+              )}
             </div>
           </div>
           {/* Card lateral */}

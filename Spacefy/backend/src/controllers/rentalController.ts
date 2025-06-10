@@ -289,22 +289,36 @@ export const getRentedDatesBySpace = async (req: Request, res: Response) => {
       return;
     }
 
-    // Gerar array com todas as datas reservadas e seus horários
-    const allRentedDates = rentals.reduce((dates: any[], rental) => {
+    // Criar um mapa para agrupar os horários por data
+    const dateMap = new Map();
+
+    rentals.forEach(rental => {
       const datesBetween = getDatesBetween(rental.start_date, rental.end_date);
-      return [...dates, ...datesBetween.map(date => ({
-        date: date.toISOString().split("T")[0],
-        startTime: rental.startTime,
-        endTime: rental.endTime
-      }))];
-    }, []);
+      
+      datesBetween.forEach(date => {
+        const dateStr = date.toISOString().split("T")[0];
+        if (!dateMap.has(dateStr)) {
+          dateMap.set(dateStr, []);
+        }
+        dateMap.get(dateStr).push({
+          startTime: rental.startTime,
+          endTime: rental.endTime
+        });
+      });
+    });
 
-    // Remover duplicatas mantendo os horários
-    const uniqueDates = Array.from(new Map(
-      allRentedDates.map(item => [item.date, item])
-    ).values()).sort((a, b) => a.date.localeCompare(b.date));
+    // Converter o mapa para o formato de resposta desejado
+    const formattedDates = Array.from(dateMap.entries()).map(([date, times]) => ({
+      date,
+      times: times.map((time: { startTime: string; endTime: string }) => ({
+        startTime: time.startTime,
+        endTime: time.endTime
+      }))
+    }));
 
-    res.status(200).json({ dates: uniqueDates });
+    console.log('Datas formatadas:', formattedDates); // Debug
+
+    res.status(200).json({ dates: formattedDates });
     return;
   } catch (error) {
     console.error("Erro ao buscar datas reservadas:", error);

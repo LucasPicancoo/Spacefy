@@ -90,11 +90,23 @@ export const createUser = async (req: Request, res: Response) => {
 // Atualizar um usuário
 export const updateUser = async (req: Request, res: Response) => {
   try {
+    if (!req.auth) {
+      res.status(401).json({ error: "Autenticação necessária" });
+      return;
+    }
+
     const { id } = req.params;
     const { name, email, telephone, password, surname } = req.body;
+    const { id: userId } = req.auth;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       res.status(400).json({ error: "ID de usuário inválido." });
+      return;
+    }
+
+    // Verifica se o usuário que está fazendo a requisição é o próprio usuário
+    if (userId !== id) {
+      res.status(403).json({ error: "Você só pode atualizar seus próprios dados." });
       return;
     }
 
@@ -122,7 +134,29 @@ export const updateUser = async (req: Request, res: Response) => {
       return;
     }
 
-    res.status(200).json(updatedUser);
+    // Gera um novo token com os dados atualizados
+    const authenticator = new Authenticator();
+    const token = authenticator.generateToken({
+      id: updatedUser._id.toString(),
+      name: updatedUser.name,
+      surname: updatedUser.surname,
+      email: updatedUser.email,
+      telephone: updatedUser.telephone,
+      role: updatedUser.role,
+    });
+
+    // Atualiza o token no cookie
+    res.cookie("token", token, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 dia
+    });
+
+    res.status(200).json({
+      message: "Usuário atualizado com sucesso.",
+      user: updatedUser,
+      token
+    });
     return;
   } catch (error: any) {
     console.error("Erro ao atualizar usuário:", error);

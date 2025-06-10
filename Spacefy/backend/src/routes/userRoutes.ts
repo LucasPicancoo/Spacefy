@@ -20,7 +20,7 @@ userRouter.get("/getAllUsers", validateAndGetTokenData, getAllUsers);
 userRouter.post("/createUser", createUser);
 
 //Rota para atualizar o usuario pelo ID
-userRouter.put("/updateUser/:id", updateUser);
+userRouter.put("/updateUser/:id", validateAndGetTokenData, updateUser);
 
 //Rota para deletar o usuario pelo ID
 userRouter.delete("/deleteUser/:id", validateAndGetTokenData, deleteUser);

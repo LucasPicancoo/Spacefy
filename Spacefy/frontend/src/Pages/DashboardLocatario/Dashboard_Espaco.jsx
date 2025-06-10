@@ -109,7 +109,7 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
               {espacoSelecionado.space_amenities.length > 8 && (
                 <button
                   onClick={() => setShowAllAmenities(!showAllAmenities)}
-                  className="ml-2 text-[#1486B8] hover:text-[#0f6a94] font-medium flex items-center gap-1"
+                  className="ml-2 text-[#1486B8] hover:text-[#0f6a94] font-medium flex items-center gap-1 cursor-pointer"
                 >
                   {showAllAmenities ? "Ver menos" : "Ver mais"}
                   <FaChevronDown className={`transition-transform duration-300 ${showAllAmenities ? 'rotate-180' : ''}`} />

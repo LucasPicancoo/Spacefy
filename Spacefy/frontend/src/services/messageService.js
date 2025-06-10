@@ -40,6 +40,33 @@ const getSocket = () => {
     return socket;
 };
 
+// Função para garantir que o socket está conectado
+const ensureSocketConnected = () => {
+    return new Promise((resolve, reject) => {
+        const socket = getSocket();
+        
+        if (socket.connected) {
+            resolve(socket);
+            return;
+        }
+
+        // Se não estiver conectado, espera a conexão
+        const timeout = setTimeout(() => {
+            reject(new Error('Timeout ao conectar socket'));
+        }, 5000);
+
+        socket.once('connect', () => {
+            clearTimeout(timeout);
+            resolve(socket);
+        });
+
+        socket.once('connect_error', (error) => {
+            clearTimeout(timeout);
+            reject(error);
+        });
+    });
+};
+
 // Entrar em uma sala (para receber mensagens)
 const joinRoom = (roomId) => {
     const socket = getSocket();
@@ -58,7 +85,19 @@ export const messageService = {
         return response.data;
     },
 
-    sendMessage(senderId, receiverId, message, conversationId) {
+    async createConversation(senderId, receiverId) {
+        console.log('Criando conversa com:', { senderId, receiverId });
+        const response = await api.post('/chat/conversations', {
+            senderId,
+            receiverId,
+            lastMessage: "Conversa iniciada",
+            read: false
+        });
+        console.log('Resposta da criação da conversa:', response.data);
+        return response.data;
+    },
+
+    async sendMessage(senderId, receiverId, message, conversationId) {
         console.log('Tentando enviar mensagem:', { senderId, receiverId, message, conversationId });
         
         // Verificar se o usuário está tentando enviar mensagem para si mesmo
@@ -67,27 +106,25 @@ export const messageService = {
             return Promise.reject(new Error('Você não pode enviar mensagens para si mesmo'));
         }
 
-        const socket = getSocket();
-        
-        if (!socket.connected) {
-            console.error('Socket não está conectado!');
-            return Promise.reject(new Error('Socket não está conectado'));
+        try {
+            // Garantir que o socket está conectado
+            const socket = await ensureSocketConnected();
+            
+            const messageData = {
+                senderId,
+                receiverId,
+                message,
+                conversationId,
+                timestamp: new Date()
+            };
+
+            socket.emit('send_message', messageData);
+            console.log('Mensagem enviada:', messageData);
+            return Promise.resolve();
+        } catch (error) {
+            console.error('Erro ao conectar socket:', error);
+            return Promise.reject(error);
         }
-
-        // Garantir que estamos na sala da conversa
-        joinRoom(conversationId);
-
-        const messageData = {
-            senderId,
-            receiverId,
-            message,
-            conversationId,
-            timestamp: new Date()
-        };
-
-        socket.emit('send_message', messageData);
-        console.log('Mensagem enviada:', messageData);
-        return Promise.resolve();
     },
 
     onMessageReceived(callback) {

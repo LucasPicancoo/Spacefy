@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { getUserConversations, getConversationMessages } from "../controllers/chatController";
+import { getUserConversations, getConversationMessages, createConversation } from "../controllers/chatController";
 import { validateAndGetTokenData } from "../middlewares/token";
 
 const router = Router();
@@ -9,5 +9,8 @@ router.get("/conversations/:userId", validateAndGetTokenData, getUserConversatio
 
 // Lista mensagens de uma conversa específica
 router.get("/messages/:conversationId", validateAndGetTokenData, getConversationMessages);
+
+// Criar uma nova conversa
+router.post("/conversations", validateAndGetTokenData, createConversation);
 
 export default router;

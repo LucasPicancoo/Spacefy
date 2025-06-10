@@ -169,10 +169,10 @@ export default function Messages({ showHeader = true }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConversation) return;
+    if (!newMessage.trim()) return;
 
     // Determinar o destinatário correto
-    const receiverId = selectedConversation.otherUserId;
+    const receiverId = selectedConversation?.otherUserId || new URLSearchParams(location.search).get('receiverId');
     
     // Verificar se o usuário está tentando enviar mensagem para si mesmo
     if (user.id === receiverId) {
@@ -181,11 +181,12 @@ export default function Messages({ showHeader = true }) {
     }
 
     try {
+      // Se não houver conversa selecionada, o socket irá criar uma nova automaticamente
       await messageService.sendMessage(
         user.id,
         receiverId,
         newMessage,
-        selectedConversation._id
+        selectedConversation?._id
       );
 
       // Limpar o campo de mensagem
@@ -288,16 +289,16 @@ export default function Messages({ showHeader = true }) {
 
         {/* Chat principal */}
         <section className="flex-1 flex flex-col bg-white rounded-xl shadow-lg p-8 min-w-0 h-full min-h-0 box-border">
-          {selectedConversation ? (
+          {selectedConversation || location.search.includes('receiverId') ? (
             <>
               {/* Topo do chat */}
               <div className="flex items-center gap-3 border-b border-gray-200 pb-4 mb-4">
                 <div className="w-8 h-8 rounded-full bg-[#1486B8] flex items-center justify-center text-white">
-                  {selectedConversation.name?.[0] || "U"}
+                  {selectedConversation?.name?.[0] || "U"}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-semibold">{selectedConversation.name}</span>
-                  <span className="text-sm text-gray-500 capitalize">{selectedConversation.role}</span>
+                  <span className="text-xl font-semibold">{selectedConversation?.name || "Nova conversa"}</span>
+                  <span className="text-sm text-gray-500 capitalize">{selectedConversation?.role || "usuário"}</span>
                 </div>
               </div>
               
@@ -316,7 +317,7 @@ export default function Messages({ showHeader = true }) {
                   ) : (
                     <div className="flex items-start gap-2" key={msg._id}>
                       <div className="w-8 h-8 rounded-full bg-[#22346C] flex items-center justify-center text-white">
-                        {selectedConversation.name?.[0] || "U"}
+                        {selectedConversation?.name?.[0] || "U"}
                       </div>
                       <div>
                         <div className="bg-[#22346C] text-white rounded-xl px-5 py-3 max-w-xl shadow-md whitespace-pre-line">

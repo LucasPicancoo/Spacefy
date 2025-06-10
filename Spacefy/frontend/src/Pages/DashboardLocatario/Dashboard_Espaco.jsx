@@ -28,7 +28,11 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 <<<<<<< HEAD
+<<<<<<< HEAD
   const [historicoReservas, setHistoricoReservas] = useState([]);
+=======
+  const [showAllAmenities, setShowAllAmenities] = useState(false);
+>>>>>>> a1b240a9468beafa61c03d34243789def6f68fab
 =======
   const [showAllAmenities, setShowAllAmenities] = useState(false);
 >>>>>>> a1b240a9468beafa61c03d34243789def6f68fab

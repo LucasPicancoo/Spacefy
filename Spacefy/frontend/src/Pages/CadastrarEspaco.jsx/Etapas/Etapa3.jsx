@@ -24,10 +24,17 @@ const ModalImagem = ({ url, onClose }) => (
 
 // Componente para o upload de imagem
 const CampoImagem = ({ value, onChange }) => {
-    const [previewUrls, setPreviewUrls] = useState([]);
+    const [previewUrls, setPreviewUrls] = useState(value || []);
     const [isUploading, setIsUploading] = useState(false);
     const [error, setError] = useState('');
     const [modalUrl, setModalUrl] = useState(null);
+
+    // Efeito para atualizar previewUrls quando value mudar
+    React.useEffect(() => {
+        if (value) {
+            setPreviewUrls(value);
+        }
+    }, [value]);
 
     const handleFileChange = async (e) => {
         const files = Array.from(e.target.files);

@@ -16,6 +16,7 @@ import ComentariosUsuarios from "./ComentariosUsuarios";
 import MapaEspaço from "./MapaEspaço";
 import { useUser } from "../../Contexts/UserContext";
 import MiniChat from "../../Components/MiniChat/MiniChat";
+import { messageService } from "../../services/messageService";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -79,13 +80,13 @@ function Espaço() {
         }
     };
 
-    const handleMessageLocator = () => {
+    const handleMessageLocator = async () => {
         if (!isLoggedIn) {
             // Redirecionar para login se não estiver autenticado
             navigate('/login');
             return;
         }
-        
+
         // Redirecionar para a página de mensagens com o ID do locador
         navigate(`/messages?receiverId=${space.owner_id}`);
     };

@@ -441,14 +441,6 @@ export const createSpace = async (req: Request, res: Response) => {
           res.status(400).json({ error: "Formato de horário inválido. Use HH:mm." });
           return;
         }
-
-        // Validação se o horário de fechamento é posterior ao de abertura
-        const openTime = new Date(`2000-01-01T${range.open}`);
-        const closeTime = new Date(`2000-01-01T${range.close}`);
-        if (closeTime <= openTime) {
-          res.status(400).json({ error: "O horário de fechamento deve ser posterior ao de abertura." });
-          return;
-        }
       }
     }
 

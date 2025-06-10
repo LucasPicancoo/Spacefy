@@ -4,6 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { FaTimes, FaCalendarAlt, FaExclamationTriangle } from "react-icons/fa";
 import "./custom-datepicker.css";
 import { blockedDatesService } from "../../services/blockedDatesService";
+import { rentalService } from "../../services/rentalService";
 
 function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [dateRange, setDateRange] = useState([null, null]);
@@ -13,7 +14,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     const [totalHours, setTotalHours] = useState(0);
     const [totalPrice, setTotalPrice] = useState(0);
     const [blockedDates, setBlockedDates] = useState([]);
-    const [showBlockedDates, setShowBlockedDates] = useState(false);
+    const [rentedDates, setRentedDates] = useState([]);
     const [dateRangeError, setDateRangeError] = useState("");
     const [timeError, setTimeError] = useState("");
 
@@ -27,6 +28,16 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         'sabado': 6
     };
 
+    const clearFormData = () => {
+        setDateRange([null, null]);
+        setStartTime(null);
+        setEndTime(null);
+        setTotalHours(0);
+        setTotalPrice(0);
+        setDateRangeError("");
+        setTimeError("");
+    };
+
     useEffect(() => {
         calculateTotalHours();
     }, [startTime, endTime, dateRange]);
@@ -34,6 +45,9 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     useEffect(() => {
         if (isOpen && space?._id) {
             fetchBlockedDates();
+            fetchRentedDates();
+        } else {
+            clearFormData();
         }
     }, [isOpen, space?._id]);
 
@@ -55,6 +69,15 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             setBlockedDates(dates.blocked_dates || []);
         } catch (error) {
             console.error("Erro ao buscar datas bloqueadas:", error);
+        }
+    };
+
+    const fetchRentedDates = async () => {
+        try {
+            const response = await rentalService.getRentedDatesBySpace(space._id);
+            setRentedDates(response.dates || []);
+        } catch (error) {
+            console.error("Erro ao buscar datas reservadas:", error);
         }
     };
 
@@ -126,19 +149,68 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         
         const currentDate = new Date(start);
         while (currentDate <= end) {
+            // Verifica se a data está bloqueada
             if (isDateBlocked(currentDate)) {
                 return true;
             }
+
+            // Verifica se existe reserva nesta data
+            const dateStr = currentDate.toISOString().split('T')[0];
+            const rentedDate = rentedDates.find(date => date.date === dateStr);
+            
+            if (rentedDate) {
+                // Se for a data inicial, verifica se o horário de início é anterior ao horário reservado
+                if (currentDate.getTime() === start.getTime() && startTime) {
+                    const [startHour, startMinute] = rentedDate.startTime.split(':').map(Number);
+                    const startInMinutes = startHour * 60 + startMinute;
+                    const selectedStartInMinutes = startTime.getHours() * 60 + startTime.getMinutes();
+                    
+                    if (selectedStartInMinutes < startInMinutes) {
+                        return true;
+                    }
+                }
+                
+                // Se for a data final, verifica se o horário de término é posterior ao horário reservado
+                if (currentDate.getTime() === end.getTime() && endTime) {
+                    const [endHour, endMinute] = rentedDate.endTime.split(':').map(Number);
+                    const endInMinutes = endHour * 60 + endMinute;
+                    const selectedEndInMinutes = endTime.getHours() * 60 + endTime.getMinutes();
+                    
+                    if (selectedEndInMinutes > endInMinutes) {
+                        return true;
+                    }
+                }
+            }
+
             currentDate.setDate(currentDate.getDate() + 1);
         }
         return false;
     };
 
+    const hasOvernightSchedule = () => {
+        if (!space?.weekly_days) return false;
+
+        return space.weekly_days.some(day => {
+            return day.time_ranges.some(range => {
+                const [openHour, openMinute] = range.open.split(':').map(Number);
+                const [closeHour, closeMinute] = range.close.split(':').map(Number);
+                
+                const openInMinutes = openHour * 60 + openMinute;
+                const closeInMinutes = closeHour * 60 + closeMinute;
+                
+                return closeInMinutes < openInMinutes;
+            });
+        });
+    };
+
     const handleDateRangeChange = (dates) => {
         const [start, end] = dates;
         
-        // Se tentar selecionar datas diferentes, mantém apenas a primeira data
-        if (start && end && start.getDate() !== end.getDate()) {
+        // Verifica se o espaço tem horário noturno
+        const isOvernight = hasOvernightSchedule();
+        
+        // Se não for horário noturno e tentar selecionar datas diferentes, mantém apenas a primeira data
+        if (!isOvernight && start && end && start.getDate() !== end.getDate()) {
             setDateRange([start, start]);
             setDateRangeError("Não é possível selecionar datas diferentes. O espaço só pode ser alugado no mesmo dia.");
             return;
@@ -148,10 +220,38 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         
         if (start && end) {
             if (hasBlockedDatesInRange(start, end)) {
-                setDateRangeError("Existem datas bloqueadas ou não disponíveis no intervalo selecionado.");
+                const currentDate = new Date(start);
+                let hasReservation = false;
+                
+                while (currentDate <= end) {
+                    const dateStr = currentDate.toISOString().split('T')[0];
+                    const rentedDate = rentedDates.find(date => date.date === dateStr);
+                    
+                    if (rentedDate) {
+                        hasReservation = true;
+                        break;
+                    }
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+                
+                if (hasReservation) {
+                    setDateRangeError("Existem reservas no intervalo selecionado. Por favor, escolha outro período.");
+                } else {
+                    setDateRangeError("Existem datas bloqueadas ou não disponíveis no intervalo selecionado.");
+                }
                 setDateRange([null, null]);
             } else {
                 setDateRangeError("");
+                // Validar se os horários selecionados estão disponíveis na nova data
+                if (startTime && endTime) {
+                    const isStartTimeBlocked = isTimeBlocked(startTime);
+                    const isEndTimeBlocked = isTimeBlocked(endTime);
+                    if (isStartTimeBlocked || isEndTimeBlocked) {
+                        setTimeError("Os horários selecionados não estão disponíveis para esta data.");
+                        setStartTime(null);
+                        setEndTime(null);
+                    }
+                }
             }
         } else {
             setDateRangeError("");
@@ -171,6 +271,12 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             totalHours,
             totalPrice
         });
+        clearFormData();
+    };
+
+    const handleClose = () => {
+        clearFormData();
+        onClose();
     };
 
     const isTimeInOperatingHours = (time) => {
@@ -193,6 +299,11 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
             const openInMinutes = openHour * 60 + openMinute;
             const closeInMinutes = closeHour * 60 + closeMinute;
             
+            // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+            if (closeInMinutes < openInMinutes) {
+                return timeInMinutes >= openInMinutes || timeInMinutes <= closeInMinutes;
+            }
+            
             return timeInMinutes >= openInMinutes && timeInMinutes <= closeInMinutes;
         });
     };
@@ -211,21 +322,43 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         const endHour = end.getHours();
         const endMinute = end.getMinutes();
         
-        const startInMinutes = startHour * 60 + startMinute;
-        const endInMinutes = endHour * 60 + endMinute;
+        let startInMinutes = startHour * 60 + startMinute;
+        let endInMinutes = endHour * 60 + endMinute;
 
-        // Verifica se o horário de início e fim estão dentro do mesmo intervalo de funcionamento
-        return daySchedule.time_ranges.some(range => {
-            const [openHour, openMinute] = range.open.split(':').map(Number);
-            const [closeHour, closeMinute] = range.close.split(':').map(Number);
-            
-            const openInMinutes = openHour * 60 + openMinute;
-            const closeInMinutes = closeHour * 60 + closeMinute;
-            
-            return startInMinutes >= openInMinutes && 
-                   endInMinutes <= closeInMinutes && 
-                   startInMinutes < endInMinutes;
-        });
+        // Verifica se o espaço tem horário noturno
+        const isOvernight = hasOvernightSchedule();
+
+        // Ajusta para reservas noturnas (fim menor que início)
+        let totalMinutes = endInMinutes - startInMinutes;
+        if (totalMinutes <= 0) {
+            if (!isOvernight) {
+                setTimeError("O horário de término deve ser posterior ao horário de início.");
+                return false;
+            }
+            totalMinutes += 24 * 60;
+        }
+
+        // Para cada intervalo de 30 minutos entre início e fim, verifica se está dentro de algum range de funcionamento
+        for (let i = 0; i <= totalMinutes; i += 30) {
+            let currentMinutes = (startInMinutes + i) % (24 * 60);
+            const isInOperating = daySchedule.time_ranges.some(range => {
+                const [openHour, openMinute] = range.open.split(':').map(Number);
+                const [closeHour, closeMinute] = range.close.split(':').map(Number);
+                const openInMinutes = openHour * 60 + openMinute;
+                const closeInMinutes = closeHour * 60 + closeMinute;
+                if (closeInMinutes < openInMinutes) {
+                    // Noturno
+                    return currentMinutes >= openInMinutes || currentMinutes <= closeInMinutes;
+                }
+                return currentMinutes >= openInMinutes && currentMinutes <= closeInMinutes;
+            });
+            if (!isInOperating) {
+                setTimeError("O período selecionado inclui horários fora do período de funcionamento.");
+                return false;
+            }
+        }
+
+        return true;
     };
 
     const handleStartTimeChange = (time) => {
@@ -243,20 +376,48 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
 
     const handleEndTimeChange = (time) => {
         setTimeError("");
-        if (!isTimeInOperatingHours(time)) {
-            setTimeError("Este horário não está dentro do período de funcionamento.");
+        
+        if (!startTime) {
+            setEndTime(time);
             return;
         }
-        if (startTime && validateTimeRange(startTime, time)) {
+
+        if (validateTimeRange(startTime, time)) {
             setEndTime(time);
+            setTimeError("");
         } else {
             setEndTime(null);
-            setTimeError("O horário de término deve estar dentro do mesmo período de funcionamento do horário de início.");
         }
     };
 
+    const isTimeBlocked = (time) => {
+        if (!time || !startDate) return false;
+
+        const selectedDate = startDate.toISOString().split('T')[0];
+        const rentedDate = rentedDates.find(date => date.date === selectedDate);
+
+        if (!rentedDate) return false;
+
+        const timeHour = time.getHours();
+        const timeMinute = time.getMinutes();
+        const timeInMinutes = timeHour * 60 + timeMinute;
+
+        const [startHour, startMinute] = rentedDate.startTime.split(':').map(Number);
+        const [endHour, endMinute] = rentedDate.endTime.split(':').map(Number);
+
+        const startInMinutes = startHour * 60 + startMinute;
+        const endInMinutes = endHour * 60 + endMinute;
+
+        // Se o horário de fechamento for menor que o de abertura, significa que atravessa a meia-noite
+        if (endInMinutes < startInMinutes) {
+            return timeInMinutes >= startInMinutes || timeInMinutes <= endInMinutes;
+        }
+
+        return timeInMinutes >= startInMinutes && timeInMinutes <= endInMinutes;
+    };
+
     const filterTime = (time) => {
-        return isTimeInOperatingHours(time);
+        return isTimeInOperatingHours(time) && !isTimeBlocked(time);
     };
 
     if (!isOpen) return null;
@@ -265,7 +426,7 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-8 w-full max-w-3xl shadow-lg relative">
                 <button
-                    onClick={onClose}
+                    onClick={handleClose}
                     className="text-gray-500 hover:text-gray-700 absolute right-6 top-6 z-10"
                     aria-label="Fechar modal"
                 >

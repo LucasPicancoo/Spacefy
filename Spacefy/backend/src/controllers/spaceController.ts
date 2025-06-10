@@ -547,45 +547,175 @@ export const updateSpace = async (req: Request, res: Response) => {
       return;
     }
 
+    // Verifica se o ID do usuário está disponível
+    if (!req.auth?.id) {
+      res.status(400).json({ error: "ID do usuário não encontrado na autenticação." });
+      return;
+    }
+
+    const { id } = req.params;
+
+    // Verifica se o espaço existe e pertence ao usuário
+    const existingSpace = await SpaceModel.findById(id);
+    if (!existingSpace) {
+      res.status(404).json({ error: "Espaço não encontrado" });
+      return;
+    }
+
+    // Verifica se o usuário é o proprietário do espaço
+    if (existingSpace.owner_id.toString() !== req.auth.id) {
+      res.status(403).json({ 
+        error: "Você não tem permissão para atualizar este espaço. Apenas o proprietário pode modificá-lo." 
+      });
+      return;
+    }
+
     const {
       space_name,
       max_people,
       location,
       space_type,
+      space_description,
+      space_amenities,
+      weekly_days,
+      space_rules,
       price_per_hour,
       owner_name,
       document_number,
+      document_photo,
+      space_document_photo,
       owner_phone,
       owner_email,
       image_url,
     } = req.body;
 
-    // Verifica se todos os campos obrigatórios foram enviados
-    if (
-      !space_name ||
-      !max_people ||
-      !location ||
-      !space_type ||
-      !price_per_hour ||
-      !owner_name ||
-      !document_number ||
-      !owner_phone ||
-      !owner_email ||
-      !image_url
-    ) {
-      res.status(400).json({ error: "Todos os campos obrigatórios devem ser preenchidos." });
+    // Verifica se pelo menos um campo foi enviado para atualização
+    const hasUpdates = Object.keys(req.body).length > 0;
+    if (!hasUpdates) {
+      res.status(400).json({ error: "É necessário enviar pelo menos um campo para atualização." });
       return;
     }
 
-    const { id } = req.params;
-    const updatedSpace = await SpaceModel.findByIdAndUpdate(id, req.body, {
+    // Prepara o objeto de atualização apenas com os campos enviados
+    const updatedData: any = {};
+
+    // Adiciona apenas os campos que foram enviados na requisição
+    if (space_name) updatedData.space_name = space_name;
+    if (max_people) updatedData.max_people = max_people;
+    if (space_type) updatedData.space_type = space_type;
+    if (space_description) updatedData.space_description = space_description;
+    if (space_amenities) {
+      // Valida as comodidades se foram enviadas
+      const invalidAmenities = space_amenities.filter(
+        (amenity: string) => !ALLOWED_AMENITIES.includes(amenity)
+      );
+
+      if (invalidAmenities.length > 0) {
+        res.status(400).json({
+          error: "Comodidades inválidas encontradas",
+          invalidAmenities
+        });
+        return;
+      }
+      updatedData.space_amenities = space_amenities;
+    }
+    if (space_rules) {
+      // Valida as regras se foram enviadas
+      const invalidRules = space_rules.filter(
+        (rule: string) => !ALLOWED_RULES.includes(rule)
+      );
+
+      if (invalidRules.length > 0) {
+        res.status(400).json({
+          error: "Regras inválidas encontradas",
+          invalidRules
+        });
+        return;
+      }
+      updatedData.space_rules = space_rules;
+    }
+    if (price_per_hour) updatedData.price_per_hour = price_per_hour;
+    if (owner_name) updatedData.owner_name = owner_name;
+    if (document_number) updatedData.document_number = document_number;
+    if (document_photo) updatedData.document_photo = document_photo;
+    if (space_document_photo) updatedData.space_document_photo = space_document_photo;
+    if (owner_phone) updatedData.owner_phone = owner_phone;
+    if (owner_email) updatedData.owner_email = owner_email;
+    if (image_url) updatedData.image_url = image_url;
+
+    // Valida e atualiza os horários se foram enviados
+    if (weekly_days) {
+      if (!Array.isArray(weekly_days)) {
+        res.status(400).json({ error: "O formato dos horários está inválido." });
+        return;
+      }
+
+      // Validação dos horários para cada dia
+      for (const day of weekly_days) {
+        if (!day.day || !Array.isArray(day.time_ranges)) {
+          res.status(400).json({ error: "Formato inválido para os horários." });
+          return;
+        }
+
+        // Validação do dia da semana
+        const validDays = ['segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado', 'domingo'];
+        if (!validDays.includes(day.day.toLowerCase())) {
+          res.status(400).json({ error: `Dia da semana inválido: ${day.day}` });
+          return;
+        }
+
+        // Validação dos horários específicos
+        for (const range of day.time_ranges) {
+          if (!range.open || !range.close) {
+            res.status(400).json({ error: "Horários de abertura e fechamento são obrigatórios." });
+            return;
+          }
+
+          // Validação do formato dos horários (HH:mm)
+          const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+          if (!timeRegex.test(range.open) || !timeRegex.test(range.close)) {
+            res.status(400).json({ error: "Formato de horário inválido. Use HH:mm." });
+            return;
+          }
+        }
+      }
+
+      updatedData.weekly_days = weekly_days;
+      updatedData.week_days = weekly_days.map(day => day.day.toLowerCase());
+    }
+
+    // Valida e atualiza a localização se foi enviada
+    if (location) {
+      const googleMapsService = new GoogleMapsService();
+      const addressValidation = await googleMapsService.validateAddress({
+        street: location.street,
+        number: location.number,
+        complement: location.complement,
+        neighborhood: location.neighborhood,
+        city: location.city,
+        state: location.state,
+        zipCode: location.zipCode
+      });
+
+      if (!addressValidation.isValid) {
+        res.status(400).json({
+          error: "Endereço inválido",
+          details: addressValidation.error
+        });
+        return;
+      }
+
+      updatedData.location = {
+        formatted_address: addressValidation.formattedAddress,
+        place_id: addressValidation.placeId,
+        coordinates: addressValidation.coordinates
+      };
+    }
+
+    const updatedSpace = await SpaceModel.findByIdAndUpdate(id, updatedData, {
       new: true,
+      runValidators: true
     });
-
-    if (!updatedSpace) {
-      res.status(404).json({ error: "Espaço não encontrado" });
-      return;
-    }
 
     res.status(200).json(updatedSpace);
     return;

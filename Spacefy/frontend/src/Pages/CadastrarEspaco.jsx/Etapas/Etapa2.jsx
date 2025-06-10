@@ -18,7 +18,7 @@ const CampoTexto = ({ label, id, name, value, onChange, required = false, type =
             min={min}
             maxLength={maxLength}
             placeholder={placeholder}
-            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
             required={required}
             ref={inputRef}
         />
@@ -36,7 +36,7 @@ const CampoSelect = ({ label, id, name, value, onChange, options, required = fal
             id={id}
             value={value || ''}
             onChange={onChange}
-            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
             required={required}
         >
             <option value="">Selecione uma opção</option>

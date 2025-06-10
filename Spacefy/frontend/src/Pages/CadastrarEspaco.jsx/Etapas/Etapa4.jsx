@@ -14,20 +14,36 @@ const DIAS_SEMANA = [
 ];
 
 // Componente para campos de horário
+const gerarOpcoesHorario = () => {
+    const opcoes = [];
+    for (let h = 0; h < 24; h++) {
+        for (let m = 0; m < 60; m += 30) {
+            const hora = h.toString().padStart(2, '0');
+            const minuto = m.toString().padStart(2, '0');
+            opcoes.push(`${hora}:${minuto}`);
+        }
+    }
+    return opcoes;
+};
+
 const CampoHorario = ({ label, id, name, value, onChange }) => (
     <div>
         <label htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
         </label>
-        <input
-            type="time"
+        <select
             name={name}
             id={id}
             value={value || ''}
             onChange={onChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
+            className="mt-1 block w-full rounded-md border border-gray-200 bg-white shadow-md focus:border-blue-500 focus:ring-blue-500 cursor-pointer text-base py-2 px-3"
             required
-        />
+        >
+            <option value="">Selecione...</option>
+            {gerarOpcoesHorario().map((opcao) => (
+                <option key={opcao} value={opcao}>{opcao}</option>
+            ))}
+        </select>
     </div>
 );
 
@@ -51,16 +67,14 @@ const CampoPreco = ({ value, onChange }) => {
 
     return (
         <div>
-            <label htmlFor="price_per_hour" className="block text-sm font-medium text-gray-700">
-                Preço por Hora
-            </label>
             <input
                 type="text"
                 name="price_per_hour"
                 id="price_per_hour"
                 value={formatarPreco(value)}
                 onChange={handlePrecoChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-text"
+                placeholder="Digite o valor por hora"
+                className="mt-1 block w-full rounded-md border border-gray-200 bg-white shadow-md focus:border-blue-500 focus:ring-blue-500 cursor-text text-lg py-3 px-4 placeholder-gray-400"
                 required
             />
         </div>
@@ -89,6 +103,36 @@ const CheckboxDia = ({ dia, checked, onChange }) => (
 
 // Componente para horários de um dia específico
 const HorariosDia = ({ dia, timeRanges, onAddTimeRange, onRemoveTimeRange, onUpdateTimeRange }) => {
+    // Função para obter o próximo dia da semana
+    const getNextDay = (currentDay) => {
+        const days = ['domingo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta', 'sabado'];
+        const currentIndex = days.indexOf(currentDay);
+        const nextIndex = (currentIndex + 1) % 7;
+        return days[nextIndex];
+    };
+
+    // Função para formatar o nome do dia
+    const formatDayName = (dayId) => {
+        const dayNames = {
+            'domingo': 'Domingo',
+            'segunda': 'Segunda-feira',
+            'terca': 'Terça-feira',
+            'quarta': 'Quarta-feira',
+            'quinta': 'Quinta-feira',
+            'sexta': 'Sexta-feira',
+            'sabado': 'Sábado'
+        };
+        return dayNames[dayId];
+    };
+
+    // Função para verificar se o horário de fechamento é no dia seguinte
+    const isNextDay = (open, close) => {
+        if (!open || !close) return false;
+        const openTime = new Date(`2000-01-01T${open}`);
+        const closeTime = new Date(`2000-01-01T${close}`);
+        return closeTime <= openTime;
+    };
+
     // Função para validar o formato do horário
     const isValidTimeFormat = (time) => {
         if (!time) return false;
@@ -154,24 +198,34 @@ const HorariosDia = ({ dia, timeRanges, onAddTimeRange, onRemoveTimeRange, onUpd
     };
 
     return (
-        <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
-            <h4 className="font-medium text-gray-900">{dia.label}</h4>
+        <div className="space-y-4 p-4 bg-white rounded-lg shadow-md border border-gray-200">
+            <h4 className="text-xl font-semibold text-gray-900">{dia.label}</h4>
             {timeRanges.map((range, index) => (
                 <div key={index} className="flex items-center space-x-4">
-                    <CampoHorario
-                        label="Abertura"
-                        id={`${dia.id}-open-${index}`}
-                        name="open"
-                        value={range.open}
-                        onChange={(e) => handleTimeUpdate(index, 'open', e.target.value)}
-                    />
-                    <CampoHorario
-                        label="Fechamento"
-                        id={`${dia.id}-close-${index}`}
-                        name="close"
-                        value={range.close}
-                        onChange={(e) => handleTimeUpdate(index, 'close', e.target.value)}
-                    />
+                    <div>
+                        <CampoHorario
+                            label="Abertura"
+                            id={`${dia.id}-open-${index}`}
+                            name="open"
+                            value={range.open}
+                            onChange={(e) => handleTimeUpdate(index, 'open', e.target.value)}
+                        />
+                        <span className="text-sm text-gray-500 mt-1 block">
+                            {formatDayName(dia.id)}
+                        </span>
+                    </div>
+                    <div>
+                        <CampoHorario
+                            label="Fechamento"
+                            id={`${dia.id}-close-${index}`}
+                            name="close"
+                            value={range.close}
+                            onChange={(e) => handleTimeUpdate(index, 'close', e.target.value)}
+                        />
+                        <span className="text-sm text-gray-500 mt-1 block">
+                            {isNextDay(range.open, range.close) ? formatDayName(getNextDay(dia.id)) : formatDayName(dia.id)}
+                        </span>
+                    </div>
                     <button
                         type="button"
                         onClick={() => onRemoveTimeRange(dia.id, index)}
@@ -346,6 +400,22 @@ const Etapa4 = ({ formData, onUpdate }) => {
 
     return (
         <div className="space-y-8">
+            {/* Campo de preço */}
+            <div>
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+                    Preço por Hora
+                </h3>
+                <p className="text-gray-600 mb-3">
+                    Defina o valor que será cobrado por hora de utilização do espaço.
+                </p>
+                <div className="p-4 rounded-lg">
+                    <CampoPreco
+                        value={formData.price_per_hour}
+                        onChange={handlePriceChange}
+                    />
+                </div>
+            </div>
+
             {/* Cabeçalho da etapa */}
             <div>
                 <h3 className="text-2xl font-semibold text-gray-900 mb-4">
@@ -357,14 +427,6 @@ const Etapa4 = ({ formData, onUpdate }) => {
             </div>
 
             <div className="space-y-6">
-                {/* Campo de preço */}
-                <div className="bg-gray-50 p-4 rounded-lg">
-                    <CampoPreco
-                        value={formData.price_per_hour}
-                        onChange={handlePriceChange}
-                    />
-                </div>
-
                 {/* Seção de dias da semana */}
                 <div>
                     <h4 className="text-lg font-medium text-gray-900 mb-4">

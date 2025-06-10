@@ -76,7 +76,6 @@ const CATEGORIAS = [
             { id: 'equipamentos_auxiliares', label: 'Equipamentos Auxiliares' },
             { id: 'computador', label: 'Computador' },
             { id: 'tv', label: 'TV' },
-            { id: 'smart_tv', label: 'Smart TV' },
             { id: 'video_conferencia', label: 'Videoconferência' },
             { id: 'impressora', label: 'Impressora' },
             { id: 'scanner', label: 'Scanner' },
@@ -88,16 +87,13 @@ const CATEGORIAS = [
         titulo: 'Áreas Externas',
         itens: [
             { id: 'jardim', label: 'Jardim' },
-            { id: 'area_verde', label: 'Área Verde' },
             { id: 'deck', label: 'Deck' },
             { id: 'piscina', label: 'Piscina' },
             { id: 'quadra', label: 'Quadra' },
             { id: 'playground', label: 'Playground' },
             { id: 'varanda', label: 'Varanda' },
             { id: 'terraco', label: 'Terraço' },
-            { id: 'estacionamento_coberto', label: 'Estacionamento Coberto' },
-            { id: 'churrasqueira', label: 'Churrasqueira' },
-            { id: 'banheiro_pcd', label: 'Banheiro Adaptado' },
+            { id: 'estacionamento_coberto', label: 'Estacionamento Coberto' }
         ],
     },
 ];

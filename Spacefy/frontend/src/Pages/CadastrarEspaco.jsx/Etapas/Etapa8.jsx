@@ -79,37 +79,67 @@ const Etapa7 = ({ formData, onUpdate }) => {
                     <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
                         <ItemRevisao
                             label="Nome do Espaço"
-                            value={formData.space_name}
+                            value={formData.space_name || 'Não informado'}
                         />
                         <ItemRevisao
                             label="Tipo do Espaço"
-                            value={formData.space_type}
+                            value={formData.space_type || 'Não informado'}
                         />
                         <ItemRevisao
                             label="Capacidade Máxima"
-                            value={`${formData.max_people} pessoas`}
+                            value={formData.max_people ? `${formData.max_people} pessoas` : 'Não informado'}
                         />
                         <ItemRevisao
                             label="Preço por Hora"
-                            value={`R$ ${formData.price_per_hour}`}
+                            value={formData.price_per_hour ? `R$ ${formData.price_per_hour.toFixed(2)}` : 'Não informado'}
                         />
                         <ItemRevisaoLargo
                             label="Endereço"
-                            value={formData.location}
+                            value={formData.street && formData.number && formData.neighborhood && formData.city && formData.state
+                                ? `${formData.street}, ${formData.number} - ${formData.neighborhood}, ${formData.city} - ${formData.state}`
+                                : 'Não informado'}
+                        />
+                        <ItemRevisaoLargo
+                            label="Descrição"
+                            value={formData.space_description || 'Não informado'}
                         />
                     </dl>
                 </SecaoRevisao>
 
                 {/* Seção de disponibilidade */}
                 <SecaoRevisao titulo="Disponibilidade">
-                    <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
-                        <ItemRevisao
-                            label="Horário de Funcionamento"
-                            value={`${formData.opening_time} - ${formData.closing_time}`}
+                    <dl className="grid grid-cols-1 gap-x-4 gap-y-6">
+                        <ItemRevisaoLargo
+                            label="Dias e Horários de Funcionamento"
+                            value={formData.weekly_days?.length 
+                                ? <div className="space-y-1">
+                                    {formData.weekly_days.map(day => {
+                                        const dias = {
+                                            'domingo': 'Domingo',
+                                            'segunda': 'Segunda-feira',
+                                            'terca': 'Terça-feira',
+                                            'quarta': 'Quarta-feira',
+                                            'quinta': 'Quinta-feira',
+                                            'sexta': 'Sexta-feira',
+                                            'sabado': 'Sábado'
+                                        };
+                                        const horarios = day.time_ranges.map(range => 
+                                            `${range.open} - ${range.close}`
+                                        ).join(', ');
+                                        return <div key={day.day}><strong>{dias[day.day]}</strong>: {horarios}</div>;
+                                    })}
+                                  </div>
+                                : 'Não informado'}
                         />
-                        <ItemRevisao
-                            label="Dias da Semana"
-                            value={formData.week_days?.join(', ')}
+                    </dl>
+                </SecaoRevisao>
+
+                {/* Seção de regras do espaço */}
+                <SecaoRevisao titulo="Regras do Espaço">
+                    <dl className="grid grid-cols-1 gap-x-4 gap-y-6">
+                        <ItemRevisaoLargo
+                            label="Regras"
+                            value={formData.space_rules ? formData.space_rules.join(', ') : 'Não informado'}
                         />
                     </dl>
                 </SecaoRevisao>
@@ -117,14 +147,18 @@ const Etapa7 = ({ formData, onUpdate }) => {
                 {/* Seção de equipamentos e comodidades */}
                 <SecaoRevisao titulo="Equipamentos e Comodidades">
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        {formData.space_amenities?.map((amenity) => (
-                            <div key={amenity} className="flex items-center">
-                                <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                                <span className="text-sm text-gray-900">{amenity}</span>
-                            </div>
-                        ))}
+                        {formData.space_amenities?.length > 0 ? (
+                            formData.space_amenities.map((amenity) => (
+                                <div key={amenity} className="flex items-center">
+                                    <svg className="h-5 w-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span className="text-sm text-gray-900">{amenity}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="text-sm text-gray-500">Nenhum equipamento ou comodidade informada</div>
+                        )}
                     </div>
                 </SecaoRevisao>
 

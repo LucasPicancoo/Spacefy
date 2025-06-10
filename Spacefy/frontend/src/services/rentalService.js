@@ -32,5 +32,14 @@ export const rentalService = {
             }
             throw new Error('Erro ao buscar reservas do locador');
         }
+    },
+
+    getRentedDatesBySpace: async (spaceId) => {
+        try {
+            const response = await api.get(`/rentals/space/${spaceId}/dates`);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
     }
 }; 

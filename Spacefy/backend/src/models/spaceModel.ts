@@ -133,8 +133,9 @@ SpaceSchema.pre<ISpace>("save", async function (next) {
       const openTime = new Date(`2000-01-01T${range.open}`);
       const closeTime = new Date(`2000-01-01T${range.close}`);
       
+      // Se o horário de fechamento for menor que o de abertura, assumimos que é no dia seguinte
       if (closeTime <= openTime) {
-        throw new Error(`O horário de fechamento deve ser posterior ao de abertura para ${day.day}`);
+        closeTime.setDate(closeTime.getDate() + 1);
       }
     }
   }

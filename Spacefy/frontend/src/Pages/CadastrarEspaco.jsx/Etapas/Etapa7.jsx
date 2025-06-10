@@ -14,7 +14,7 @@ const CampoTexto = ({ label, id, name, value, onChange, type = "text" }) => (
             name={name}
             value={value || ''}
             onChange={onChange}
-            className="mt-1 block w-full border-0 border-b-2 border-black focus:border-black focus:ring-0 focus:outline-none py-1"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
         />
     </div>
 );

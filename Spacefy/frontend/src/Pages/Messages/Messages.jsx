@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { FaPaperclip } from "react-icons/fa";
 import Header from "../../Components/Header/Header";
-import { initializeSocket, getConversations, getMessages, sendMessage, joinConversation } from "../../services/messageService";
 import { useUser } from "../../Contexts/UserContext";
 import { useLocation } from 'react-router-dom';
-import Cookies from 'js-cookie';
+import { messageService } from "../../services/messageService";
 
 export default function Messages({ showHeader = true }) {
   const { user, isLoggedIn } = useUser();
@@ -13,112 +12,156 @@ export default function Messages({ showHeader = true }) {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const socketInitialized = useRef(false);
 
   useEffect(() => {
-    const token = Cookies.get('token');
-    if (token) {
-      const socket = initializeSocket(token);
-      setSocket(socket);
-
-      socket.on('new_message', (message) => {
-        setMessages(prev => [...prev, message]);
-        scrollToBottom();
+    const loadConversations = async () => {
+      try {
+        setLoading(true);
+        const data = await messageService.getConversations(user.id);
         
-        // Atualizar a lista de conversas quando uma nova mensagem é recebida
-        loadConversations(token);
-      });
-
-      socket.on('message_error', (data) => {
-        console.error('Erro ao enviar mensagem:', data.error);
-        // Aqui você pode adicionar uma notificação de erro para o usuário
-      });
-
-      return () => {
-        socket.disconnect();
-      };
-    }
-  }, []);
-
-  const loadConversations = async (token) => {
-    try {
-      const data = await getConversations(token);
-      // Adicionar informações do usuário para cada conversa
-      const conversationsWithUserInfo = data.map(conv => {
-        return {
-          ...conv,
-          lastMessageTime: conv.lastMessage?.createdAt
-        };
-      });
-      
-      setConversations(conversationsWithUserInfo);
-      
-      // Verificar se há um receiverId na URL
-      const params = new URLSearchParams(location.search);
-      const receiverId = params.get('receiverId');
-
-      if (receiverId) {
-        // Procurar se já existe uma conversa com este usuário
-        const existingConversation = conversationsWithUserInfo.find(conv => 
-          conv.otherUserId === receiverId
-        );
-
-        if (existingConversation) {
-          setSelectedConversation(existingConversation);
-        } else {
-          // Criar uma nova conversa
-          const newConversation = {
-            _id: `conv-${receiverId}`,
+        // Transformar os dados para o formato esperado pelo componente
+        const formattedConversations = data.map(conv => {
+          // Determinar quem é o outro usuário na conversa
+          const otherUser = conv.senderId._id === user.id ? conv.receiverId : conv.senderId;
+          
+          return {
+            _id: conv._id,
+            name: `${otherUser.name} ${otherUser.surname}`,
+            role: "usuário",
             lastMessage: {
-              senderId: user.id,
-              receiverId: receiverId,
-              content: "Nova conversa iniciada",
-              createdAt: new Date().toISOString()
+              content: conv.lastMessage,
+              createdAt: conv.updatedAt
             },
-            otherUserId: receiverId,
-            name: "Nova conversa",
-            role: "usuario" // Será atualizado quando a primeira mensagem for enviada
+            otherUserId: otherUser._id,
+            read: conv.read
           };
-          setSelectedConversation(newConversation);
+        });
+
+        console.log('Conversas formatadas:', formattedConversations);
+
+        setConversations(formattedConversations);
+        
+        // Verificar se há um receiverId na URL
+        const params = new URLSearchParams(location.search);
+        const receiverId = params.get('receiverId');
+
+        if (receiverId) {
+          const existingConversation = formattedConversations.find(conv => 
+            conv.otherUserId === receiverId
+          );
+
+          if (existingConversation) {
+            setSelectedConversation(existingConversation);
+          }
+        } else if (formattedConversations.length > 0) {
+          setSelectedConversation(formattedConversations[0]);
         }
-      } else if (conversationsWithUserInfo.length > 0 && !selectedConversation) {
-        setSelectedConversation(conversationsWithUserInfo[0]);
+      } catch (err) {
+        setError('Erro ao carregar conversas');
+        console.error('Erro ao carregar conversas:', err);
+      } finally {
+        setLoading(false);
       }
-      
-      setIsInitialized(true);
-    } catch (error) {
-      console.error('Erro ao carregar conversas:', error);
-    }
-  };
+    };
 
-  useEffect(() => {
-    const token = Cookies.get('token');
-    if (token && !isInitialized) {
-      loadConversations(token);
+    if (user?.id) {
+      loadConversations();
     }
-  }, [isInitialized]);
+  }, [location.search, user?.id]);
 
+  // Efeito para carregar mensagens quando uma conversa é selecionada
   useEffect(() => {
-    if (selectedConversation) {
-      const token = Cookies.get('token');
-      if (token) {
-        loadMessages(selectedConversation._id, token);
-        joinConversation(selectedConversation._id);
+    const loadMessages = async () => {
+      if (selectedConversation) {
+        try {
+          setLoading(true);
+          const data = await messageService.getConversationHistory(selectedConversation._id);
+          // Mapear os dados da API para o formato esperado pelo componente
+          const formattedMessages = data.map(msg => ({
+            _id: msg._id,
+            content: msg.message,
+            senderId: msg.senderId,
+            createdAt: msg.timestamp
+          }));
+          setMessages(formattedMessages);
+          scrollToBottom();
+        } catch (err) {
+          setError('Erro ao carregar mensagens');
+          console.error('Erro ao carregar mensagens:', err);
+        } finally {
+          setLoading(false);
+        }
       }
-    }
+    };
+
+    loadMessages();
   }, [selectedConversation]);
 
-  const loadMessages = async (conversationId, token) => {
-    try {
-      const data = await getMessages(conversationId, token);
-      setMessages(data);
-      scrollToBottom();
-    } catch (error) {
-      console.error('Erro ao carregar mensagens:', error);
+  // Efeito para entrar na sala quando uma conversa é selecionada
+  useEffect(() => {
+    if (selectedConversation) {
+      // Entrar na sala da conversa
+      messageService.joinRoom(selectedConversation._id);
+      console.log('Entrou na sala da conversa:', selectedConversation._id);
+
+      // Configurar listener para mensagens recebidas
+      messageService.onMessageReceived((message) => {
+        console.log('Mensagem recebida:', message);
+        
+        // Atualizar a lista de mensagens
+        setMessages(prevMessages => {
+          // Verificar se a mensagem já existe
+          const messageExists = prevMessages.some(m => m._id === message._id);
+          if (messageExists) return prevMessages;
+          
+          return [...prevMessages, {
+            _id: message._id,
+            content: message.message,
+            senderId: message.senderId,
+            createdAt: message.timestamp
+          }];
+        });
+
+        // Atualizar a lista de conversas
+        setConversations(prevConversations => {
+          return prevConversations.map(conv => {
+            if (conv._id === message.conversationId) {
+              return {
+                ...conv,
+                lastMessage: {
+                  content: message.message,
+                  createdAt: message.timestamp
+                }
+              };
+            }
+            return conv;
+          });
+        });
+
+        scrollToBottom();
+      });
+
+      // Configurar listener para erros
+      messageService.onError((error) => {
+        console.error('Erro no socket:', error);
+        setError('Erro na conexão do chat: ' + error.message);
+      });
+
+      // Cleanup function
+      return () => {
+        console.log('Saindo da sala da conversa:', selectedConversation._id);
+        const socket = messageService.getSocket();
+        if (socket) {
+          socket.off('receive_message');
+          socket.off('error');
+        }
+      };
     }
-  };
+  }, [selectedConversation]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -126,26 +169,33 @@ export default function Messages({ showHeader = true }) {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedConversation) return;
+    if (!newMessage.trim()) return;
 
-    const token = Cookies.get('token');
-    const messageData = {
-      conversationId: selectedConversation._id,
-      receiverId: selectedConversation.otherUserId,
-      content: newMessage
-    };
-
-    setNewMessage("");
+    // Determinar o destinatário correto
+    const receiverId = selectedConversation?.otherUserId || new URLSearchParams(location.search).get('receiverId');
     
+    // Verificar se o usuário está tentando enviar mensagem para si mesmo
+    if (user.id === receiverId) {
+      setError('Você não pode enviar mensagens para si mesmo');
+      return;
+    }
+
     try {
-      await sendMessage(messageData.conversationId, messageData.receiverId, messageData.content);
-      
-      // Atualizar a lista de conversas após enviar a mensagem
-      if (token) {
-        await loadConversations(token);
-      }
+      // Se não houver conversa selecionada, o socket irá criar uma nova automaticamente
+      await messageService.sendMessage(
+        user.id,
+        receiverId,
+        newMessage,
+        selectedConversation?._id
+      );
+
+      // Limpar o campo de mensagem
+      setNewMessage("");
+      scrollToBottom();
+
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
+      setError('Erro ao enviar mensagem: ' + error.message);
     }
   };
 
@@ -175,6 +225,28 @@ export default function Messages({ showHeader = true }) {
     return <div className="flex justify-center items-center h-screen">Por favor, faça login para acessar as mensagens</div>;
   }
 
+  if (loading) {
+    return (
+      <div className="flex flex-col h-screen">
+        {showHeader && <Header />}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-xl text-gray-600">Carregando conversas...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col h-screen">
+        {showHeader && <Header />}
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-xl text-red-600">{error}</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen">
       {showHeader && <Header />}
@@ -196,14 +268,19 @@ export default function Messages({ showHeader = true }) {
                 <div className="flex justify-between items-start">
                   <div className="truncate font-bold">{conversation.name}</div>
                   <div className={`text-xs ${selectedConversation?._id === conversation._id ? "text-white/80" : "text-gray-500"}`}>
-                    {formatTime(conversation.lastMessageTime)}
+                    {formatTime(conversation.lastMessage.createdAt)}
                   </div>
                 </div>
                 <div className={`text-xs truncate ${selectedConversation?._id === conversation._id ? "text-white/80" : "text-gray-500"}`}>
-                  {conversation.lastMessage?.content || "Nenhuma mensagem"}
+                  {conversation.lastMessage.content || "Nenhuma mensagem"}
                 </div>
-                <div className={`text-xs ${selectedConversation?._id === conversation._id ? "text-white/60" : "text-gray-400"}`}>
-                  {formatDate(conversation.lastMessageTime)}
+                <div className="flex justify-between items-center">
+                  <div className={`text-xs ${selectedConversation?._id === conversation._id ? "text-white/60" : "text-gray-400"}`}>
+                    {formatDate(conversation.lastMessage.createdAt)}
+                  </div>
+                  {!conversation.read && (
+                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                  )}
                 </div>
               </button>
             ))}
@@ -212,16 +289,16 @@ export default function Messages({ showHeader = true }) {
 
         {/* Chat principal */}
         <section className="flex-1 flex flex-col bg-white rounded-xl shadow-lg p-8 min-w-0 h-full min-h-0 box-border">
-          {selectedConversation ? (
+          {selectedConversation || location.search.includes('receiverId') ? (
             <>
               {/* Topo do chat */}
               <div className="flex items-center gap-3 border-b border-gray-200 pb-4 mb-4">
                 <div className="w-8 h-8 rounded-full bg-[#1486B8] flex items-center justify-center text-white">
-                  {selectedConversation.name?.[0] || "U"}
+                  {selectedConversation?.name?.[0] || "U"}
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xl font-semibold">{selectedConversation.name}</span>
-                  <span className="text-sm text-gray-500 capitalize">{selectedConversation.role}</span>
+                  <span className="text-xl font-semibold">{selectedConversation?.name || "Nova conversa"}</span>
+                  <span className="text-sm text-gray-500 capitalize">{selectedConversation?.role || "usuário"}</span>
                 </div>
               </div>
               
@@ -240,7 +317,7 @@ export default function Messages({ showHeader = true }) {
                   ) : (
                     <div className="flex items-start gap-2" key={msg._id}>
                       <div className="w-8 h-8 rounded-full bg-[#22346C] flex items-center justify-center text-white">
-                        {selectedConversation.name?.[0] || "U"}
+                        {selectedConversation?.name?.[0] || "U"}
                       </div>
                       <div>
                         <div className="bg-[#22346C] text-white rounded-xl px-5 py-3 max-w-xl shadow-md whitespace-pre-line">

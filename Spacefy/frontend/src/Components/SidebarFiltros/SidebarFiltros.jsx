@@ -99,7 +99,6 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
             'equipamentos_auxiliares',
             'computador',
             'tv',
-            'smart_tv',
             'video_conferencia',
             'impressora',
             'scanner',
@@ -117,16 +116,13 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
         ],
         'Áreas Externas': [
             'jardim',
-            'area_verde',
             'deck',
             'piscina',
             'quadra',
             'playground',
             'varanda',
             'terraco',
-            'estacionamento_coberto',
-            'churrasqueira',
-            'banheiro_pcd'
+            'estacionamento_coberto'
         ]
     };
 

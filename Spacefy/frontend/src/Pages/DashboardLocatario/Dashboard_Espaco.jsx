@@ -3,8 +3,10 @@ import { FaStar, FaRegStar, FaStarHalfAlt, FaChevronDown } from "react-icons/fa"
 import { BsCurrencyDollar } from "react-icons/bs";
 import { MdCalendarToday, MdEdit } from "react-icons/md";
 import { FaWifi } from "react-icons/fa";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import CommentsModal from "../../Components/CommentsModal";
 import { spaceService } from "../../services/spaceService";
+import { rentalService } from "../../services/rentalService";
 import { useUser } from "../../Contexts/UserContext";
 
 function renderStars(avaliacao) {
@@ -27,6 +29,7 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAllAmenities, setShowAllAmenities] = useState(false);
+  const [rentalData, setRentalData] = useState([]);
   const { user } = useUser();
 
   useEffect(() => {
@@ -47,6 +50,53 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
       buscarEspacos();
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    const buscarDadosAluguel = async () => {
+      if (espacos.length > 0) {
+        const espacoSelecionado = espacos[subEspacoSelecionado] || espacos[0];
+        try {
+          console.log('Espaço selecionado:', espacoSelecionado);
+          if (!espacoSelecionado._id) {
+            console.error('ID do espaço não encontrado');
+            setRentalData([]);
+            return;
+          }
+
+          const response = await rentalService.getRentedDatesBySpace(espacoSelecionado._id);
+          console.log('Resposta completa:', response);
+          
+          // Verifica se a resposta tem a propriedade dates
+          if (response && response.dates && Array.isArray(response.dates)) {
+            console.log('Datas recebidas:', response.dates);
+            
+            // Processar os dados para o formato do Recharts
+            const dadosProcessados = response.dates.map(item => {
+              console.log('Processando item:', item);
+              return {
+                data: new Date(item.date).toLocaleDateString('pt-BR'),
+                quantidade: item.times.length
+              };
+            });
+
+            // Ordenar por data
+            dadosProcessados.sort((a, b) => new Date(a.data) - new Date(b.data));
+            
+            console.log('Dados processados finais:', dadosProcessados);
+            setRentalData(dadosProcessados);
+          } else {
+            console.log('Resposta inválida ou sem dados:', response);
+            setRentalData([]);
+          }
+        } catch (err) {
+          console.error('Erro ao buscar dados de aluguel:', err);
+          setRentalData([]);
+        }
+      }
+    };
+
+    buscarDadosAluguel();
+  }, [espacos, subEspacoSelecionado]);
 
   if (loading) {
     return (
@@ -90,10 +140,48 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_256px] gap-6">
           {/* Gráfico */}
           <div className="bg-white rounded-lg p-4 flex flex-col items-center justify-center min-h-[550px]">
-            {/* Placeholder do gráfico igual ao da Home */}
-            <div className="h-[550px] flex items-center justify-center bg-blue-50 rounded w-full">
-              <span className="text-gray-400">[Gráfico de linhas aqui]</span>
-            </div>
+            {rentalData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={550}>
+                <LineChart data={rentalData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="data" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    interval={0}
+                  />
+                  <YAxis 
+                    label={{ 
+                      value: 'Quantidade de Aluguéis', 
+                      angle: -90, 
+                      position: 'insideLeft',
+                      style: { textAnchor: 'middle' }
+                    }}
+                    allowDecimals={false}
+                    domain={[0, 'auto']}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [`${value} aluguéis`, 'Quantidade']}
+                    labelFormatter={(label) => `Data: ${label}`}
+                  />
+                  <Line 
+                    type="linear" 
+                    dataKey="quantidade" 
+                    stroke="#1486B8" 
+                    strokeWidth={2}
+                    dot={{ fill: '#1486B8', r: 4 }}
+                    activeDot={{ r: 8 }}
+                    connectNulls={true}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full w-full flex items-center justify-center text-gray-500">
+                Nenhum dado de aluguel disponível
+              </div>
+            )}
           </div>
           {/* Card lateral */}
           <div className="bg-gradient-to-br from-[#eaf6fd] to-[#b2d6f7] rounded-xl shadow p-4 flex flex-col gap-3">

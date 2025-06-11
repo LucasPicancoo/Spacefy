@@ -100,8 +100,8 @@ export default function Header() {
         </>
       ) : (
         <div className="absolute right-5 md:right-10 lg:right-30">
-          <button onClick={() => navigate("/Cadastro")} className="hover:text-blue-600 cursor-pointer">
-            Cadastre-se
+          <button onClick={() => navigate("/Login")} className="hover:text-blue-600 cursor-pointer">
+            Entrar
           </button>
         </div>
       )}

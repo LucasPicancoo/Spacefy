@@ -14,6 +14,7 @@ import Messages from '../Pages/Messages/Messages'
 import Reservas from '../Pages/Reservas/Reservas'
 import ProtectedRoute from '../Components/ProtectedRoute'
 import { ChatProvider } from '../Contexts/ChatContext'
+import Perfil_Locatario from '../Pages/Perfil_Locador/Perfil_Locador'
 
 const AppRoutes = () => {
   return (
@@ -31,6 +32,7 @@ const AppRoutes = () => {
           <Route path="/EditarPerfilUsuario" element={<ProtectedRoute><EditarPerfilUsuario /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/reservas" element={<ProtectedRoute><Reservas /></ProtectedRoute>} />
+          <Route path="/Perfil_Locatario" element={<Perfil_Locatario />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </ChatProvider>

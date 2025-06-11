@@ -8,6 +8,7 @@ import {
   getUserFavorites,
   updateToLocatario,
   getUserRentals,
+  getUserById,
 } from "../controllers/userController";
 
 import { validateAndGetTokenData } from "../middlewares/token";
@@ -16,6 +17,9 @@ const userRouter = express.Router();
 
 // Rota para listar usuários
 userRouter.get("/getAllUsers", validateAndGetTokenData, getAllUsers);
+
+// Rota para buscar usuário por ID (sem necessidade de token)
+userRouter.get("/getUserById/:id", getUserById);
 
 // Rota para criar um novo usuário
 userRouter.post("/createUser", createUser);

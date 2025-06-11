@@ -414,6 +414,32 @@ export const getUserRentals = async (req: Request, res: Response) => {
   }
 };
 
+// Obter usuário por ID
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      res.status(400).json({ error: "ID de usuário inválido." });
+      return;
+    }
+
+    const user = await UserModel.findById(id).select("-password");
+
+    if (!user) {
+      res.status(404).json({ error: "Usuário não encontrado." });
+      return;
+    }
+
+    res.status(200).json(user);
+    return;
+  } catch (error) {
+    console.error("Erro ao buscar usuário:", error);
+    res.status(500).json({ error: "Erro ao buscar usuário" });
+    return;
+  }
+};
+
 interface CustomError extends Error {
   code?: number;
 }

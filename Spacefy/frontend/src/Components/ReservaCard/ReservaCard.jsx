@@ -6,7 +6,7 @@ import { useUser } from "../../Contexts/UserContext";
 import ReservaModal from "../../Pages/Espaço/ReservaModal";
 import WeatherGoogle from "../../Components/WeatherGoogle/WeatherGoogle";
 
-function ReservaCard({ space, onReservaSuccess }) {
+function ReservaCard({ space, onReservaSuccess, onViewLocatorProfile }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { user, isLoggedIn } = useUser();
@@ -87,7 +87,7 @@ function ReservaCard({ space, onReservaSuccess }) {
                         </div>
                     </div>
                 </div>
-                <button onClick={() => navigate('/Perfil_Locatario')} className="w-full mt-4 text-center text-[#00A3FF] hover:underline cursor-pointer">
+                <button onClick={onViewLocatorProfile} className="w-full mt-4 text-center text-[#00A3FF] hover:underline cursor-pointer">
                     Ver mais sobre o locatario
                 </button>
             </div>

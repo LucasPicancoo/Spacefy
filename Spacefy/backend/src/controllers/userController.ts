@@ -401,11 +401,23 @@ export const getUserRentals = async (req: Request, res: Response) => {
       return;
     }
 
+    // Busca todos os aluguéis do usuário
     const rentals = await RentalModel.find({ user: userId })
       .populate("space", "space_name location price_per_hour max_people image_url")
       .sort({ createdAt: -1 });
 
-    res.status(200).json(rentals);
+    // Agrupa os aluguéis por espaço e mantém apenas o mais recente
+    const uniqueRentals = rentals.reduce((acc: any[], rental) => {
+      const spaceId = rental.space._id.toString();
+      const existingRental = acc.find(r => r.space._id.toString() === spaceId);
+      
+      if (!existingRental) {
+        acc.push(rental);
+      }
+      return acc;
+    }, []);
+
+    res.status(200).json(uniqueRentals);
     return;
   } catch (error) {
     console.error("Erro ao buscar aluguéis do usuário:", error);

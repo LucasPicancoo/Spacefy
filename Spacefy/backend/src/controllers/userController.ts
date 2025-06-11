@@ -380,6 +380,40 @@ export const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
+// Obter espaços alugados por um usuário
+export const getUserRentals = async (req: Request, res: Response) => {
+  try {
+    if (!req.auth) {
+      res.status(401).json({ error: "Autenticação necessária" });
+      return;
+    }
+
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      res.status(400).json({ error: "ID de usuário inválido." });
+      return;
+    }
+
+    // Verifica se o usuário que está fazendo a requisição é o próprio usuário ou um admin
+    if (req.auth.id !== userId && req.auth.role !== "admin") {
+      res.status(403).json({ error: "Você não tem permissão para ver os aluguéis deste usuário." });
+      return;
+    }
+
+    const rentals = await RentalModel.find({ user: userId })
+      .populate("space", "space_name location price_per_hour max_people image_url")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json(rentals);
+    return;
+  } catch (error) {
+    console.error("Erro ao buscar aluguéis do usuário:", error);
+    res.status(500).json({ error: "Erro ao buscar aluguéis do usuário" });
+    return;
+  }
+};
+
 interface CustomError extends Error {
   code?: number;
 }

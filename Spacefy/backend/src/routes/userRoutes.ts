@@ -7,6 +7,7 @@ import {
   toggleFavoriteSpace,
   getUserFavorites,
   updateToLocatario,
+  getUserRentals,
 } from "../controllers/userController";
 
 import { validateAndGetTokenData } from "../middlewares/token";
@@ -33,5 +34,8 @@ userRouter.get("/favorites/:userId", validateAndGetTokenData, getUserFavorites);
 
 // Rota para atualizar para locatário
 userRouter.put("/updateToLocatario/:id", validateAndGetTokenData, updateToLocatario);
+
+// Rota para obter aluguéis do usuário
+userRouter.get("/rentals/:userId", validateAndGetTokenData, getUserRentals);
 
 export default userRouter;

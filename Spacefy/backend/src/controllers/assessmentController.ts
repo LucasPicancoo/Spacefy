@@ -247,6 +247,11 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
     const totalPages = Math.ceil(totalAssessments / limit);
 
     const assessments = await Review.find({ userID: userId })
+      .populate({
+        path: 'spaceID',
+        select: 'space_name',
+        model: 'Space'
+      })
       .sort({ evaluation_date: -1 })
       .skip(skip)
       .limit(limit);

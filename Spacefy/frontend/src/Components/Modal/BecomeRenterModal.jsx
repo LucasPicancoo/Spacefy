@@ -9,11 +9,17 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
   const [documentType, setDocumentType] = useState('cpf'); // 'cpf' ou 'cnpj'
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const { user, login, updateUser } = useUser();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!termsAccepted) {
+      setError('Você precisa aceitar os termos para continuar');
+      return;
+    }
     
     const requiredLength = documentType === 'cpf' ? 11 : 14;
     if (document.length !== requiredLength) {
@@ -23,19 +29,19 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
 
     try {
       setIsLoading(true);
-      const response = await userService.updateToLocatario(user.id, document);
+      const response = await userService.updateToLocador(user.id, document);
       
       // Atualiza o token com os novos dados do usuário
       if (response.token) {
         login(response.token);
-        updateUser({ role: 'locatario' });
-        toast.success('Você agora é um locatário!');
+        updateUser({ role: 'locador' });
+        toast.success('Você agora é um locador!');
         onClose();
         // Recarrega a página para atualizar todos os componentes
         window.location.reload();
       }
     } catch (error) {
-      setError(error.response?.data?.error || 'Erro ao atualizar para locatário. Tente novamente.');
+      setError(error.response?.data?.error || 'Erro ao atualizar para locador. Tente novamente.');
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +73,7 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
     <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-12 w-[800px]">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Virar Locatário</h2>
+          <h2 className="text-2xl font-semibold">Virar Locador</h2>
           <button 
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 text-xl cursor-pointer"
@@ -78,7 +84,7 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="mb-6">
             <p className="text-gray-600 text-base">
-              Para se tornar um locatário e começar a alugar seus espaços, precisamos do seu CPF (pessoa física) ou CNPJ (pessoa jurídica). 
+              Para se tornar um locador e começar a alugar seus espaços, precisamos do seu CPF (pessoa física) ou CNPJ (pessoa jurídica). 
               Este documento será utilizado para garantir a segurança das transações e a verificação da sua identidade.
             </p>
           </div>
@@ -135,6 +141,40 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
               </p>
             )}
           </div>
+          
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-start">
+              <div className="flex-shrink-0 pt-0.5">
+                <svg className="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <h3 className="text-base font-medium text-blue-800">Informação importante</h3>
+                <p className="mt-1 text-sm text-blue-700">
+                  Ao se tornar um locador na nossa plataforma, você receberá 85% do valor total de cada aluguel realizado. Os 15% restantes são destinados à manutenção da plataforma, suporte e divulgação dos espaços.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-start">
+            <div className="flex items-center h-5">
+              <input
+                id="terms"
+                name="terms"
+                type="checkbox"
+                checked={termsAccepted}
+                onChange={() => setTermsAccepted(!termsAccepted)}
+                className="h-4 w-4 text-[#00A3FF] rounded border-gray-300 focus:ring-[#00A3FF]"
+              />
+            </div>
+            <div className="ml-3 text-sm">
+              <label htmlFor="terms" className="font-medium text-gray-700">
+                Eu li e concordo com os termos de distribuição de pagamento
+              </label>
+            </div>
+          </div>
 
           <div className="mt-8 flex justify-end space-x-4">
             <button 
@@ -146,7 +186,7 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
             </button>
             <button 
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !termsAccepted}
               className="px-6 py-3 text-base font-medium text-white bg-[#00A3FF] rounded-md hover:bg-[#0084CC] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Processando...' : 'Confirmar'}

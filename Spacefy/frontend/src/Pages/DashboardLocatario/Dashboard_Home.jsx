@@ -1,5 +1,4 @@
 import { FaStar, FaRegCommentDots } from "react-icons/fa";
-import { FaRegUserCircle } from "react-icons/fa";
 import { useState, useEffect } from "react";
 import { spaceService } from "../../services/spaceService";
 import { assessmentService } from "../../services/assessmentService";
@@ -146,13 +145,12 @@ export default function Dashboard_Home() {
         </div>
       </div>
 
-      {/* Gráfico e Perfil */}
-      <div className="flex flex-col lg:flex-row gap-8 flex-1 px-8 pb-8">
-        {/* Gráfico */}
-        <div className="flex-1 bg-white rounded-lg shadow p-8 flex flex-col mb-8 lg:mb-0">
-          <h2 className="text-3xl font-bold mb-6">Histórico de reservas</h2>
+      {/* Gráfico */}
+      <div className="px-8 pb-8">
+        <div className="bg-white rounded-lg shadow p-8">
+          <h2 className="text-3xl font-bold mb-6">Histórico total de reservas</h2>
           {rentalData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={400}>
+            <ResponsiveContainer width="100%" height={500}>
               <LineChart data={rentalData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis 
@@ -193,25 +191,6 @@ export default function Dashboard_Home() {
               <span className="text-gray-400">Nenhum dado de aluguel disponível</span>
             </div>
           )}
-        </div>
-        {/* Perfil */}
-        <div className="w-full lg:w-[420px] bg-white rounded-lg shadow p-10 flex flex-col items-center max-h-[calc(100vh-64px)] overflow-auto">
-          <div className="mb-6">
-            <FaRegUserCircle className="text-gray-400" size={100} />
-          </div>
-          <div className="text-center w-full">
-            <h3 className="text-2xl font-bold mb-1">Zaylian Vortelli</h3>
-            <span className="text-base text-gray-500">Locatário</span>
-            <div className="flex items-center justify-center gap-2 mt-3 text-sm text-gray-500">
-              <span>Desde 17 de março de 2022</span>
-            </div>
-            <div className="mt-6 text-left w-full">
-              <span className="font-bold text-lg">Descrição:</span>
-              <p className="text-base text-gray-600 mt-2 leading-relaxed">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce congue, magna sed feugiat lobortis, est tellus laoreet purus, sed auctor quam dolor at ipsum. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Maecenas risus tellus, vehicula rutrum pellentesque vitae, pretium at libero.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </>

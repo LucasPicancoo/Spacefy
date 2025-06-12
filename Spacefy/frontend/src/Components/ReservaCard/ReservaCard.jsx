@@ -6,12 +6,15 @@ import { useUser } from "../../Contexts/UserContext";
 import ReservaModal from "../../Pages/Espaço/ReservaModal";
 import WeatherGoogle from "../../Components/WeatherGoogle/WeatherGoogle";
 
-function ReservaCard({ space, onReservaSuccess, onViewLocatorProfile }) {
+function ReservaCard({ space, onReservaSuccess }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const { user, isLoggedIn } = useUser();
-
     const navigate = useNavigate();
+
+    const handleViewLocatorProfile = () => {
+        navigate(`/perfil_locador/${space.owner_id}`);
+    };
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('pt-BR', {
@@ -87,7 +90,7 @@ function ReservaCard({ space, onReservaSuccess, onViewLocatorProfile }) {
                         </div>
                     </div>
                 </div>
-                <button onClick={onViewLocatorProfile} className="w-full mt-4 text-center text-[#00A3FF] hover:underline cursor-pointer">
+                <button onClick={handleViewLocatorProfile} className="w-full mt-4 text-center text-[#00A3FF] hover:underline cursor-pointer">
                     Ver mais sobre o locatario
                 </button>
             </div>

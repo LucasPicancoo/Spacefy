@@ -1,58 +1,56 @@
 import React, { useState, useEffect } from 'react';
 import Header from "../../Components/Header/Header";
+import { useUser } from "../../Contexts/UserContext";
+import { rentalService } from "../../services/rentalService";
+import { useNavigate } from 'react-router-dom';
 
 const Reservas = () => {
   const [reservas, setReservas] = useState([]);
-  const [expandedCards, setExpandedCards] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { user } = useUser();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Exemplo de dados adaptados ao novo layout
-    const reservasExemplo = [
-      {
-        id: '01',
-        usuario: 'Zaylian Vortelli',
-        dataAlugada: ['02/05/2025 - 15:30', '02/05/2025 - 20:30'],
-        valor: 130.0,
-        data: '01/05/2025 - 20:39',
-        status: 'confirmada',
-        endereco: 'Rua das Flores, 123 - Jardim Primavera',
-        cidade: 'São Paulo',
-        estado: 'SP',
-        cep: '01234-567',
-        telefone: '(11) 98765-4321',
-        email: 'zaylian@email.com'
-      },
-      {
-        id: '02',
-        usuario: 'Zaylian Vortelli',
-        dataAlugada: ['02/05/2025 - 15:30', '02/05/2025 - 20:30'],
-        valor: 130.0,
-        data: '01/05/2025 - 20:39',
-        status: 'pendente',
-        endereco: 'Rua das Flores, 123 - Jardim Primavera',
-        cidade: 'São Paulo',
-        estado: 'SP',
-        cep: '01234-567',
-        telefone: '(11) 98765-4321',
-        email: 'zaylian@email.com'
-      },
-      {
-        id: '03',
-        usuario: 'Zaylian Vortelli',
-        dataAlugada: ['02/05/2025 - 15:30', '02/05/2025 - 20:30'],
-        valor: 130.0,
-        data: '01/05/2025 - 20:39',
-        status: 'pendente',
-        endereco: 'Rua das Flores, 123 - Jardim Primavera',
-        cidade: 'São Paulo',
-        estado: 'SP',
-        cep: '01234-567',
-        telefone: '(11) 98765-4321',
-        email: 'zaylian@email.com'
-      },
-    ];
-    setReservas(reservasExemplo);
-  }, []);
+    const fetchReservas = async () => {
+      try {
+        if (!user?.id) {
+          throw new Error("Usuário não encontrado");
+        }
+
+        const data = await rentalService.getRentalsByUserID(user.id);
+        setReservas(data);
+        setLoading(false);
+      } catch (err) {
+        console.error("Erro detalhado ao buscar reservas:", err);
+        setError(err.message || "Erro ao carregar reservas. Por favor, tente novamente mais tarde.");
+        setLoading(false);
+      }
+    };
+
+    if (user?.id) {
+      fetchReservas();
+    }
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="p-8 flex justify-center items-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Erro!</strong>
+          <span className="block sm:inline"> {error}</span>
+        </div>
+      </div>
+    );
+  }
 
   const handleCancelarReserva = (id) => {
     setReservas(reservas.map(reserva =>
@@ -66,147 +64,49 @@ const Reservas = () => {
     console.log('Enviar mensagem para reserva:', reserva);
   };
 
-  const toggleExpand = (id) => {
-    setExpandedCards(prev => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
-  };
-
   return (
-    <div className="w-full min-h-screen bg-[radial-gradient(circle,_#6ACDFF,_#C2EBFF)]">
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B]">
       <Header />
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="bg-white rounded-lg p-6 mb-8">
-          <h1 className="text-3xl font-bold text-black">Minhas Reservas</h1>
-        </div>
-        <div className="mt-8">
-          {/* Cabeçalho */}
-          <div className="bg-white rounded-lg p-4 mb-4">
-            <div className="grid grid-cols-12 gap-4 items-center">
-              <div className="col-span-1">
-                <h2 className="text-lg font-bold text-left text-black">ID</h2>
-              </div>
-              <div className="col-span-2">
-                <h2 className="text-lg font-bold text-left text-black">Usuário</h2>
-              </div>
-              <div className="col-span-2">
-                <h2 className="text-lg font-bold text-left text-black">Data Alugada</h2>
-              </div>
-              <div className="col-span-1">
-                <h2 className="text-lg font-bold text-left text-black">Valor</h2>
-              </div>
-              <div className="col-span-2">
-                <h2 className="text-lg font-bold text-left text-black">Data da Reserva</h2>
-              </div>
-              <div className="col-span-2">
-                <h2 className="text-lg font-bold text-left text-black">Status</h2>
-              </div>
-              <div className="col-span-2">
-                <h2 className="text-lg font-bold text-right text-black">Ações</h2>
-              </div>
+      <div className="p-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-8xl mx-auto">
+          <div className="flex flex-col">
+            <div className="grid grid-cols-12 font-bold text-lg pb-2 border-b border-gray-200">
+              <div className="col-span-1 pl-4">ID</div>
+              <div className="col-span-3 pl-2">Espaço</div>
+              <div className="col-span-3">Data Alugada</div>
+              <div className="col-span-2 -ml-1">Valor</div>
+              <div className="col-span-3 -ml-3">Data</div>
             </div>
-          </div>
-          {/* Linhas de reservas */}
-          <div className="space-y-4">
-            {reservas.map((reserva) => (
-              <div key={reserva.id} className="w-full">
-                <div className="bg-white rounded-lg shadow-md p-4">
-                  <div className="grid grid-cols-12 gap-4 items-center">
-                    <div className="col-span-1">
-                      <p className="text-lg font-bold">{reserva.id}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p>{reserva.usuario}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p>
-                        {reserva.dataAlugada[0]}<br />
-                        {reserva.dataAlugada[1]}
-                      </p>
-                    </div>
-                    <div className="col-span-1">
-                      <p className="font-bold">
-                        R$ {reserva.valor.toFixed(2).replace('.', ',')}
-                      </p>
-                    </div>
-                    <div className="col-span-2">
-                      <p>{reserva.data}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        reserva.status === 'confirmada' 
-                          ? 'bg-green-200 text-green-900'
-                          : reserva.status === 'pendente'
-                          ? 'bg-yellow-200 text-yellow-900'
-                          : 'bg-red-200 text-red-900'
-                      }`}>
-                        {reserva.status === 'confirmada' 
-                          ? 'Confirmada'
-                          : reserva.status === 'pendente'
-                          ? 'Pendente'
-                          : 'Cancelada'}
-                      </span>
-                    </div>
-                    <div className="col-span-2">
-                      <div className="flex justify-end space-x-2">
-                        <button
-                          className="px-3 py-1 border border-blue-500 text-blue-500 rounded hover:bg-blue-50 transition-colors cursor-pointer"
-                          onClick={() => handleEnviarMensagem(reserva)}
-                        >
-                          Mensagem
-                        </button>
-                        {reserva.status !== 'cancelada' && (
-                          <button
-                            className="px-3 py-1 border border-red-500 text-red-500 rounded hover:bg-red-50 transition-colors cursor-pointer"
-                            onClick={() => handleCancelarReserva(reserva.id)}
-                          >
-                            Cancelar
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Botão de expansão centralizado */}
-                  <div className="flex justify-center mt-2 border-t border-gray-100 pt-2">
-                    <button
-                      onClick={() => toggleExpand(reserva.id)}
-                      className={`p-1.5 rounded-full hover:bg-gray-50 transition-all duration-300 cursor-pointer ${
-                        expandedCards[reserva.id] ? 'rotate-180 bg-gray-50' : ''
-                      }`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  {/* Conteúdo expandido */}
-                  {expandedCards[reserva.id] && (
-                    <div className="mt-2 pt-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <h3 className="text-sm font-semibold text-gray-600 mb-2">Informações de Contato</h3>
-                          <div className="space-y-2">
-                            <p><span className="font-medium">Endereço:</span> {reserva.endereco}</p>
-                            <p><span className="font-medium">Cidade/Estado:</span> {reserva.cidade} - {reserva.estado}</p>
-                            <p><span className="font-medium">CEP:</span> {reserva.cep}</p>
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-semibold text-gray-600 mb-2">Contato</h3>
-                          <div className="space-y-2">
-                            <p><span className="font-medium">Telefone:</span> {reserva.telefone}</p>
-                            <p><span className="font-medium">Email:</span> {reserva.email}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+            <div className="flex flex-col gap-4 mt-4 max-h-[calc(100vh-240px)] overflow-y-auto">
+              {reservas.length === 0 ? (
+                <div className="text-center py-4 text-gray-500">
+                  Nenhuma reserva encontrada
                 </div>
-              </div>
-            ))}
+              ) : (
+                reservas.map((reserva) => (
+                  <div
+                    key={reserva._id}
+                    className="grid grid-cols-12 items-center bg-white rounded-lg shadow border border-gray-200 px-4 py-3 hover:shadow-md transition-all"
+                  >
+                    <div className="col-span-1 font-medium">{reserva._id.slice(-4)}</div>
+                    <div className="col-span-3">
+                      <button
+                        onClick={() => navigate(`/espaco/${reserva.space?._id}`)}
+                        className="text-blue-600 hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+                      >
+                        {reserva.space?.space_name || "Espaço não encontrado"}
+                      </button>
+                    </div>
+                    <div className="col-span-3 flex flex-col text-sm text-gray-700">
+                      <span>{new Date(reserva.start_date).toLocaleDateString()} - {reserva.startTime}</span>
+                      <span>{new Date(reserva.end_date).toLocaleDateString()} - {reserva.endTime}</span>
+                    </div>
+                    <div className="col-span-2 font-bold">R$ {reserva.value.toFixed(2)}</div>
+                    <div className="col-span-3">{new Date(reserva.createdAt).toLocaleString()}</div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>

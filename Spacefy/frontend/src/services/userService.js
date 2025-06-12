@@ -39,6 +39,12 @@ export const userService = {
     async updateUser(userId, userData) {
         const response = await api.put(`/users/updateUser/${userId}`, userData);
         return response.data;
+    },
+
+    // Buscar usuário por ID
+    async getUserById(userId) {
+        const response = await api.get(`/users/getUserById/${userId}`);
+        return response.data;
     }
 
 };

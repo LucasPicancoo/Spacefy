@@ -110,22 +110,32 @@ export const updateUser = async (req: Request, res: Response) => {
       return;
     }
 
-    if (!name || !email || !telephone || !password || !surname) {
-      res.status(400).json({ error: "Preencha todos os campos obrigatórios." });
+    // Verifica se pelo menos um campo foi fornecido
+    if (!name && !email && !telephone && !password && !surname) {
+      res.status(400).json({ error: "Pelo menos um campo deve ser fornecido para atualização." });
       return;
     }
 
-    const emailExists = await UserModel.findOne({ email, _id: { $ne: id } });
-    if (emailExists) {
-      res.status(409).json({ error: "Este e-mail já está em uso por outro usuário." });
-      return;
-    }
+    // Cria um objeto com apenas os campos fornecidos
+    const updateData: any = {};
+    if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (telephone) updateData.telephone = telephone;
+    if (surname) updateData.surname = surname;
+    if (password) updateData.password = await hash(password);
 
-    const hashedPassword = await hash(password);
+    // Verifica se o email já existe apenas se um novo email foi fornecido
+    if (email) {
+      const emailExists = await UserModel.findOne({ email, _id: { $ne: id } });
+      if (emailExists) {
+        res.status(409).json({ error: "Este e-mail já está em uso por outro usuário." });
+        return;
+      }
+    }
 
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
-      { name, email, telephone, password: hashedPassword, surname },
+      updateData,
       { new: true, runValidators: true }
     ).select("-password");
 

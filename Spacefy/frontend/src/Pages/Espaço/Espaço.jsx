@@ -16,7 +16,6 @@ import ComentariosUsuarios from "./ComentariosUsuarios";
 import MapaEspaço from "./MapaEspaço";
 import { useUser } from "../../Contexts/UserContext";
 import MiniChat from "../../Components/MiniChat/MiniChat";
-import { messageService } from "../../services/messageService";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -80,7 +79,7 @@ function Espaço() {
         }
     };
 
-    const handleMessageLocator = async () => {
+    const handleMessageLocator = () => {
         if (!isLoggedIn) {
             // Redirecionar para login se não estiver autenticado
             navigate('/login');

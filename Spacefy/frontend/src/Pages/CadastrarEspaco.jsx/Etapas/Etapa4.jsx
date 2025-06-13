@@ -50,8 +50,13 @@ const CampoHorario = ({ label, id, name, value, onChange }) => (
 // Componente para campo de preço
 const CampoPreco = ({ value, onChange }) => {
     const formatarPreco = (valor) => {
-        if (!valor) return '';
+        if (!valor) return 'R$ 0,00';
         return `R$ ${parseFloat(valor).toFixed(2)}`;
+    };
+
+    const calcularValorLiquido = (valor) => {
+        if (!valor) return 0;
+        return valor * 0.90; // 90% do valor total (100% - 10% de comissão)
     };
 
     const handlePrecoChange = (e) => {
@@ -77,6 +82,9 @@ const CampoPreco = ({ value, onChange }) => {
                 className="mt-1 block w-full rounded-md border border-gray-200 bg-white shadow-md focus:border-blue-500 focus:ring-blue-500 cursor-text text-lg py-3 px-4 placeholder-gray-400"
                 required
             />
+            <div className="mt-2 text-sm text-gray-600">
+                <p>Após a comissão do site (10%), você receberá: <span className="font-semibold text-green-600">{formatarPreco(calcularValorLiquido(value))}</span> por hora</p>
+            </div>
         </div>
     );
 };

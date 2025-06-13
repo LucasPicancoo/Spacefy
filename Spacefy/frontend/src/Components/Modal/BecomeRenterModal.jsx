@@ -152,7 +152,7 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
               <div className="ml-3">
                 <h3 className="text-base font-medium text-blue-800">Informação importante</h3>
                 <p className="mt-1 text-sm text-blue-700">
-                  Ao se tornar um locador na nossa plataforma, você receberá 85% do valor total de cada aluguel realizado. Os 15% restantes são destinados à manutenção da plataforma, suporte e divulgação dos espaços.
+                  Ao se tornar um locador na nossa plataforma, você receberá 90% do valor total de cada aluguel realizado. Os 10% restantes são destinados à manutenção da plataforma, suporte e divulgação dos espaços.
                 </p>
               </div>
             </div>

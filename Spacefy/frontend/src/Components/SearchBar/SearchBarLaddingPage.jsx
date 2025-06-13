@@ -43,7 +43,7 @@ export default function SearchBarLaddingPage() {
       <LocationSearch onLocationSelect={handleLocationSelect} />
 
       {/* Campo de Datas */}
-      <div className="flex-1 flex items-center bg-white rounded-xl justify-between px-4 py-3">
+      <div className="bg-white rounded-xl">
         <DatePicker
           selectsRange={true}
           startDate={startDate}
@@ -55,12 +55,11 @@ export default function SearchBarLaddingPage() {
           }}
           locale={ptBR}
           placeholderText="Selecione as datas"
-          className="w-full outline-none text-gray-700 text-sm cursor-pointer"
+          className="w-full outline-none text-gray-700 text-sm cursor-pointer bg-transparent border-none shadow-none"
           dateFormat="dd/MM/yyyy"
           minDate={today}
           filterDate={(date) => isAfter(date, today) || date.getTime() === today.getTime()}
         />
-        <FaChevronDown className="text-gray-400 text-sm" />
       </div>
 
       {/* Campo de Pessoas */}

@@ -29,12 +29,12 @@ const BecomeRenterModal = ({ isOpen, onClose }) => {
 
     try {
       setIsLoading(true);
-      const response = await userService.updateToLocador(user.id, document);
+      const response = await userService.updateToLocatario(user.id, document);
       
       // Atualiza o token com os novos dados do usuário
       if (response.token) {
         login(response.token);
-        updateUser({ role: 'locador' });
+        updateUser({ role: 'locatario' });
         toast.success('Você agora é um locador!');
         onClose();
         // Recarrega a página para atualizar todos os componentes

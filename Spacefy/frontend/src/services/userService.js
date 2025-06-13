@@ -34,12 +34,6 @@ export const userService = {
         const response = await api.put(`/users/updateToLocatario/${userId}`, { cpfOrCnpj });
         return response.data;
     },
-    
-    // Atualizar usuário para locador
-    async updateToLocador(userId, cpfOrCnpj) {
-        const response = await api.put(`/users/updateToLocador/${userId}`, { cpfOrCnpj });
-        return response.data;
-    },
 
     // Atualizar dados do usuário
     async updateUser(userId, userData) {

@@ -14,6 +14,7 @@ import Etapa7 from './Etapas/Etapa7';
 import Etapa8 from './Etapas/Etapa8';
 import { useUser } from '../../Contexts/UserContext';
 import Cookies from "js-cookie";
+import BecomeRenterModal from '../../Components/Modal/BecomeRenterModal';
 
 // Mapeamento dos campos obrigatórios e suas mensagens de erro
 const CAMPOS_OBRIGATORIOS = {
@@ -41,29 +42,53 @@ const CAMPOS_OBRIGATORIOS = {
 const TOTAL_ETAPAS = 8;
 
 // Componente da tela inicial com botão para iniciar o cadastro
-const TelaInicial = ({ onIniciar }) => (
+const TelaInicial = ({ onIniciar, user, onOpenBecomeRenterModal }) => (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full bg-white">
         <div className="max-w-4xl text-center">
-            <h1 className="text-5xl font-bold text-gray-900 mb-8">
-                Cadastre seu espaço e alcance mais locatários!
-            </h1>
-            <div className="space-y-6 mb-12">
-                <p className="text-xl text-gray-700">
-                    Tem uma sala de reunião, auditório ou espaço para eventos disponível?
-                </p>
-                <p className="text-xl text-gray-700">
-                    Cadastre-se na nossa plataforma e conecte-se com pessoas que precisam de um local como o seu!
-                </p>
-                <p className="text-xl text-gray-700">
-                    Preencha os detalhes abaixo e comece a alugar seu espaço de forma prática e segura!
-                </p>
-            </div>
-            <button
-                onClick={onIniciar}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5 px-12 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
-            >
-                Iniciar Cadastro
-            </button>
+            {user?.role === 'locatario' ? (
+                <>
+                    <h1 className="text-5xl font-bold text-gray-900 mb-8">
+                        Cadastre seu espaço e alcance mais locatários!
+                    </h1>
+                    <div className="space-y-6 mb-12">
+                        <p className="text-xl text-gray-700">
+                            Tem uma sala de reunião, auditório ou espaço para eventos disponível?
+                        </p>
+                        <p className="text-xl text-gray-700">
+                            Cadastre-se na nossa plataforma e conecte-se com pessoas que precisam de um local como o seu!
+                        </p>
+                        <p className="text-xl text-gray-700">
+                            Preencha os detalhes abaixo e comece a alugar seu espaço de forma prática e segura!
+                        </p>
+                    </div>
+                    <button
+                        onClick={onIniciar}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5 px-12 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
+                    >
+                        Iniciar Cadastro
+                    </button>
+                </>
+            ) : (
+                <>
+                    <h1 className="text-5xl font-bold text-gray-900 mb-8">
+                        Você precisa ser um locador para cadastrar espaços!
+                    </h1>
+                    <div className="space-y-6 mb-12">
+                        <p className="text-xl text-gray-700">
+                            Para cadastrar espaços em nossa plataforma, você precisa ter uma conta de locador.
+                        </p>
+                        <p className="text-xl text-gray-700">
+                            Clique no botão abaixo para se tornar um locador agora mesmo!
+                        </p>
+                    </div>
+                    <button
+                        onClick={onOpenBecomeRenterModal}
+                        className="bg-white border-2 border-[#00A3FF] text-[#00A3FF] px-8 py-5 rounded-lg text-xl font-semibold hover:bg-[#00A3FF] hover:text-white transition-colors cursor-pointer"
+                    >
+                        Virar Locador
+                    </button>
+                </>
+            )}
         </div>
     </div>
 );
@@ -87,6 +112,7 @@ const CadastrarEspaco = () => {
     const [formData, setFormData] = useState({});
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isBecomeRenterModalOpen, setIsBecomeRenterModalOpen] = useState(false);
 
     // Verificação de autenticação e papel do usuário
     React.useEffect(() => {
@@ -95,13 +121,7 @@ const CadastrarEspaco = () => {
             navigate('/login');
             return;
         }
-
-        if (user.role !== 'locatario') {
-            toast.error('Apenas locadores podem cadastrar espaços.');
-            navigate('/');
-            return;
-        }
-    }, [isLoggedIn, user, navigate]);
+    }, [isLoggedIn, navigate]);
 
     // Função para iniciar o cadastro, mudando para a primeira etapa
     const iniciarCadastro = () => setEtapaAtual(1);
@@ -278,7 +298,7 @@ const CadastrarEspaco = () => {
             8: <Etapa8 formData={formData} onUpdate={atualizarFormData} />
         };
 
-        return etapas[etapaAtual] || <TelaInicial onIniciar={iniciarCadastro} />;
+        return etapas[etapaAtual] || <TelaInicial onIniciar={iniciarCadastro} user={user} onOpenBecomeRenterModal={() => setIsBecomeRenterModalOpen(true)} />;
     };
 
     // Renderização do componente
@@ -342,6 +362,10 @@ const CadastrarEspaco = () => {
                     </div>
                 </div>
             )}
+            <BecomeRenterModal 
+                isOpen={isBecomeRenterModalOpen}
+                onClose={() => setIsBecomeRenterModalOpen(false)}
+            />
         </>
     );
 };

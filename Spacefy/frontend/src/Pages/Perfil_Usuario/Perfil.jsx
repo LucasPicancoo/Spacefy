@@ -196,8 +196,8 @@ const Perfil = () => {
           <aside className="w-70 self-start sticky top-4">
             <div className="bg-white rounded-lg shadow-lg p-6 mb-4">
               <div className="flex items-center space-x-4 mb-6">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-                  <span role="img" aria-label="avatar" className="text-3xl">👤</span>
+                <div className="w-16 h-16 bg-gray-200 rounded-full overflow-hidden">
+                  <img src={user?.profilePhoto} alt="Avatar" className="w-full h-full object-cover" />
                 </div>
                 <div>
                   <h2 className="text-lg font-bold">{user?.name} {user?.surname}</h2>

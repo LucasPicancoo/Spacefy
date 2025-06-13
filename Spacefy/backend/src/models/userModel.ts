@@ -19,6 +19,11 @@ const UserSchema: Schema = new Schema({
     required: function (this: any) {
       return this.role === "locatario";
     },
+  },
+  profilePhoto: {
+    type: String,
+    required: false,
+    default: null
   }
 });
 

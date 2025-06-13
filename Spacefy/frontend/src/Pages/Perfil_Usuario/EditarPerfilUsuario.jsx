@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../../Components/Header/Header';
 import { userService } from '../../services/userService';
+import { uploadImages } from '../../services/imageService';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
@@ -11,13 +12,15 @@ function EditarPerfilUsuario() {
     email: '',
     telefone: '',
     senha: '',
-    confirmeSenha: ''
+    confirmeSenha: '',
+    fotoPerfil: ''
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [userId, setUserId] = useState('');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     const token = Cookies.get('token');
@@ -29,6 +32,7 @@ function EditarPerfilUsuario() {
         sobrenome: decoded.surname || '',
         email: decoded.email || '',
         telefone: decoded.telephone || '',
+        fotoPerfil: decoded.profilePhoto || '',
         senha: '',
         confirmeSenha: ''
       });
@@ -64,6 +68,25 @@ function EditarPerfilUsuario() {
     return true;
   };
 
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploadingImage(true);
+      const [imageUrl] = await uploadImages([file]);
+      setFormData(prev => ({
+        ...prev,
+        fotoPerfil: imageUrl
+      }));
+      setSuccess('Foto de perfil atualizada com sucesso!');
+    } catch (error) {
+      setError('Erro ao fazer upload da imagem. Tente novamente.');
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -80,12 +103,12 @@ function EditarPerfilUsuario() {
         surname: formData.sobrenome,
         email: formData.email,
         telephone: formData.telefone,
-        password: formData.senha || undefined
+        password: formData.senha || undefined,
+        profilePhoto: formData.fotoPerfil
       };
 
       const response = await userService.updateUser(userId, userData);
       
-      // Atualiza o token no cookie
       if (response.token) {
         Cookies.set('token', response.token);
       }
@@ -114,12 +137,35 @@ function EditarPerfilUsuario() {
             <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100">
               <div className="relative flex justify-center mb-8">
                 <div className="w-48 h-48 bg-gray-200 rounded-full relative overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-4xl">
-                    {formData.primeiroNome.charAt(0)}{formData.sobrenome.charAt(0)}
-                  </div>
-                  <button className="absolute bottom-3 right-3 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors">
+                  {uploadingImage ? (
+                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00A3FF]"></div>
+                    </div>
+                  ) : formData.fotoPerfil ? (
+                    <img 
+                      src={formData.fotoPerfil} 
+                      alt="Foto de perfil" 
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white text-4xl">
+                      {formData.primeiroNome.charAt(0)}{formData.sobrenome.charAt(0)}
+                    </div>
+                  )}
+                  <label 
+                    htmlFor="fotoPerfil" 
+                    className={`absolute bottom-3 right-3 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-md hover:bg-gray-50 transition-colors ${uploadingImage ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
                     <span className="text-xl">📷</span>
-                  </button>
+                    <input
+                      type="file"
+                      id="fotoPerfil"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                  </label>
                 </div>
               </div>
               <div className="space-y-4 text-gray-700">

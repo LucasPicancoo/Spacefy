@@ -96,7 +96,7 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
-    const { name, email, telephone, password, surname } = req.body;
+    const { name, email, telephone, password, surname, profilePhoto } = req.body;
     const { id: userId } = req.auth;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -111,7 +111,7 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 
     // Verifica se pelo menos um campo foi fornecido
-    if (!name && !email && !telephone && !password && !surname) {
+    if (!name && !email && !telephone && !password && !surname && !profilePhoto) {
       res.status(400).json({ error: "Pelo menos um campo deve ser fornecido para atualização." });
       return;
     }
@@ -123,6 +123,7 @@ export const updateUser = async (req: Request, res: Response) => {
     if (telephone) updateData.telephone = telephone;
     if (surname) updateData.surname = surname;
     if (password) updateData.password = await hash(password);
+    if (profilePhoto) updateData.profilePhoto = profilePhoto;
 
     // Verifica se o email já existe apenas se um novo email foi fornecido
     if (email) {

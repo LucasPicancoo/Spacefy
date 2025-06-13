@@ -31,6 +31,7 @@ export function UserProvider({ children }) {
               email: decodedToken.email,
               telephone: decodedToken.telephone,
               role: decodedToken.role,
+              profilePhoto: decodedToken.profilePhoto,
             });
             setIsLoggedIn(true);
           }
@@ -60,6 +61,7 @@ export function UserProvider({ children }) {
         email: decodedToken.email,
         telephone: decodedToken.telephone,
         role: decodedToken.role,
+        profilePhoto: decodedToken.profilePhoto,
       });
       setIsLoggedIn(true);
 

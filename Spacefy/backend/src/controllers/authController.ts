@@ -35,6 +35,7 @@ export const login = async (req: Request, res: Response) => {
       email: user.email,
       telephone: user.telephone,
       role: user.role,
+      profilePhoto: user.profilePhoto || undefined,
     });
 
     // Armazena o token no cookie

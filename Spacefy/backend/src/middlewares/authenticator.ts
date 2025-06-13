@@ -27,4 +27,5 @@ export interface AuthenticationData {
   email: string;
   telephone: string;
   role: string;
+  profilePhoto?: string;
 }

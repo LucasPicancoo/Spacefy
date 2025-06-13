@@ -11,6 +11,7 @@ export interface IBaseUser extends Document {
   telephone: string; // Telefone do usuário
   role: "locatario" | "usuario" | "admin"; // Papel do usuário (locatário, usuário comum ou administrador)
   favorites?: mongoose.Types.ObjectId[]; // Lista de IDs dos espaços favoritados
+  profilePhoto?: string | null; // URL da foto de perfil do usuário
 }
 
 // Interface para locatários, que herdam os campos da interface base e adicionam o CPF ou CNPJ

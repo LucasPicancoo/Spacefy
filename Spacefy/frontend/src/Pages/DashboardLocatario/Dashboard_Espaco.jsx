@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaStar, FaRegStar, FaStarHalfAlt, FaChevronDown } from "react-icons/fa";
 import { BsCurrencyDollar } from "react-icons/bs";
-import { MdCalendarToday, MdEdit } from "react-icons/md";
+import { MdCalendarToday, MdEdit, MdDelete } from "react-icons/md";
 import { FaWifi } from "react-icons/fa";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import CommentsModal from "../../Components/CommentsModal";
@@ -25,6 +25,8 @@ function renderStars(avaliacao) {
 
 export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEspaco }) {
   const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
   const [espacos, setEspacos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -98,6 +100,23 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
     buscarDadosAluguel();
   }, [espacos, subEspacoSelecionado]);
 
+  const handleDeleteSpace = async () => {
+    try {
+      const espacoSelecionado = espacos[subEspacoSelecionado] || espacos[0];
+      await spaceService.deleteSpace(espacoSelecionado._id);
+      
+      // Atualiza a lista de espaços após a exclusão
+      const espacosAtualizados = await spaceService.getSpacesByOwnerId(user.id);
+      setEspacos(espacosAtualizados);
+      
+      setShowDeleteModal(false);
+      setDeleteError(null);
+    } catch (error) {
+      console.error('Erro ao excluir espaço:', error);
+      setDeleteError('Erro ao excluir espaço. Por favor, tente novamente.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full h-full p-6 flex items-center justify-center">
@@ -130,12 +149,20 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
       <div className="flex-1 bg-white rounded-xl shadow-lg p-6 flex flex-col gap-6">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold mb-2">{espacoSelecionado.space_name}</h2>
-          <button
-            onClick={() => onEditarEspaco(espacoSelecionado)}
-            className="flex items-center gap-1 bg-[#1486B8] hover:bg-[#0f6a94] text-white font-semibold py-1 px-3 rounded-lg text-sm transition duration-300 ease-in-out shadow cursor-pointer"
-          >
-            <MdEdit /> Editar
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => onEditarEspaco(espacoSelecionado)}
+              className="flex items-center gap-1 bg-[#1486B8] hover:bg-[#0f6a94] text-white font-semibold py-1 px-3 rounded-lg text-sm transition duration-300 ease-in-out shadow cursor-pointer"
+            >
+              <MdEdit /> Editar
+            </button>
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-1 px-3 rounded-lg text-sm transition duration-300 ease-in-out shadow cursor-pointer"
+            >
+              <MdDelete /> Excluir
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_256px] gap-6">
           {/* Gráfico */}
@@ -230,6 +257,38 @@ export default function Dashboard_Espaco({ subEspacoSelecionado = 0, onEditarEsp
       </div>
       {showCommentsModal && (
         <CommentsModal isOpen={showCommentsModal} onClose={() => setShowCommentsModal(false)} reviews={espacoSelecionado.reviews || []} />
+      )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-transparent flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl border border-gray-200">
+            <h3 className="text-xl font-bold mb-4">Confirmar Exclusão</h3>
+            <p className="text-gray-600 mb-6">
+              Tem certeza que deseja excluir o espaço "{espacoSelecionado.space_name}"? Esta ação não pode ser desfeita.
+            </p>
+            {deleteError && (
+              <p className="text-red-500 mb-4">{deleteError}</p>
+            )}
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteError(null);
+                }}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleDeleteSpace}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium"
+              >
+                Confirmar Exclusão
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

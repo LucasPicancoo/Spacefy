@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useUser } from "../../Contexts/UserContext";
 import { rentalService } from "../../services/rentalService";
+import { Link } from "react-router-dom";
 
 export default function Dashboard_Reservas() {
   const [reservas, setReservas] = useState([]);
@@ -55,10 +56,11 @@ export default function Dashboard_Reservas() {
         <div className="flex flex-col">
           <div className="grid grid-cols-12 font-bold text-lg pb-2 border-b border-gray-200">
             <div className="col-span-1 pl-4">ID</div>
-            <div className="col-span-3 pl-2">Usuário</div>
-            <div className="col-span-3">Data Alugada</div>
+            <div className="col-span-2 pl-2">Usuário</div>
+            <div className="col-span-3">Espaço</div>
+            <div className="col-span-2">Data Alugada</div>
             <div className="col-span-2 -ml-1">Valor</div>
-            <div className="col-span-3 -ml-3">Data</div>
+            <div className="col-span-2 -ml-3">Data</div>
           </div>
           <div className="flex flex-col gap-4 mt-4 max-h-[calc(100vh-240px)] overflow-y-auto">
             {reservas.length === 0 ? (
@@ -72,13 +74,25 @@ export default function Dashboard_Reservas() {
                   className="grid grid-cols-12 items-center bg-white rounded-lg shadow border border-gray-200 px-4 py-3 hover:shadow-md transition-all"
                 >
                   <div className="col-span-1 font-medium">{reserva._id.slice(-4)}</div>
-                  <div className="col-span-3">{reserva.user?.name + " " + reserva.user?.surname || "Usuário não encontrado"}</div>
-                  <div className="col-span-3 flex flex-col text-sm text-gray-700">
+                  <div className="col-span-2">{reserva.user?.name + " " + reserva.user?.surname || "Usuário não encontrado"}</div>
+                  <div className="col-span-3">
+                    {reserva.space ? (
+                      <Link 
+                        to={`/espaco/${reserva.space._id}`}
+                        className="text-blue-600 hover:text-blue-800 hover:underline transition-colors"
+                      >
+                        {reserva.space.space_name}
+                      </Link>
+                    ) : (
+                      "Espaço não encontrado"
+                    )}
+                  </div>
+                  <div className="col-span-2 flex flex-col text-sm text-gray-700">
                     <span>{new Date(reserva.start_date).toLocaleDateString()} - {reserva.startTime}</span>
                     <span>{new Date(reserva.end_date).toLocaleDateString()} - {reserva.endTime}</span>
                   </div>
                   <div className="col-span-2 font-bold">R$ {reserva.value.toFixed(2)}</div>
-                  <div className="col-span-3">{new Date(reserva.createdAt).toLocaleString()}</div>
+                  <div className="col-span-2">{new Date(reserva.createdAt).toLocaleString()}</div>
                 </div>
               ))
             )}

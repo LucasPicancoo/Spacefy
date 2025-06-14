@@ -370,26 +370,26 @@ const Perfil = () => {
                   }}
                 >
                   {userRentals && userRentals.length > 0 ? (
-                    userRentals.map((rental) => {
-                      if (!rental.space) {
-                        return null;
-                      }
-                      return (
-                        <SpaceCard
-                          key={rental._id}
-                          space={{
-                            _id: rental.space._id,
-                            space_name: rental.space.space_name,
-                            location: rental.space.location,
-                            price_per_hour: rental.space.price_per_hour,
-                            image_url: rental.space.image_url,
-                            rating: rental.space.nota || 4.8,
-                            totalReviews: rental.space.avaliacoes || 0
-                          }}
-                          className="min-w-[300px] flex-shrink-0"
-                        />
-                      );
-                    }).filter(Boolean)
+                    Array.from(new Set(userRentals.map(rental => rental.space?._id)))
+                      .map(spaceId => {
+                        const rental = userRentals.find(r => r.space?._id === spaceId);
+                        if (!rental?.space) return null;
+                        return (
+                          <SpaceCard
+                            key={rental._id}
+                            space={{
+                              _id: rental.space._id,
+                              space_name: rental.space.space_name,
+                              location: rental.space.location,
+                              price_per_hour: rental.space.price_per_hour,
+                              image_url: rental.space.image_url,
+                              rating: rental.space.nota || 4.8,
+                              totalReviews: rental.space.avaliacoes || 0
+                            }}
+                            className="min-w-[300px] flex-shrink-0"
+                          />
+                        );
+                      }).filter(Boolean)
                   ) : (
                     <div className="text-gray-500 text-sm px-4">Você ainda não alugou nenhum espaço.</div>
                   )}

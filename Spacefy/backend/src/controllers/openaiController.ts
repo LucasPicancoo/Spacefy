@@ -1,8 +1,12 @@
 import { Request, Response } from 'express';
 import { processUserPrompt } from '../services/openaiService';
+import connectDB from '../config/database';
+import mongoose from 'mongoose';
 
 export const handleChatRequest = async (req: Request, res: Response) => {
   try {
+    await connectDB(); // conecta ao banco
+    
     const { prompt } = req.body;
     
     if (!prompt) {
@@ -19,6 +23,9 @@ export const handleChatRequest = async (req: Request, res: Response) => {
       error: 'Erro ao processar o prompt',
       details: error instanceof Error ? error.message : 'Erro desconhecido'
     });
-    return 
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };

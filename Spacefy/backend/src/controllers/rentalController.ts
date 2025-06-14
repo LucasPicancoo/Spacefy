@@ -4,6 +4,7 @@ import NotificationModel from "../models/notificationModel";
 import SpaceModel from "../models/spaceModel";
 import UserModel from "../models/userModel";
 import mongoose from "mongoose";
+import connectDB from "../config/database";
 
 // Função para calcular o número de dias entre duas datas
 const calculateDays = (startDate: Date, endDate: Date): number => {
@@ -95,6 +96,7 @@ const getDatesBetween = (startDate: Date, endDate: Date): Date[] => {
 // Criar um novo aluguel com validação de conflito + notificação automática
 export const createRental = async (req: Request, res: Response) => {
   try {
+    await connectDB(); // conecta ao banco
     const { userId, spaceId, start_date, end_date, startTime, endTime, value } = req.body;
 
     if (!userId || !spaceId || !start_date || !end_date || !startTime || !endTime || !value) {
@@ -193,13 +195,17 @@ export const createRental = async (req: Request, res: Response) => {
       details: error instanceof Error ? error.message : "Erro desconhecido",
       stack: error instanceof Error ? error.stack : undefined
     });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };
 
 // Listar todos os aluguéis com filtro opcional por data e espaço
 export const getAllRentals = async (req: Request, res: Response) => {
   try {
+    await connectDB(); // conecta ao banco
     const { start_date, end_date, spaceId } = req.query;
 
     const filter: any = {};
@@ -218,13 +224,17 @@ export const getAllRentals = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar aluguéis:", error);
     res.status(500).json({ error: "Erro interno ao buscar aluguéis." });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };
 
 // Listar aluguéis de um usuário específico
 export const getRentalsByUser = async (req: Request, res: Response) => {
   try {
+    await connectDB(); // conecta ao banco
     const { userId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -242,13 +252,17 @@ export const getRentalsByUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar aluguéis do usuário:", error);
     res.status(500).json({ error: "Erro interno ao buscar aluguéis." });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };
 
 // Deletar aluguel pelo ID
 export const deleteRental = async (req: Request, res: Response) => {
   try {
+    await connectDB(); // conecta ao banco
     const { rentalId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(rentalId)) {
@@ -268,13 +282,17 @@ export const deleteRental = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao deletar aluguel:", error);
     res.status(500).json({ error: "Erro interno ao deletar aluguel." });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };
 
 // Listar todas as datas reservadas de um espaço específico
 export const getRentedDatesBySpace = async (req: Request, res: Response) => {
   try {
+    await connectDB(); // conecta ao banco
     const { spaceId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(spaceId)) {
@@ -323,13 +341,17 @@ export const getRentedDatesBySpace = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar datas reservadas:", error);
     res.status(500).json({ error: "Erro interno ao buscar datas reservadas." });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };
 
 // Listar aluguéis de um locador específico
 export const getRentalsByOwner = async (req: Request, res: Response) => {
   try {
+    await connectDB(); // conecta ao banco
     const { ownerId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(ownerId)) {
@@ -365,6 +387,9 @@ export const getRentalsByOwner = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar aluguéis do locador:", error);
     res.status(500).json({ error: "Erro interno ao buscar aluguéis." });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };

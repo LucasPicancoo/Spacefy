@@ -3,6 +3,7 @@ import NotificationModel from '../models/notificationModel';
 import UserModel from '../models/userModel';
 import mongoose from 'mongoose';
 import { sendEmail } from '../services/sendEmail';
+import * as database from '../config/database';
 
 export const createNotification = async (userId: string, title: string, message: string) => {
   const notification = await NotificationModel.create({
@@ -33,6 +34,7 @@ export const createNotification = async (userId: string, title: string, message:
 
 export const getUserNotifications = async (req: Request, res: Response) => {
   try {
+    await database.default(); // conecta ao banco
     const { userId } = req.params;
     const { unreadOnly } = req.query;
 
@@ -53,12 +55,16 @@ export const getUserNotifications = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao buscar notificações:', error);
     res.status(500).json({ error: 'Erro interno ao buscar notificações.' });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };
 
 export const markNotificationAsRead = async (req: Request, res: Response) => {
   try {
+    await database.default(); // conecta ao banco
     const { notificationId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(notificationId)) {
@@ -82,12 +88,16 @@ export const markNotificationAsRead = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao atualizar notificação:', error);
     res.status(500).json({ error: 'Erro interno ao atualizar notificação.' });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };
 
 export const deleteNotification = async (req: Request, res: Response) => {
   try {
+    await database.default(); // conecta ao banco
     const { notificationId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(notificationId)) {
@@ -107,6 +117,9 @@ export const deleteNotification = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Erro ao deletar notificação:', error);
     res.status(500).json({ error: 'Erro interno ao deletar notificação.' });
-    return;
+  } finally {
+    mongoose.disconnect().catch(err => {
+      console.error("Erro ao desconectar do MongoDB:", err);
+    });
   }
 };

@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import BlockedDatesModel from "../models/blockedDatesModel";
 import mongoose from "mongoose";
+import RentalModel from "../models/rentalModel";
 
 // Criar ou atualizar datas bloqueadas
 export const createOrUpdateBlockedDates = async (req: Request, res: Response) => {
@@ -80,6 +81,7 @@ export const getBlockedDatesBySpaceId = async (req: Request, res: Response) => {
       return;
     }
 
+    // Buscar datas bloqueadas
     const blockedDates = await BlockedDatesModel.findOne({ space_id })
       .populate({
         path: 'space_id',
@@ -91,19 +93,64 @@ export const getBlockedDatesBySpaceId = async (req: Request, res: Response) => {
       })
       .select('space_id blocked_dates');
 
-    if (!blockedDates) {
-      res.status(404).json({ error: "Nenhuma data bloqueada encontrada para este espaço" });
-      return;
-    }
+    // Buscar datas reservadas
+    const rentals = await RentalModel.find({ space: space_id })
+      .select("start_date end_date startTime endTime");
 
-    res.status(200).json(blockedDates);
+    // Criar um mapa para agrupar os horários por data das reservas
+    const dateMap = new Map();
+
+    rentals.forEach(rental => {
+      const datesBetween = getDatesBetween(rental.start_date, rental.end_date);
+      
+      datesBetween.forEach(date => {
+        const dateStr = date.toISOString().split("T")[0];
+        if (!dateMap.has(dateStr)) {
+          dateMap.set(dateStr, []);
+        }
+        dateMap.get(dateStr).push({
+          startTime: rental.startTime,
+          endTime: rental.endTime
+        });
+      });
+    });
+
+    // Converter o mapa para o formato de resposta desejado
+    const formattedRentedDates = Array.from(dateMap.entries()).map(([date, times]) => ({
+      date,
+      times: times.map((time: { startTime: string; endTime: string }) => ({
+        startTime: time.startTime,
+        endTime: time.endTime
+      }))
+    }));
+
+    // Preparar a resposta
+    const response = {
+      blocked_dates: blockedDates?.blocked_dates || [],
+      rented_dates: formattedRentedDates
+    };
+
+    res.status(200).json(response);
     return;
   } catch (error) {
-    console.error("Erro ao buscar datas bloqueadas:", error);
+    console.error("Erro ao buscar datas bloqueadas e reservadas:", error);
     res.status(500).json({ 
-      error: "Erro ao buscar datas bloqueadas",
+      error: "Erro ao buscar datas bloqueadas e reservadas",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
     return;
   }
-}; 
+};
+
+// Função auxiliar para obter todas as datas entre duas datas
+function getDatesBetween(startDate: Date, endDate: Date): Date[] {
+  const dates: Date[] = [];
+  const currentDate = new Date(startDate);
+  
+  while (currentDate <= endDate) {
+    dates.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return dates;
+} 

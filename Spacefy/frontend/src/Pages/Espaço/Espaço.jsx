@@ -129,7 +129,7 @@ function Espaço() {
                     </button>
                 </div>
 
-                {/* Carousel de fotos */}
+                {/* Carrossel de fotos */}
                 <section className="overflow-hidden">
                     <div className="relative">
                         <div 

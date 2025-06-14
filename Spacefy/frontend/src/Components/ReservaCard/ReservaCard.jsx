@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { rentalService } from "../../services/rentalService";
+import { userService } from "../../services/userService";
 import { toast } from 'react-toastify';
 import { useUser } from "../../Contexts/UserContext";
 import ReservaModal from "../../Pages/Espaço/ReservaModal";
@@ -9,8 +10,24 @@ import WeatherGoogle from "../../Components/WeatherGoogle/WeatherGoogle";
 function ReservaCard({ space, onReservaSuccess }) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [ownerName, setOwnerName] = useState('');
     const { user, isLoggedIn } = useUser();
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchOwnerName = async () => {
+            try {
+                const ownerData = await userService.getUserById(space.owner_id);
+                setOwnerName(`${ownerData.name} ${ownerData.surname}`);
+            } catch (error) {
+                console.error('Erro ao buscar dados do proprietário:', error);
+            }
+        };
+
+        if (space?.owner_id) {
+            fetchOwnerName();
+        }
+    }, [space?.owner_id]);
 
     const handleViewLocatorProfile = () => {
         navigate(`/perfil_locador/${space.owner_id}`);
@@ -83,7 +100,7 @@ function ReservaCard({ space, onReservaSuccess }) {
                         <img src="/user-icon.png" alt="Foto do perfil" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col">
-                        <h3 className="text-xl font-medium">Zaylian Vortelli</h3>
+                        <h3 className="text-xl font-medium">{ownerName}</h3>
                         <div className="flex items-center gap-1">
                             <div className="flex">★★★★★</div>
                             <span className="text-gray-600">(183)</span>
@@ -111,8 +128,8 @@ function ReservaCard({ space, onReservaSuccess }) {
                         {isLoading ? 'Processando...' : 'Reservar Agora'}
                     </button>
                     <div className="mt-4">
-                                <WeatherGoogle location={space.location} />
-                            </div>
+                        <WeatherGoogle location={space.location} />
+                    </div>
                 </div>
             </div>
 

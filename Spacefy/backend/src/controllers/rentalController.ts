@@ -4,6 +4,7 @@ import NotificationModel from "../models/notificationModel";
 import SpaceModel from "../models/spaceModel";
 import UserModel from "../models/userModel";
 import mongoose from "mongoose";
+import redisConfig from "../config/redisConfig";
 
 // Função para calcular o número de dias entre duas datas
 const calculateDays = (startDate: Date, endDate: Date): number => {
@@ -167,6 +168,15 @@ export const createRental = async (req: Request, res: Response) => {
 
     await rental.save();
 
+    // Invalida todos os caches relacionados a aluguéis
+    await Promise.all([
+      redisConfig.deleteRedisPattern('rentals_all_*'),
+      redisConfig.deleteRedisPattern(`rentals_user_${userId}_*`),
+      redisConfig.deleteRedisPattern(`rentals_owner_${space.owner_id}_*`),
+      redisConfig.deleteRedisPattern(`rentals_space_${spaceId}_*`),
+      redisConfig.deleteRedisPattern(`rented_dates_${spaceId}_*`)
+    ]);
+
     const spaceName = space.space_name || "espaço";
     const userName = user.name || "Usuário";
 
@@ -202,6 +212,15 @@ export const getAllRentals = async (req: Request, res: Response) => {
   try {
     const { start_date, end_date, spaceId } = req.query;
 
+    // Cria uma chave única para o cache baseada nos filtros
+    const cacheKey = `rentals_all_${JSON.stringify(req.query)}`;
+    const cachedRentals = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedRentals) {
+      res.status(200).json(JSON.parse(cachedRentals));
+      return;
+    }
+
     const filter: any = {};
     if (start_date) filter.start_date = { $gte: convertDate(start_date as string) };
     if (end_date) filter.end_date = { $lte: convertDate(end_date as string) };
@@ -212,6 +231,8 @@ export const getAllRentals = async (req: Request, res: Response) => {
     const rentals = await RentalModel.find(filter)
       .populate("user", "name email")
       .populate("space", "name location");
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(rentals), 300);
 
     res.status(200).json(rentals);
     return;
@@ -232,10 +253,21 @@ export const getRentalsByUser = async (req: Request, res: Response) => {
       return;
     }
 
+    // Tenta obter os dados do cache
+    const cacheKey = `rentals_user_${userId}`;
+    const cachedRentals = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedRentals) {
+      res.status(200).json(JSON.parse(cachedRentals));
+      return;
+    }
+
     const rentals = await RentalModel.find({ user: userId }).populate(
       "space",
       "space_name image_url price_per_hour location"
     );
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(rentals), 300);
 
     res.status(200).json(rentals);
     return;
@@ -263,6 +295,15 @@ export const deleteRental = async (req: Request, res: Response) => {
       return;
     }
 
+    // Invalida todos os caches relacionados ao aluguel deletado
+    await Promise.all([
+      redisConfig.deleteRedisPattern('rentals_all_*'),
+      redisConfig.deleteRedisPattern(`rentals_user_${deleted.user}_*`),
+      redisConfig.deleteRedisPattern(`rentals_owner_${deleted.owner}_*`),
+      redisConfig.deleteRedisPattern(`rentals_space_${deleted.space}_*`),
+      redisConfig.deleteRedisPattern(`rented_dates_${deleted.space}_*`)
+    ]);
+
     res.status(200).json({ message: "Aluguel deletado com sucesso." });
     return;
   } catch (error) {
@@ -282,10 +323,21 @@ export const getRentedDatesBySpace = async (req: Request, res: Response) => {
       return;
     }
 
+    // Tenta obter os dados do cache
+    const cacheKey = `rented_dates_${spaceId}`;
+    const cachedDates = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedDates) {
+      res.status(200).json(JSON.parse(cachedDates));
+      return;
+    }
+
     const rentals = await RentalModel.find({ space: spaceId }).select("start_date end_date startTime endTime");
 
     if (!rentals.length) {
-      res.status(200).json({ dates: [] });
+      const emptyResponse = { dates: [] };
+      await redisConfig.setRedis(cacheKey, JSON.stringify(emptyResponse), 300);
+      res.status(200).json(emptyResponse);
       return;
     }
 
@@ -318,6 +370,8 @@ export const getRentedDatesBySpace = async (req: Request, res: Response) => {
 
     console.log('Datas formatadas:', formattedDates); // Debug
 
+    await redisConfig.setRedis(cacheKey, JSON.stringify({ dates: formattedDates }), 300);
+
     res.status(200).json({ dates: formattedDates });
     return;
   } catch (error) {
@@ -334,6 +388,15 @@ export const getRentalsByOwner = async (req: Request, res: Response) => {
 
     if (!mongoose.Types.ObjectId.isValid(ownerId)) {
       res.status(400).json({ error: "ID do locador inválido." });
+      return;
+    }
+
+    // Tenta obter os dados do cache
+    const cacheKey = `rentals_owner_${ownerId}`;
+    const cachedRentals = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedRentals) {
+      res.status(200).json(JSON.parse(cachedRentals));
       return;
     }
 
@@ -359,6 +422,8 @@ export const getRentalsByOwner = async (req: Request, res: Response) => {
         }
       };
     });
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(formattedRentals), 300);
 
     res.status(200).json(formattedRentals);
     return;

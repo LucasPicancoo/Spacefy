@@ -8,11 +8,7 @@ import "../models/spaceModel"; // Importando o modelo de espaço para o populate
 import RentalModel from "../models/rentalModel";
 import SpaceModel from "../models/spaceModel";
 import { Authenticator } from "../middlewares/authenticator";
-// Deixando aqui algumas importações caso necessário
-// import { ObjectId } from "mongoose";
-// import { IBaseUser } from "../types/user";
-// import { User } from "../types/user";
-// import mongoose, { Schema, model } from "mongoose";
+import redisConfig from "../config/redisConfig";
 
 // Listar todos os usuários (com espaços alugados)
 export const getAllUsers = async (req: Request, res: Response) => {
@@ -25,7 +21,27 @@ export const getAllUsers = async (req: Request, res: Response) => {
       return;
     }
 
-    const users = await UserModel.find({}, "-password");
+    // Parâmetros de paginação
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    // Tenta obter os dados do cache
+    const cacheKey = `all_users_page_${page}_limit_${limit}`;
+    const cachedUsers = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedUsers) {
+      res.status(200).json(JSON.parse(cachedUsers));
+      return;
+    }
+
+    // Busca o total de usuários para a paginação
+    const totalUsers = await UserModel.countDocuments();
+    const totalPages = Math.ceil(totalUsers / limit);
+
+    const users = await UserModel.find({}, "-password")
+      .skip(skip)
+      .limit(limit);
 
     const usersWithRentals = await Promise.all(
       users.map(async (user) => {
@@ -37,7 +53,21 @@ export const getAllUsers = async (req: Request, res: Response) => {
       })
     );
 
-    res.status(200).json(usersWithRentals);
+    const response = {
+      users: usersWithRentals,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalUsers,
+        usersPerPage: limit,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1
+      }
+    };
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(response), 300);
+
+    res.status(200).json(response);
     return;
   } catch (error) {
     console.error("Erro ao listar usuários:", error);
@@ -145,6 +175,15 @@ export const updateUser = async (req: Request, res: Response) => {
       return;
     }
 
+    // Invalida os caches relacionados ao usuário
+    await Promise.all([
+      redisConfig.deleteRedis(`user_${id}`),
+      redisConfig.deleteRedis(`user_favorites_${id}`),
+      redisConfig.deleteRedis(`user_rentals_${id}`),
+      // Invalida o cache de todos os usuários pois a lista pode ter mudado
+      redisConfig.deleteRedisPattern('all_users_page_*')
+    ]);
+
     // Gera um novo token com os dados atualizados
     const authenticator = new Authenticator();
     const token = authenticator.generateToken({
@@ -221,6 +260,15 @@ export const updateToLocatario = async (req: Request, res: Response) => {
       return;
     }
 
+    // Invalida os caches relacionados ao usuário
+    await Promise.all([
+      redisConfig.deleteRedis(`user_${id}`),
+      redisConfig.deleteRedis(`user_favorites_${id}`),
+      redisConfig.deleteRedis(`user_rentals_${id}`),
+      // Invalida o cache de todos os usuários pois a lista pode ter mudado
+      redisConfig.deleteRedisPattern('all_users_page_*')
+    ]);
+
     // Gera um novo token com os dados atualizados
     const authenticator = new Authenticator();
     const token = authenticator.generateToken({
@@ -289,6 +337,8 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
     if (existingFavorite) {
       // Remove o favorito
       await FavoriteModel.deleteOne({ userId, spaceId });
+      // Invalida o cache de favoritos do usuário
+      await redisConfig.deleteRedis(`user_favorites_${userId}`);
       res.status(200).json({
         message: "Espaço removido dos favoritos.",
         isFavorited: false
@@ -297,6 +347,8 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
     } else {
       // Adiciona o favorito
       await FavoriteModel.create({ userId, spaceId });
+      // Invalida o cache de favoritos do usuário
+      await redisConfig.deleteRedis(`user_favorites_${userId}`);
       res.status(200).json({
         message: "Espaço adicionado aos favoritos.",
         isFavorited: true
@@ -326,9 +378,20 @@ export const getUserFavorites = async (req: Request, res: Response) => {
       return;
     }
 
+    // Tenta obter os dados do cache
+    const cacheKey = `user_favorites_${userId}`;
+    const cachedFavorites = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedFavorites) {
+      res.status(200).json(JSON.parse(cachedFavorites));
+      return;
+    }
+
     const favorites = await FavoriteModel.find({ userId })
       .populate<{ spaceId: IPopulatedFavorite['spaceId'] }>("spaceId", "space_name image_url price_per_hour location")
       .sort({ createdAt: -1 });
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(favorites), 300);
 
     res.status(200).json(favorites);
     return;
@@ -379,6 +442,15 @@ export const deleteUser = async (req: Request, res: Response) => {
       return;
     }
 
+    // Invalida todos os caches relacionados ao usuário
+    await Promise.all([
+      redisConfig.deleteRedis(`user_${id}`),
+      redisConfig.deleteRedis(`user_favorites_${id}`),
+      redisConfig.deleteRedis(`user_rentals_${id}`),
+      // Invalida o cache de todos os usuários pois a lista mudou
+      redisConfig.deleteRedisPattern('all_users_page_*')
+    ]);
+
     res.status(200).json({ message: "Conta deletada com sucesso" });
     return;
   } catch (error) {
@@ -412,6 +484,15 @@ export const getUserRentals = async (req: Request, res: Response) => {
       return;
     }
 
+    // Tenta obter os dados do cache
+    const cacheKey = `user_rentals_${userId}`;
+    const cachedRentals = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedRentals) {
+      res.status(200).json(JSON.parse(cachedRentals));
+      return;
+    }
+
     // Busca todos os aluguéis do usuário
     const rentals = await RentalModel.find({ user: userId })
       .populate("space", "space_name location price_per_hour max_people image_url")
@@ -427,6 +508,8 @@ export const getUserRentals = async (req: Request, res: Response) => {
       }
       return acc;
     }, []);
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(uniqueRentals), 300);
 
     res.status(200).json(uniqueRentals);
     return;
@@ -447,12 +530,23 @@ export const getUserById = async (req: Request, res: Response) => {
       return;
     }
 
+    // Tenta obter os dados do cache
+    const cacheKey = `user_${id}`;
+    const cachedUser = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedUser) {
+      res.status(200).json(JSON.parse(cachedUser));
+      return;
+    }
+
     const user = await UserModel.findById(id).select("-password");
 
     if (!user) {
       res.status(404).json({ error: "Usuário não encontrado." });
       return;
     }
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(user), 300);
 
     res.status(200).json(user);
     return;

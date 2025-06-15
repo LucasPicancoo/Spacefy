@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import Review from "../models/assessmentModel";
 import mongoose from "mongoose";
 import { IBaseUser } from "../types/user";
+import redisConfig from "../config/redisConfig";
 
 // Registrar uma avaliação
 export const createAssessment = async (req: Request, res: Response) => {
@@ -37,6 +38,14 @@ export const createAssessment = async (req: Request, res: Response) => {
       comment,
       evaluation_date: new Date()
     });
+
+    // Invalida os caches relacionados
+    await Promise.all([
+      redisConfig.deleteRedis(`assessments_space_${spaceID}`),
+      redisConfig.deleteRedis(`assessments_user_${userID}`),
+      redisConfig.deleteRedis(`average_score_${spaceID}`),
+      redisConfig.deleteRedisPattern('top_rated_spaces_*')
+    ]);
 
     res.status(201).json(review);
     return;
@@ -81,6 +90,14 @@ export const updateAssessment = async (req: Request, res: Response) => {
       return;
     }
 
+    // Invalida os caches relacionados
+    await Promise.all([
+      redisConfig.deleteRedis(`assessments_space_${review.spaceID}`),
+      redisConfig.deleteRedis(`assessments_user_${review.userID}`),
+      redisConfig.deleteRedis(`average_score_${review.spaceID}`),
+      redisConfig.deleteRedisPattern('top_rated_spaces_*')
+    ]);
+
     res.status(200).json(review);
     return;
   } catch (error) {
@@ -112,6 +129,15 @@ export const deleteAssessment = async (req: Request, res: Response) => {
     }
 
     const deleted = await Review.findByIdAndDelete(id);
+
+    // Invalida os caches relacionados
+    await Promise.all([
+      redisConfig.deleteRedis(`assessments_space_${assessment.spaceID}`),
+      redisConfig.deleteRedis(`assessments_user_${assessment.userID}`),
+      redisConfig.deleteRedis(`average_score_${assessment.spaceID}`),
+      redisConfig.deleteRedisPattern('top_rated_spaces_*')
+    ]);
+
     res.status(200).json({ message: "Avaliação excluída com sucesso." });
     return;
   } catch (error) {
@@ -129,6 +155,15 @@ export const getAssessmentsBySpace = async (req: Request, res: Response) => {
     // Validação do ID do espaço
     if (!mongoose.Types.ObjectId.isValid(spaceId)) {
       res.status(400).json({ error: "ID do espaço inválido." });
+      return;
+    }
+
+    // Tenta obter os dados do cache
+    const cacheKey = `assessments_space_${spaceId}`;
+    const cachedAssessments = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedAssessments) {
+      res.status(200).json(JSON.parse(cachedAssessments));
       return;
     }
 
@@ -153,6 +188,9 @@ export const getAssessmentsBySpace = async (req: Request, res: Response) => {
       spaceID: assessment.spaceID
     }));
 
+    // Salva no cache por 5 minutos
+    await redisConfig.setRedis(cacheKey, JSON.stringify(formattedAssessments), 300);
+
     res.status(200).json(formattedAssessments);
     return;
   } catch (error: any) {
@@ -171,7 +209,20 @@ export const getAllAssessments = async (req: Request, res: Response) => {
     return;
   }
   try {
+    // Tenta obter os dados do cache
+    const cacheKey = 'all_assessments';
+    const cachedAssessments = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedAssessments) {
+      res.status(200).json(JSON.parse(cachedAssessments));
+      return;
+    }
+
     const assessments = await Review.find();
+
+    // Salva no cache por 5 minutos
+    await redisConfig.setRedis(cacheKey, JSON.stringify(assessments), 300);
+
     res.status(200).json(assessments);
     return;
   } catch (error) {
@@ -182,6 +233,15 @@ export const getAllAssessments = async (req: Request, res: Response) => {
 
 export const getTopRatedSpaces = async (req: Request, res: Response) => {
   try {
+    // Tenta obter os dados do cache
+    const cacheKey = 'top_rated_spaces';
+    const cachedSpaces = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedSpaces) {
+      res.status(200).json(JSON.parse(cachedSpaces));
+      return;
+    }
+
     const topSpaces = await Review.aggregate([
       {
         $group: {
@@ -220,6 +280,9 @@ export const getTopRatedSpaces = async (req: Request, res: Response) => {
       }
     ]);
 
+    // Salva no cache por 5 minutos
+    await redisConfig.setRedis(cacheKey, JSON.stringify(topSpaces), 300);
+
     res.status(200).json(topSpaces);
     return;
   } catch (error) {
@@ -242,6 +305,15 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
       return;
     }
 
+    // Tenta obter os dados do cache
+    const cacheKey = `assessments_user_${userId}_page_${page}`;
+    const cachedAssessments = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedAssessments) {
+      res.status(200).json(JSON.parse(cachedAssessments));
+      return;
+    }
+
     // Busca o total de avaliações para calcular o total de páginas
     const totalAssessments = await Review.countDocuments({ userID: userId });
     const totalPages = Math.ceil(totalAssessments / limit);
@@ -256,7 +328,7 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
       .skip(skip)
       .limit(limit);
 
-    res.status(200).json({
+    const response = {
       assessments,
       pagination: {
         currentPage: page,
@@ -265,7 +337,12 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1
       }
-    });
+    };
+
+    // Salva no cache por 5 minutos
+    await redisConfig.setRedis(cacheKey, JSON.stringify(response), 300);
+
+    res.status(200).json(response);
     return;
   } catch (error) {
     console.error("Erro ao buscar avaliações do usuário:", error);
@@ -281,6 +358,15 @@ export const getAverageScoreBySpace = async (req: Request, res: Response) => {
     // Validação do ID do espaço
     if (!mongoose.Types.ObjectId.isValid(spaceId)) {
       res.status(400).json({ error: "ID do espaço inválido." });
+      return;
+    }
+
+    // Tenta obter os dados do cache
+    const cacheKey = `average_score_${spaceId}`;
+    const cachedScore = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedScore) {
+      res.status(200).json(JSON.parse(cachedScore));
       return;
     }
 
@@ -300,20 +386,20 @@ export const getAverageScoreBySpace = async (req: Request, res: Response) => {
     ]);
 
     // Retorna média 0 se não houver avaliações
-    if (result.length === 0) {
-      res.status(200).json({
-        spaceId,
-        averageScore: 0,
-        totalReviews: 0
-      });
-      return;
-    }
-
-    res.status(200).json({
+    const response = result.length === 0 ? {
+      spaceId,
+      averageScore: 0,
+      totalReviews: 0
+    } : {
       spaceId,
       averageScore: Number(result[0].averageScore.toFixed(1)),
       totalReviews: result[0].totalReviews
-    });
+    };
+
+    // Salva no cache por 5 minutos
+    await redisConfig.setRedis(cacheKey, JSON.stringify(response), 300);
+
+    res.status(200).json(response);
     return;
   } catch (error) {
     console.error("Erro ao calcular média das avaliações:", error);

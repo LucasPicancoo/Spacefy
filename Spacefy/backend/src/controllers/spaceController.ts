@@ -4,18 +4,30 @@ import { AMENITIES, ALLOWED_AMENITIES } from "../constants/amenities";
 import { ALLOWED_RULES } from "../constants/spaceRules";
 import mongoose from 'mongoose';
 import { GoogleMapsService } from "../services/googleMapsService";
+import redisConfig from "../config/redisConfig";
 
 // import { AuthenticationData } from "../types/auth";
 
 // Listar todos os espaços
 export const getAllSpaces = async (req: Request, res: Response) => {
   try {
+    // Tenta obter os dados do cache
+    const cacheKey = 'all_spaces';
+    const cachedSpaces = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedSpaces) {
+      res.status(200).json(JSON.parse(cachedSpaces));
+      return;
+    }
+
     const spaces = await SpaceModel.find().select('space_name location price_per_hour max_people image_url');
 
     if (!spaces) {
       res.status(404).json({ error: "Nenhum espaço encontrado" });
       return;
     }
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(spaces), 300);
 
     res.status(200).json(spaces);
     return;
@@ -30,12 +42,24 @@ export const getAllSpaces = async (req: Request, res: Response) => {
 export const getSpaceById = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+
+    // Tenta obter os dados do cache
+    const cacheKey = `space_${id}`;
+    const cachedSpace = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedSpace) {
+      res.status(200).json(JSON.parse(cachedSpace));
+      return;
+    }
+
     const space = await SpaceModel.findById(id);
 
     if (!space) {
       res.status(404).json({ error: "Espaço não encontrado" });
       return;
     }
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(space), 300);
 
     res.status(200).json(space);
     return;
@@ -66,6 +90,15 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
       week_days,
       order_by
     } = req.query;
+
+    // Cria uma chave única para o cache baseada nos filtros
+    const cacheKey = `spaces_filtered_${JSON.stringify(req.query)}`;
+    const cachedSpaces = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedSpaces) {
+      res.status(200).json(JSON.parse(cachedSpaces));
+      return;
+    }
 
     // Construir o objeto de filtro
     const filter: any = {};
@@ -342,6 +375,8 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
       return;
     }
 
+    await redisConfig.setRedis(cacheKey, JSON.stringify(spaces), 300);
+
     res.status(200).json(spaces);
     return;
   } catch (error) {
@@ -522,6 +557,15 @@ export const createSpace = async (req: Request, res: Response) => {
     });
 
     await newSpace.save();
+
+    // Invalida todos os caches relacionados a espaços
+    await Promise.all([
+      redisConfig.deleteRedis('all_spaces'),
+      redisConfig.deleteRedisPattern('spaces_filtered_*'),
+      redisConfig.deleteRedisPattern('spaces_by_amenities_*'),
+      redisConfig.deleteRedisPattern('spaces_by_owner_*')
+    ]);
+
     res.status(201).json(newSpace);
     return;
   } catch (error) {
@@ -717,6 +761,15 @@ export const updateSpace = async (req: Request, res: Response) => {
       runValidators: true
     });
 
+    // Invalida todos os caches relacionados a espaços
+    await Promise.all([
+      redisConfig.deleteRedis('all_spaces'),
+      redisConfig.deleteRedis(`space_${id}`),
+      redisConfig.deleteRedisPattern('spaces_filtered_*'),
+      redisConfig.deleteRedisPattern('spaces_by_amenities_*'),
+      redisConfig.deleteRedisPattern('spaces_by_owner_*')
+    ]);
+
     res.status(200).json(updatedSpace);
     return;
   } catch (error) {
@@ -758,6 +811,15 @@ export const deleteSpace = async (req: Request, res: Response) => {
       return;
     }
 
+    // Invalida todos os caches relacionados a espaços
+    await Promise.all([
+      redisConfig.deleteRedis('all_spaces'),
+      redisConfig.deleteRedis(`space_${id}`),
+      redisConfig.deleteRedisPattern('spaces_filtered_*'),
+      redisConfig.deleteRedisPattern('spaces_by_amenities_*'),
+      redisConfig.deleteRedisPattern('spaces_by_owner_*')
+    ]);
+
     res.status(200).json({
       message: "Espaço excluído com sucesso",
       deletedSpace
@@ -777,6 +839,15 @@ export const deleteSpace = async (req: Request, res: Response) => {
 // Buscar espaços por comodidades da tela de experiência
 export const getSpacesByExperienceAmenities = async (req: Request, res: Response) => {
   try {
+    // Tenta obter os dados do cache
+    const cacheKey = 'spaces_by_amenities_experience';
+    const cachedSpaces = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedSpaces) {
+      res.status(200).json(JSON.parse(cachedSpaces));
+      return;
+    }
+
     // Busca todos os espaços que tenham pelo menos uma das comodidades
     const spaces = await SpaceModel.find({
       space_amenities: {
@@ -838,6 +909,8 @@ export const getSpacesByExperienceAmenities = async (req: Request, res: Response
         .slice(0, 5)
     };
 
+    await redisConfig.setRedis(cacheKey, JSON.stringify(spacesByAmenity), 300);
+
     res.status(200).json(spacesByAmenity);
     return;
   } catch (error) {
@@ -855,6 +928,15 @@ export const getSpacesByOwnerId = async (req: Request, res: Response) => {
   try {
     const { owner_id } = req.params;
 
+    // Tenta obter os dados do cache
+    const cacheKey = `spaces_by_owner_${owner_id}`;
+    const cachedSpaces = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedSpaces) {
+      res.status(200).json(JSON.parse(cachedSpaces));
+      return;
+    }
+
     // Validação do ID
     if (!mongoose.Types.ObjectId.isValid(owner_id)) {
       res.status(400).json({ error: "ID do proprietário inválido" });
@@ -867,6 +949,8 @@ export const getSpacesByOwnerId = async (req: Request, res: Response) => {
       res.status(404).json({ error: "Nenhum espaço encontrado para este proprietário" });
       return;
     }
+
+    await redisConfig.setRedis(cacheKey, JSON.stringify(spaces), 300);
 
     res.status(200).json(spaces);
     return;

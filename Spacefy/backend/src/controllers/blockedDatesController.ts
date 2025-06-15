@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import BlockedDatesModel from "../models/blockedDatesModel";
 import mongoose from "mongoose";
 import RentalModel from "../models/rentalModel";
+import redisConfig from "../config/redisConfig";
 
 // Criar ou atualizar datas bloqueadas
 export const createOrUpdateBlockedDates = async (req: Request, res: Response) => {
@@ -58,6 +59,12 @@ export const createOrUpdateBlockedDates = async (req: Request, res: Response) =>
       }
     );
 
+    // Invalida o cache das datas bloqueadas e reservadas
+    await Promise.all([
+      redisConfig.deleteRedis(`blocked_dates_${space_id}`),
+      redisConfig.deleteRedisPattern(`rented_dates_${space_id}_*`)
+    ]);
+
     res.status(200).json(blockedDates);
     return;
   } catch (error) {
@@ -78,6 +85,15 @@ export const getBlockedDatesBySpaceId = async (req: Request, res: Response) => {
     // Validação do ID do espaço
     if (!mongoose.Types.ObjectId.isValid(space_id)) {
       res.status(400).json({ error: "ID do espaço inválido" });
+      return;
+    }
+
+    // Tenta obter os dados do cache
+    const cacheKey = `blocked_dates_${space_id}`;
+    const cachedDates = await redisConfig.getRedis(cacheKey);
+    
+    if (cachedDates) {
+      res.status(200).json(JSON.parse(cachedDates));
       return;
     }
 
@@ -129,6 +145,9 @@ export const getBlockedDatesBySpaceId = async (req: Request, res: Response) => {
       blocked_dates: blockedDates?.blocked_dates || [],
       rented_dates: formattedRentedDates
     };
+
+    // Salva a resposta no cache por 5 minutos
+    await redisConfig.setRedis(cacheKey, JSON.stringify(response), 300);
 
     res.status(200).json(response);
     return;

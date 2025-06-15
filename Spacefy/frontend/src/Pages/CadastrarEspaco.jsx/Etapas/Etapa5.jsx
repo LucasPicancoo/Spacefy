@@ -21,7 +21,7 @@ const REGRAS = [
 
 // Componente para checkbox de regra
 const CheckboxRegra = ({ regra, checked, onChange }) => (
-    <div className="flex items-start">
+    <div className="flex items-start" role="group" aria-labelledby={`${regra.id}-label`}>
         <div className="flex items-center h-5">
             <input
                 type="checkbox"
@@ -30,21 +30,23 @@ const CheckboxRegra = ({ regra, checked, onChange }) => (
                 checked={checked}
                 onChange={onChange}
                 className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                aria-label={regra.label}
+                aria-describedby={`${regra.id}-description`}
             />
         </div>
         <div className="ml-3 text-sm">
-            <label htmlFor={regra.id} className="font-medium text-gray-700">
+            <label htmlFor={regra.id} id={`${regra.id}-label`} className="font-medium text-gray-700">
                 {regra.label}
             </label>
-            <p className="text-gray-500">
+            <p id={`${regra.id}-description`} className="text-gray-500">
                 {regra.descricao}
             </p>
         </div>
     </div>
 );
 
-// Componente principal da Etapa 4 - Regras e Políticas
-const Etapa4 = ({ formData, onUpdate }) => {
+// Componente principal da Etapa 5 - Regras e Políticas
+const Etapa5 = ({ formData, onUpdate }) => {
     // Função para gerenciar mudanças nas regras
     const handleChange = (e) => {
         const { name, checked } = e.target;
@@ -65,24 +67,24 @@ const Etapa4 = ({ formData, onUpdate }) => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" role="form" aria-label="Etapa 5: Regras e Políticas">
             {/* Cabeçalho da etapa */}
             <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4" id="regras-titulo">
                     Regras e Políticas
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6" role="doc-subtitle">
                     Defina as regras e políticas que se aplicam ao seu espaço.
                 </p>
             </div>
 
             <div className="space-y-6">
                 {/* Seção de regras básicas */}
-                <div>
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">
+                <div role="region" aria-labelledby="regras-titulo">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4" id="regras-basicas-titulo">
                         Regras Básicas
                     </h4>
-                    <div className="space-y-4">
+                    <div className="space-y-4" role="group" aria-labelledby="regras-basicas-titulo">
                         {REGRAS.map((regra) => (
                             <CheckboxRegra
                                 key={regra.id}
@@ -98,4 +100,4 @@ const Etapa4 = ({ formData, onUpdate }) => {
     );
 };
 
-export default Etapa4; 
+export default Etapa5; 

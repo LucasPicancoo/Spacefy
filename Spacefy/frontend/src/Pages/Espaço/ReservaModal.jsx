@@ -342,23 +342,50 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-8 w-full max-w-3xl shadow-lg relative">
+        <div 
+            className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Modal de reserva de espaço"
+        >
+            <div 
+                className="bg-white rounded-lg p-8 w-full max-w-3xl shadow-lg relative"
+                role="document"
+            >
                 <button
                     onClick={handleClose}
                     className="text-gray-500 hover:text-gray-700 absolute right-6 top-6 z-10"
-                    aria-label="Fechar modal"
+                    aria-label="Fechar modal de reserva"
                 >
-                    <FaTimes size={24} />
+                    <FaTimes size={24} aria-hidden="true" />
                 </button>
                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold text-[#363636] w-full text-center">Selecione as Datas e Horários</h2>
+                    <h2 
+                        className="text-2xl font-bold text-[#363636] w-full text-center"
+                        aria-label="Selecione as Datas e Horários para sua reserva"
+                    >
+                        Selecione as Datas e Horários
+                    </h2>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form 
+                    onSubmit={handleSubmit} 
+                    className="space-y-4"
+                    role="form"
+                    aria-label="Formulário de reserva"
+                >
                     <div className="flex flex-col md:flex-row gap-8 md:gap-16 justify-between">
                         {/* Coluna da Data */}
-                        <div className="flex flex-col items-center md:w-1/2">
-                            <div className="font-semibold text-lg mb-2 text-center">Selecione o intervalo de datas</div>
+                        <div 
+                            className="flex flex-col items-center md:w-1/2"
+                            role="group"
+                            aria-label="Seleção de datas"
+                        >
+                            <div 
+                                className="font-semibold text-lg mb-2 text-center"
+                                aria-label="Selecione o intervalo de datas para sua reserva"
+                            >
+                                Selecione o intervalo de datas
+                            </div>
                             <DatePicker
                                 selectsRange
                                 startDate={startDate}
@@ -371,24 +398,50 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                 calendarClassName="custom-calendar"
                                 inline
                                 filterDate={date => !isDateBlocked(date)}
+                                aria-label="Seletor de intervalo de datas"
                             />
                             {dateRangeError && (
-                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm flex items-center gap-2">
-                                    <FaExclamationTriangle />
+                                <div 
+                                    className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm flex items-center gap-2"
+                                    role="alert"
+                                    aria-label="Erro na seleção de datas"
+                                >
+                                    <FaExclamationTriangle aria-hidden="true" />
                                     {dateRangeError}
                                 </div>
                             )}
-                            <div className="mt-6 text-xl font-bold text-[#00A3FF] text-center">
+                            <div 
+                                className="mt-6 text-xl font-bold text-[#00A3FF] text-center"
+                                aria-label={`Preço por hora: R$ ${space?.price_per_hour?.toFixed(2) || '--'}`}
+                            >
                                 {space?.price_per_hour ? `R$ ${space.price_per_hour.toFixed(2)}` : '--'}
                                 <span className="text-base font-normal text-gray-600">/hora</span>
                             </div>
                         </div>
                         {/* Coluna dos Horários */}
-                        <div className="flex flex-col items-center md:w-1/2">
-                            <div className="font-semibold text-lg mb-2 text-center">Selecione um horário</div>
+                        <div 
+                            className="flex flex-col items-center md:w-1/2"
+                            role="group"
+                            aria-label="Seleção de horários"
+                        >
+                            <div 
+                                className="font-semibold text-lg mb-2 text-center"
+                                aria-label="Selecione os horários de início e término"
+                            >
+                                Selecione um horário
+                            </div>
                             <div className="flex flex-row gap-4 w-full justify-center">
-                                <div className="flex flex-col items-center w-1/2">
-                                    <span className="text-[#00A3FF] font-bold mb-1">Início</span>
+                                <div 
+                                    className="flex flex-col items-center w-1/2"
+                                    role="group"
+                                    aria-label="Horário de início"
+                                >
+                                    <span 
+                                        className="text-[#00A3FF] font-bold mb-1"
+                                        aria-label="Horário de início da reserva"
+                                    >
+                                        Início
+                                    </span>
                                     <DatePicker
                                         selected={startTime}
                                         onChange={handleStartTimeChange}
@@ -405,10 +458,20 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                         timeFormat="HH:mm"
                                         injectTimes={[]}
                                         openToDate={new Date()}
+                                        aria-label="Seletor de horário de início"
                                     />
                                 </div>
-                                <div className="flex flex-col items-center w-1/2">
-                                    <span className="text-[#00A3FF] font-bold mb-1">Término</span>
+                                <div 
+                                    className="flex flex-col items-center w-1/2"
+                                    role="group"
+                                    aria-label="Horário de término"
+                                >
+                                    <span 
+                                        className="text-[#00A3FF] font-bold mb-1"
+                                        aria-label="Horário de término da reserva"
+                                    >
+                                        Término
+                                    </span>
                                     <DatePicker
                                         selected={endTime}
                                         onChange={handleEndTimeChange}
@@ -425,12 +488,17 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                         timeFormat="HH:mm"
                                         injectTimes={[]}
                                         openToDate={new Date()}
+                                        aria-label="Seletor de horário de término"
                                     />
                                 </div>
                             </div>
                             {timeError && (
-                                <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm flex items-center gap-2">
-                                    <FaExclamationTriangle />
+                                <div 
+                                    className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md text-red-600 text-sm flex items-center gap-2"
+                                    role="alert"
+                                    aria-label="Erro na seleção de horários"
+                                >
+                                    <FaExclamationTriangle aria-hidden="true" />
                                     {timeError}
                                 </div>
                             )}
@@ -438,7 +506,11 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                     </div>
 
                     {totalHours > 0 && (
-                        <div className="mt-4 p-4 bg-gray-50 rounded-md text-center">
+                        <div 
+                            className="mt-4 p-4 bg-gray-50 rounded-md text-center"
+                            role="status"
+                            aria-label={`Total da reserva: ${formatPrice(totalPrice)} por ${totalHours} horas`}
+                        >
                             <div className="font-bold text-lg mb-2">Total:</div>
                             <div className="font-bold text-2xl">
                                 {formatPrice(totalPrice)}
@@ -463,6 +535,12 @@ function ReservaModal({ isOpen, onClose, space, onSubmit }) {
                                     ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
                                     : 'bg-[#00A3FF] text-white hover:bg-[#0088cc]'
                             }`}
+                            aria-label="Confirmar reserva"
+                            aria-disabled={
+                                !isDateRangeValid ||
+                                !isTimeValid ||
+                                totalHours <= 0
+                            }
                         >
                             Confirmar Reserva
                         </button>

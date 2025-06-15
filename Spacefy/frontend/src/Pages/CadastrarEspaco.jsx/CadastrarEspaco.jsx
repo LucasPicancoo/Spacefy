@@ -43,14 +43,14 @@ const TOTAL_ETAPAS = 8;
 
 // Componente da tela inicial com botão para iniciar o cadastro
 const TelaInicial = ({ onIniciar, user, onOpenBecomeRenterModal }) => (
-    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full bg-white">
+    <div className="flex flex-col items-center justify-center min-h-[calc(100vh-80px)] w-full bg-white" role="main" aria-label="Tela inicial de cadastro">
         <div className="max-w-4xl text-center">
             {user?.role === 'locatario' ? (
                 <>
-                    <h1 className="text-5xl font-bold text-gray-900 mb-8">
+                    <h1 className="text-5xl font-bold text-gray-900 mb-8" id="titulo-cadastro">
                         Cadastre seu espaço e alcance mais locatários!
                     </h1>
-                    <div className="space-y-6 mb-12">
+                    <div className="space-y-6 mb-12" role="group" aria-labelledby="titulo-cadastro">
                         <p className="text-xl text-gray-700">
                             Tem uma sala de reunião, auditório ou espaço para eventos disponível?
                         </p>
@@ -64,16 +64,17 @@ const TelaInicial = ({ onIniciar, user, onOpenBecomeRenterModal }) => (
                     <button
                         onClick={onIniciar}
                         className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-5 px-12 rounded-lg text-xl transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
+                        aria-label="Iniciar processo de cadastro de espaço"
                     >
                         Iniciar Cadastro
                     </button>
                 </>
             ) : (
                 <>
-                    <h1 className="text-5xl font-bold text-gray-900 mb-8">
+                    <h1 className="text-5xl font-bold text-gray-900 mb-8" id="titulo-locador">
                         Você precisa ser um locador para cadastrar espaços!
                     </h1>
-                    <div className="space-y-6 mb-12">
+                    <div className="space-y-6 mb-12" role="group" aria-labelledby="titulo-locador">
                         <p className="text-xl text-gray-700">
                             Para cadastrar espaços em nossa plataforma, você precisa ter uma conta de locador.
                         </p>
@@ -84,6 +85,7 @@ const TelaInicial = ({ onIniciar, user, onOpenBecomeRenterModal }) => (
                     <button
                         onClick={onOpenBecomeRenterModal}
                         className="bg-white border-2 border-[#00A3FF] text-[#00A3FF] px-8 py-5 rounded-lg text-xl font-semibold hover:bg-[#00A3FF] hover:text-white transition-colors cursor-pointer"
+                        aria-label="Tornar-se um locador"
                     >
                         Virar Locador
                     </button>
@@ -95,11 +97,12 @@ const TelaInicial = ({ onIniciar, user, onOpenBecomeRenterModal }) => (
 
 // Componente da barra de progresso que mostra o avanço no cadastro
 const BarraProgresso = ({ etapaAtual }) => (
-    <div className="mt-4">
+    <div className="mt-4" role="progressbar" aria-valuenow={etapaAtual} aria-valuemin="1" aria-valuemax={TOTAL_ETAPAS} aria-label={`Progresso do cadastro: etapa ${etapaAtual} de ${TOTAL_ETAPAS}`}>
         <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
                 className="bg-[#1EACE3] h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(etapaAtual / TOTAL_ETAPAS) * 100}%` }}
+                aria-hidden="true"
             />
         </div>
     </div>
@@ -316,25 +319,28 @@ const CadastrarEspaco = () => {
                 draggable
                 pauseOnHover
                 theme="light"
+                role="alert"
+                aria-live="polite"
             />
             {etapaAtual === 0 ? (
-                <div className="w-full min-h-[calc(100vh-80px)] bg-white flex items-center justify-center">
+                <div className="w-full min-h-[calc(100vh-80px)] bg-white flex items-center justify-center" role="main">
                     {renderizarEtapa()}
                 </div>
             ) : (
-                <div className="min-h-screen bg-gray-50">
+                <div className="min-h-screen bg-gray-50" role="main" aria-label="Formulário de cadastro de espaço">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                         {etapaAtual > 0 && (
                             <div className="mb-8">
                                 <div className="flex items-center justify-between">
-                                    <h2 className="text-2xl font-bold text-gray-900">
+                                    <h2 className="text-2xl font-bold text-gray-900" id="etapa-atual">
                                         Cadastro de Espaço - Etapa {etapaAtual} de {TOTAL_ETAPAS}
                                     </h2>
-                                    <div className="flex gap-4">
+                                    <div className="flex gap-4" role="group" aria-label="Navegação entre etapas">
                                         {etapaAtual > 1 && (
                                             <button 
                                                 onClick={etapaAnterior}
                                                 className="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer"
+                                                aria-label="Voltar para etapa anterior"
                                             >
                                                 Voltar
                                             </button>
@@ -343,6 +349,8 @@ const CadastrarEspaco = () => {
                                             onClick={proximaEtapa}
                                             disabled={loading}
                                             className={`bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg transition duration-300 ease-in-out transform hover:scale-105 cursor-pointer ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            aria-label={loading ? 'Enviando dados...' : etapaAtual === TOTAL_ETAPAS ? "Finalizar cadastro" : "Ir para próxima etapa"}
+                                            aria-disabled={loading}
                                         >
                                             {loading ? 'Enviando...' : etapaAtual === TOTAL_ETAPAS ? "Finalizar" : "Próximo"}
                                         </button>
@@ -350,13 +358,13 @@ const CadastrarEspaco = () => {
                                 </div>
                                 <BarraProgresso etapaAtual={etapaAtual} />
                                 {error && (
-                                    <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                                    <div className="mt-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded" role="alert" aria-label="Mensagem de erro">
                                         {error}
                                     </div>
                                 )}
                             </div>
                         )}
-                        <div className="bg-white rounded-lg shadow-lg p-8">
+                        <div className="bg-white rounded-lg shadow-lg p-8" role="region" aria-labelledby="etapa-atual">
                             {renderizarEtapa()}
                         </div>
                     </div>

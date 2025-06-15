@@ -27,8 +27,8 @@ const gerarOpcoesHorario = () => {
 };
 
 const CampoHorario = ({ label, id, name, value, onChange }) => (
-    <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+    <div role="group" aria-labelledby={`${id}-label`}>
+        <label htmlFor={id} id={`${id}-label`} className="block text-sm font-medium text-gray-700">
             {label}
         </label>
         <select
@@ -38,6 +38,7 @@ const CampoHorario = ({ label, id, name, value, onChange }) => (
             onChange={onChange}
             className="mt-1 block w-full rounded-md border border-gray-200 bg-white shadow-md focus:border-blue-500 focus:ring-blue-500 cursor-pointer text-base py-2 px-3"
             required
+            aria-label={`Selecionar ${label.toLowerCase()}`}
         >
             <option value="">Selecione...</option>
             {gerarOpcoesHorario().map((opcao) => (
@@ -71,7 +72,7 @@ const CampoPreco = ({ value, onChange }) => {
     };
 
     return (
-        <div>
+        <div role="group" aria-label="Campo de preço por hora">
             <input
                 type="text"
                 name="price_per_hour"
@@ -81,8 +82,9 @@ const CampoPreco = ({ value, onChange }) => {
                 placeholder="Digite o valor por hora"
                 className="mt-1 block w-full rounded-md border border-gray-200 bg-white shadow-md focus:border-blue-500 focus:ring-blue-500 cursor-text text-lg py-3 px-4 placeholder-gray-400"
                 required
+                aria-label="Valor por hora"
             />
-            <div className="mt-2 text-sm text-gray-600">
+            <div className="mt-2 text-sm text-gray-600" role="status" aria-label="Informação sobre comissão">
                 <p>Após a comissão do site (10%), você receberá: <span className="font-semibold text-green-600">{formatarPreco(calcularValorLiquido(value))}</span> por hora</p>
             </div>
         </div>
@@ -91,7 +93,7 @@ const CampoPreco = ({ value, onChange }) => {
 
 // Componente para checkbox de dia da semana
 const CheckboxDia = ({ dia, checked, onChange }) => (
-    <div className="flex items-center">
+    <div className="flex items-center" role="checkbox" aria-checked={checked}>
         <input
             type="checkbox"
             id={dia.id}
@@ -99,6 +101,7 @@ const CheckboxDia = ({ dia, checked, onChange }) => (
             checked={checked}
             onChange={onChange}
             className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+            aria-label={`Selecionar ${dia.label}`}
         />
         <label
             htmlFor={dia.id}
@@ -206,47 +209,51 @@ const HorariosDia = ({ dia, timeRanges, onAddTimeRange, onRemoveTimeRange, onUpd
     };
 
     return (
-        <div className="space-y-4 p-4 bg-white rounded-lg shadow-md border border-gray-200">
-            <h4 className="text-xl font-semibold text-gray-900">{dia.label}</h4>
-            {timeRanges.map((range, index) => (
-                <div key={index} className="flex items-center space-x-4">
-                    <div>
-                        <CampoHorario
-                            label="Abertura"
-                            id={`${dia.id}-open-${index}`}
-                            name="open"
-                            value={range.open}
-                            onChange={(e) => handleTimeUpdate(index, 'open', e.target.value)}
-                        />
-                        <span className="text-sm text-gray-500 mt-1 block">
-                            {formatDayName(dia.id)}
-                        </span>
+        <div className="space-y-4 p-4 bg-white rounded-lg shadow-md border border-gray-200" role="region" aria-label={`Horários para ${dia.label}`}>
+            <h4 className="text-xl font-semibold text-gray-900" id={`${dia.id}-title`}>{dia.label}</h4>
+            <div role="list" aria-labelledby={`${dia.id}-title`}>
+                {timeRanges.map((range, index) => (
+                    <div key={index} className="flex items-center space-x-4" role="listitem">
+                        <div>
+                            <CampoHorario
+                                label="Abertura"
+                                id={`${dia.id}-open-${index}`}
+                                name="open"
+                                value={range.open}
+                                onChange={(e) => handleTimeUpdate(index, 'open', e.target.value)}
+                            />
+                            <span className="text-sm text-gray-500 mt-1 block" aria-hidden="true">
+                                {formatDayName(dia.id)}
+                            </span>
+                        </div>
+                        <div>
+                            <CampoHorario
+                                label="Fechamento"
+                                id={`${dia.id}-close-${index}`}
+                                name="close"
+                                value={range.close}
+                                onChange={(e) => handleTimeUpdate(index, 'close', e.target.value)}
+                            />
+                            <span className="text-sm text-gray-500 mt-1 block" aria-hidden="true">
+                                {isNextDay(range.open, range.close) ? formatDayName(getNextDay(dia.id)) : formatDayName(dia.id)}
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => onRemoveTimeRange(dia.id, index)}
+                            className="mt-6 px-3 py-2 text-sm text-red-600 hover:text-red-800"
+                            aria-label={`Remover horário ${index + 1} de ${dia.label}`}
+                        >
+                            Remover
+                        </button>
                     </div>
-                    <div>
-                        <CampoHorario
-                            label="Fechamento"
-                            id={`${dia.id}-close-${index}`}
-                            name="close"
-                            value={range.close}
-                            onChange={(e) => handleTimeUpdate(index, 'close', e.target.value)}
-                        />
-                        <span className="text-sm text-gray-500 mt-1 block">
-                            {isNextDay(range.open, range.close) ? formatDayName(getNextDay(dia.id)) : formatDayName(dia.id)}
-                        </span>
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => onRemoveTimeRange(dia.id, index)}
-                        className="mt-6 px-3 py-2 text-sm text-red-600 hover:text-red-800"
-                    >
-                        Remover
-                    </button>
-                </div>
-            ))}
+                ))}
+            </div>
             <button
                 type="button"
                 onClick={() => onAddTimeRange(dia.id)}
                 className="mt-2 px-4 py-2 text-sm text-blue-600 hover:text-blue-800"
+                aria-label={`Adicionar novo horário para ${dia.label}`}
             >
                 + Adicionar Horário
             </button>
@@ -407,13 +414,13 @@ const Etapa4 = ({ formData, onUpdate }) => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" role="form" aria-label="Etapa 4: Disponibilidade e Horários">
             {/* Campo de preço */}
-            <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+            <div role="region" aria-label="Configuração de preço">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-2" id="preco-titulo">
                     Preço por Hora
                 </h3>
-                <p className="text-gray-600 mb-3">
+                <p className="text-gray-600 mb-3" role="doc-subtitle">
                     Defina o valor que será cobrado por hora de utilização do espaço.
                 </p>
                 <div className="p-4 rounded-lg">
@@ -426,21 +433,21 @@ const Etapa4 = ({ formData, onUpdate }) => {
 
             {/* Cabeçalho da etapa */}
             <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4" id="disponibilidade-titulo">
                     Disponibilidade e Horários
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6" role="doc-subtitle">
                     Defina os dias e horários em que seu espaço estará disponível para locação.
                 </p>
             </div>
 
             <div className="space-y-6">
                 {/* Seção de dias da semana */}
-                <div>
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">
+                <div role="region" aria-labelledby="disponibilidade-titulo">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4" id="dias-titulo">
                         Dias da Semana
                     </h4>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" role="group" aria-labelledby="dias-titulo">
                         {DIAS_SEMANA.map((dia) => (
                             <CheckboxDia
                                 key={dia.id}
@@ -459,26 +466,29 @@ const Etapa4 = ({ formData, onUpdate }) => {
                             type="button"
                             onClick={handleReplicateTimeRanges}
                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            aria-label="Replicar horários do primeiro dia selecionado para os demais dias"
                         >
                             Replicar Horários do Primeiro Dia
                         </button>
                     </div>
                 )}
 
-                {/* Seção de horários para cada dia selecionado (agora ordenados) */}
-                {sortedSelectedDays.map((dayData) => {
-                    const dia = DIAS_SEMANA.find(d => d.id === dayData.day);
-                    return (
-                        <HorariosDia
-                            key={dayData.day}
-                            dia={dia}
-                            timeRanges={dayData.time_ranges}
-                            onAddTimeRange={handleAddTimeRange}
-                            onRemoveTimeRange={handleRemoveTimeRange}
-                            onUpdateTimeRange={handleUpdateTimeRange}
-                        />
-                    );
-                })}
+                {/* Seção de horários para cada dia selecionado */}
+                <div role="region" aria-label="Horários configurados">
+                    {sortedSelectedDays.map((dayData) => {
+                        const dia = DIAS_SEMANA.find(d => d.id === dayData.day);
+                        return (
+                            <HorariosDia
+                                key={dayData.day}
+                                dia={dia}
+                                timeRanges={dayData.time_ranges}
+                                onAddTimeRange={handleAddTimeRange}
+                                onRemoveTimeRange={handleRemoveTimeRange}
+                                onUpdateTimeRange={handleUpdateTimeRange}
+                            />
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

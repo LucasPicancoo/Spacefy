@@ -92,42 +92,48 @@ function ReservaCard({ space, onReservaSuccess }) {
     };
 
     return (
-        <div className="w-[340px] flex flex-col gap-6">
+        <div className="w-[340px] flex flex-col gap-6" role="complementary" aria-label="Informações de reserva">
             {/* Card do locatário */}
-            <div className="bg-white border border-[#E3E3E3] rounded-lg shadow-lg p-6">
+            <div className="bg-white border border-[#E3E3E3] rounded-lg shadow-lg p-6" role="region" aria-label="Informações do locador">
                 <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 bg-gray-200 rounded-lg overflow-hidden">
-                        <img src="/user-icon.png" alt="Foto do perfil" className="w-full h-full object-cover" />
+                    <div className="w-14 h-14 bg-gray-200 rounded-lg overflow-hidden" role="img" aria-label="Foto do perfil do locador">
+                        <img src="/user-icon.png" alt="Foto do perfil do locador" className="w-full h-full object-cover" />
                     </div>
                     <div className="flex flex-col">
-                        <h3 className="text-xl font-medium">{ownerName}</h3>
-                        <div className="flex items-center gap-1">
-                            <div className="flex">★★★★★</div>
-                            <span className="text-gray-600">(183)</span>
+                        <h3 className="text-xl font-medium" id="owner-name">{ownerName}</h3>
+                        <div className="flex items-center gap-1" role="group" aria-label="Avaliação do locador">
+                            <div className="flex" aria-label="5 estrelas">★★★★★</div>
+                            <span className="text-gray-600" aria-label="183 avaliações">(183)</span>
                         </div>
                     </div>
                 </div>
-                <button onClick={handleViewLocatorProfile} className="w-full mt-4 text-center text-[#00A3FF] hover:underline cursor-pointer">
+                <button 
+                    onClick={handleViewLocatorProfile} 
+                    className="w-full mt-4 text-center text-[#00A3FF] hover:underline cursor-pointer"
+                    aria-label="Ver mais informações sobre o locador"
+                >
                     Ver mais sobre o locatario
                 </button>
             </div>
 
             {/* Card de reserva */}
-            <div className="bg-white border border-[#E3E3E3] rounded-lg shadow-lg p-6">
+            <div className="bg-white border border-[#E3E3E3] rounded-lg shadow-lg p-6" role="region" aria-label="Detalhes da reserva">
                 <div className="mt-6">
-                    <div className="font-bold text-lg mb-2">Preço por hora:</div>
-                    <div className="font-bold text-2xl mb-4">
+                    <div className="font-bold text-lg mb-2" id="price-label">Preço por hora:</div>
+                    <div className="font-bold text-2xl mb-4" aria-labelledby="price-label">
                         {formatPrice(space?.price_per_hour || 0)}
-                        <span className="text-xs font-normal">/hora</span>
+                        <span className="text-xs font-normal" aria-label="por hora">/hora</span>
                     </div>
                     <button 
                         onClick={() => setIsModalOpen(true)}
                         className="w-full bg-[#00A3FF] text-white py-3 px-4 rounded-md hover:bg-[#0088cc] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         disabled={isLoading}
+                        aria-label={isLoading ? "Processando reserva" : "Iniciar processo de reserva"}
+                        aria-busy={isLoading}
                     >
                         {isLoading ? 'Processando...' : 'Reservar Agora'}
                     </button>
-                    <div className="mt-4">
+                    <div className="mt-4" role="region" aria-label="Previsão do tempo para a localização">
                         <WeatherGoogle location={space.location} />
                     </div>
                 </div>

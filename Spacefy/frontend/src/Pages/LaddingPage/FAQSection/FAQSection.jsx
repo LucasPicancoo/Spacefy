@@ -36,38 +36,73 @@ const FAQSection = () => {
   ];
 
   return (
-    <section className="py-16 bg-white">
+    <section 
+      className="py-16 bg-white"
+      role="region"
+      aria-label="Seção de Perguntas Frequentes"
+    >
       <div className="container mx-auto px-4 max-w-4xl">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">Tem Perguntas?</h2>
-          <p className="text-2xl font-bold">Nós Temos as Respostas!</p>
+        <div 
+          className="text-center mb-12"
+          role="heading"
+          aria-level="1"
+        >
+          <h2 
+            className="text-4xl font-bold mb-4"
+            aria-label="Tem Perguntas?"
+          >
+            Tem Perguntas?
+          </h2>
+          <p 
+            className="text-2xl font-bold"
+            aria-label="Nós Temos as Respostas!"
+          >
+            Nós Temos as Respostas!
+          </p>
         </div>
 
-        <div className="space-y-4">
+        <div 
+          className="space-y-4"
+          role="list"
+          aria-label="Lista de perguntas frequentes"
+        >
           {faqQuestions.map((faq, index) => (
             <div 
               key={index}
               className="bg-white rounded-2xl shadow-md overflow-hidden"
+              role="listitem"
             >
               <button
                 onClick={() => toggleQuestion(index)}
                 className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors duration-200"
+                aria-expanded={openQuestion === index}
+                aria-controls={`faq-answer-${index}`}
+                aria-label={`Pergunta: ${faq.question}`}
               >
                 <span className="font-medium text-lg cursor-pointer">{faq.question}</span>
                 <FaChevronDown 
                   className={`text-gray-400 transition-transform duration-300 ease-in-out cursor-pointer ${
                     openQuestion === index ? 'transform rotate-180' : ''
                   }`}
+                  aria-hidden="true"
                 />
               </button>
               <div 
+                id={`faq-answer-${index}`}
                 className={`grid transition-all duration-300 ease-in-out ${
                   openQuestion === index ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
                 }`}
+                role="region"
+                aria-label={`Resposta para: ${faq.question}`}
               >
                 <div className="overflow-hidden">
                   <div className="px-6 pb-4">
-                    <p className="text-gray-600">{faq.answer}</p>
+                    <p 
+                      className="text-gray-600"
+                      aria-label={faq.answer}
+                    >
+                      {faq.answer}
+                    </p>
                   </div>
                 </div>
               </div>

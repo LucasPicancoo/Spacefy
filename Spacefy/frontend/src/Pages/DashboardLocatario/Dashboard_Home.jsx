@@ -98,29 +98,45 @@ export default function Dashboard_Home() {
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
-        stars.push(<FaStar key={i} className="text-yellow-400" />);
+        stars.push(<FaStar key={i} className="text-yellow-400" aria-hidden="true" />);
       } else if (i === fullStars && hasHalfStar) {
-        stars.push(<FaStar key={i} className="text-yellow-400 opacity-50" />);
+        stars.push(<FaStar key={i} className="text-yellow-400 opacity-50" aria-hidden="true" />);
       } else {
-        stars.push(<FaStar key={i} className="text-yellow-400 opacity-50" />);
+        stars.push(<FaStar key={i} className="text-yellow-400 opacity-50" aria-hidden="true" />);
       }
     }
-    return stars;
+    return (
+      <div role="img" aria-label={`Avaliação: ${rating} de 5 estrelas`}>
+        {stars}
+      </div>
+    );
   };
 
   return (
-    <>
+    <div role="main" aria-label="Dashboard do locatário">
       {/* Cards superiores */}
       <div className="p-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-1">
+        <div 
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-1"
+          role="list"
+          aria-label="Resumo de estatísticas"
+        >
           {/* Card 1: Total de Espaços */}
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+          <div 
+            className="bg-white rounded-lg shadow p-6 flex flex-col items-center"
+            role="listitem"
+            aria-label={`Total de espaços: ${totalEspacos}`}
+          >
             <span className="text-xl font-semibold">Espaços</span>
             <span className="text-4xl font-bold mt-2">{totalEspacos}</span>
           </div>
 
           {/* Card 2: Avaliação Média */}
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+          <div 
+            className="bg-white rounded-lg shadow p-6 flex flex-col items-center"
+            role="listitem"
+            aria-label={`Média de avaliações: ${mediaAvaliacoes} de 5 estrelas`}
+          >
             <span className="text-xl font-semibold">Avaliações</span>
             <div className="flex items-center mt-2">
               {renderStars(mediaAvaliacoes)}
@@ -129,16 +145,24 @@ export default function Dashboard_Home() {
           </div>
 
           {/* Card 3: Total de Mensagens */}
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+          <div 
+            className="bg-white rounded-lg shadow p-6 flex flex-col items-center"
+            role="listitem"
+            aria-label="Total de mensagens: 12"
+          >
             <span className="text-xl font-semibold">Mensagens</span>
             <div className="flex items-center mt-2">
-              <FaRegCommentDots className="text-gray-500 text-2xl" />
+              <FaRegCommentDots className="text-gray-500 text-2xl" aria-hidden="true" />
               <span className="ml-2 text-3xl font-bold">12</span>
             </div>
           </div>
 
           {/* Card 4: Total de Reservas */}
-          <div className="bg-white rounded-lg shadow p-6 flex flex-col items-center">
+          <div 
+            className="bg-white rounded-lg shadow p-6 flex flex-col items-center"
+            role="listitem"
+            aria-label={`Total de reservas: ${totalReservas}`}
+          >
             <span className="text-xl font-semibold">Reservas</span>
             <span className="text-4xl font-bold mt-2">{totalReservas}</span>
           </div>
@@ -147,52 +171,67 @@ export default function Dashboard_Home() {
 
       {/* Gráfico */}
       <div className="px-8 pb-8">
-        <div className="bg-white rounded-lg shadow p-8">
-          <h2 className="text-3xl font-bold mb-6">Histórico total de reservas</h2>
+        <div 
+          className="bg-white rounded-lg shadow p-8"
+          role="region"
+          aria-label="Gráfico de histórico de reservas"
+        >
+          <h2 
+            className="text-3xl font-bold mb-6"
+            aria-label="Histórico total de reservas"
+          >
+            Histórico total de reservas
+          </h2>
           {rentalData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={500}>
-              <LineChart data={rentalData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="data" 
-                  tick={{ fontSize: 12 }}
-                  angle={-45}
-                  textAnchor="end"
-                  height={60}
-                  interval={0}
-                />
-                <YAxis 
-                  label={{ 
-                    value: 'Quantidade de Aluguéis', 
-                    angle: -90, 
-                    position: 'insideLeft',
-                    style: { textAnchor: 'middle' }
-                  }}
-                  allowDecimals={false}
-                  domain={[0, 'auto']}
-                />
-                <Tooltip 
-                  formatter={(value) => [`${value} aluguéis`, 'Quantidade']}
-                  labelFormatter={(label) => `Data: ${label}`}
-                />
-                <Line 
-                  type="linear" 
-                  dataKey="quantidade" 
-                  stroke="#1486B8" 
-                  strokeWidth={2}
-                  dot={{ fill: '#1486B8', r: 4 }}
-                  activeDot={{ r: 8 }}
-                  connectNulls={true}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <div role="img" aria-label="Gráfico de linha mostrando o histórico de reservas ao longo do tempo">
+              <ResponsiveContainer width="100%" height={500}>
+                <LineChart data={rentalData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="data" 
+                    tick={{ fontSize: 12 }}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                    interval={0}
+                  />
+                  <YAxis 
+                    label={{ 
+                      value: 'Quantidade de Aluguéis', 
+                      angle: -90, 
+                      position: 'insideLeft',
+                      style: { textAnchor: 'middle' }
+                    }}
+                    allowDecimals={false}
+                    domain={[0, 'auto']}
+                  />
+                  <Tooltip 
+                    formatter={(value) => [`${value} aluguéis`, 'Quantidade']}
+                    labelFormatter={(label) => `Data: ${label}`}
+                  />
+                  <Line 
+                    type="linear" 
+                    dataKey="quantidade" 
+                    stroke="#1486B8" 
+                    strokeWidth={2}
+                    dot={{ fill: '#1486B8', r: 4 }}
+                    activeDot={{ r: 8 }}
+                    connectNulls={true}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
-            <div className="h-64 flex items-center justify-center bg-blue-50 rounded">
+            <div 
+              className="h-64 flex items-center justify-center bg-blue-50 rounded"
+              role="status"
+              aria-label="Nenhum dado de aluguel disponível"
+            >
               <span className="text-gray-400">Nenhum dado de aluguel disponível</span>
             </div>
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 }

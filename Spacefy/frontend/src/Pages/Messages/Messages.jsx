@@ -168,14 +168,26 @@ export default function Messages({ showHeader = true }) {
   };
 
   if (!isLoggedIn) {
-    return <div className="flex justify-center items-center h-screen">Por favor, faça login para acessar as mensagens</div>;
+    return (
+      <div 
+        className="flex justify-center items-center h-screen"
+        role="alert"
+        aria-label="Mensagem de login necessária"
+      >
+        Por favor, faça login para acessar as mensagens
+      </div>
+    );
   }
 
   if (loading) {
     return (
       <div className="flex flex-col h-screen">
         {showHeader && <Header />}
-        <div className="flex-1 flex items-center justify-center">
+        <div 
+          className="flex-1 flex items-center justify-center"
+          role="status"
+          aria-label="Carregando conversas"
+        >
           <div className="text-xl text-gray-600">Carregando conversas...</div>
         </div>
       </div>
@@ -186,7 +198,11 @@ export default function Messages({ showHeader = true }) {
     return (
       <div className="flex flex-col h-screen">
         {showHeader && <Header />}
-        <div className="flex-1 flex items-center justify-center">
+        <div 
+          className="flex-1 flex items-center justify-center"
+          role="alert"
+          aria-label="Mensagem de erro"
+        >
           <div className="text-xl text-red-600">{error}</div>
         </div>
       </div>
@@ -194,13 +210,17 @@ export default function Messages({ showHeader = true }) {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-screen" role="main" aria-label="Página de mensagens">
       {showHeader && <Header />}
       <div className="flex w-full h-full min-h-0 bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] p-8 gap-8 box-border">
         {/* Conversas */}
-        <aside className="w-72 bg-white rounded-xl shadow-lg flex flex-col min-h-0 h-full overflow-y-auto p-8 box-border">
+        <aside 
+          className="w-72 bg-white rounded-xl shadow-lg flex flex-col min-h-0 h-full overflow-y-auto p-8 box-border"
+          role="complementary"
+          aria-label="Lista de conversas"
+        >
           <h2 className="text-2xl font-bold mb-6">Conversas</h2>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2" role="list" aria-label="Lista de conversas disponíveis">
             {conversations.map((conversation) => (
               <button
                 key={conversation._id}
@@ -210,6 +230,9 @@ export default function Messages({ showHeader = true }) {
                     ? "bg-[#1486B8] text-white"
                     : "bg-white text-gray-800 border border-gray-200 hover:bg-gray-100"
                 }`}
+                role="listitem"
+                aria-label={`Conversa com ${conversation.otherUser?.name || "Usuário"}. ${conversation.lastMessage?.text || "Nenhuma mensagem"}. ${conversation.lastMessage?.timestamp ? `Última mensagem às ${formatTime(conversation.lastMessage.timestamp)}` : ""}`}
+                aria-selected={selectedConversation?._id === conversation._id}
               >
                 <div className="flex justify-between items-start">
                   <div className="truncate font-bold">{conversation.otherUser?.name || "Usuário"}</div>
@@ -225,7 +248,11 @@ export default function Messages({ showHeader = true }) {
                     {conversation.lastMessage?.timestamp && formatDate(conversation.lastMessage.timestamp)}
                   </div>
                   {!conversation.read && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                    <div 
+                      className="w-2 h-2 rounded-full bg-blue-500"
+                      role="status"
+                      aria-label="Nova mensagem não lida"
+                    ></div>
                   )}
                 </div>
               </button>
@@ -234,12 +261,20 @@ export default function Messages({ showHeader = true }) {
         </aside>
 
         {/* Chat principal */}
-        <section className="flex-1 flex flex-col bg-white rounded-xl shadow-lg p-8 min-w-0 h-full min-h-0 box-border">
+        <section 
+          className="flex-1 flex flex-col bg-white rounded-xl shadow-lg p-8 min-w-0 h-full min-h-0 box-border"
+          role="region"
+          aria-label="Área de chat"
+        >
           {selectedConversation || location.search.includes('receiverId') ? (
             <>
               {/* Topo do chat */}
               <div className="flex items-center gap-3 border-b border-gray-200 pb-4 mb-4">
-                <div className="w-8 h-8 rounded-full bg-[#1486B8] flex items-center justify-center text-white">
+                <div 
+                  className="w-8 h-8 rounded-full bg-[#1486B8] flex items-center justify-center text-white"
+                  role="img"
+                  aria-label={`Avatar de ${selectedConversation?.otherUser?.name || "Usuário"}`}
+                >
                   {selectedConversation?.otherUser?.name?.[0] || "U"}
                 </div>
                 <div className="flex flex-col">
@@ -249,10 +284,19 @@ export default function Messages({ showHeader = true }) {
               </div>
               
               {/* Mensagens */}
-              <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 min-h-0">
+              <div 
+                className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 min-h-0"
+                role="log"
+                aria-label="Histórico de mensagens"
+              >
                 {messages.map((msg) =>
                   msg.senderId === user.id ? (
-                    <div className="flex flex-col items-end" key={msg.id}>
+                    <div 
+                      className="flex flex-col items-end" 
+                      key={msg.id}
+                      role="listitem"
+                      aria-label={`Sua mensagem: ${msg.text}. Enviada às ${msg.timestamp && formatTime(msg.timestamp)}`}
+                    >
                       <div className="bg-[#1486B8] text-white rounded-xl px-5 py-3 max-w-xl shadow-md relative whitespace-pre-line">
                         <span className="block text-base">{msg.text}</span>
                         <span className="block text-xs text-right text-white/80 mt-2">
@@ -261,8 +305,17 @@ export default function Messages({ showHeader = true }) {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex items-start gap-2" key={msg.id}>
-                      <div className="w-8 h-8 rounded-full bg-[#22346C] flex items-center justify-center text-white">
+                    <div 
+                      className="flex items-start gap-2" 
+                      key={msg.id}
+                      role="listitem"
+                      aria-label={`Mensagem de ${selectedConversation?.otherUser?.name || "Usuário"}: ${msg.text}. Enviada às ${msg.timestamp && formatTime(msg.timestamp)}`}
+                    >
+                      <div 
+                        className="w-8 h-8 rounded-full bg-[#22346C] flex items-center justify-center text-white"
+                        role="img"
+                        aria-label={`Avatar de ${selectedConversation?.otherUser?.name || "Usuário"}`}
+                      >
                         {selectedConversation?.name?.[0] || "U"}
                       </div>
                       <div>
@@ -280,20 +333,42 @@ export default function Messages({ showHeader = true }) {
               </div>
 
               {/* Campo de digitação */}
-              <form onSubmit={handleSendMessage} className="flex items-center gap-3 mt-6 bg-[#166b8e] rounded-xl px-4 py-2">
-                <FaPaperclip className="text-white text-xl cursor-pointer" />
+              <form 
+                onSubmit={handleSendMessage} 
+                className="flex items-center gap-3 mt-6 bg-[#166b8e] rounded-xl px-4 py-2"
+                role="form"
+                aria-label="Formulário para enviar mensagem"
+              >
+                <button 
+                  type="button"
+                  className="text-white text-xl cursor-pointer"
+                  aria-label="Anexar arquivo"
+                >
+                  <FaPaperclip />
+                </button>
                 <input
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Digite a mensagem aqui..."
                   className="flex-1 bg-transparent outline-none text-white placeholder:text-white/70 px-2 py-2 text-lg"
+                  aria-label="Campo para digitar mensagem"
                 />
-                <button type="submit" className="text-white text-3xl font-bold px-2 hover:scale-110 transition-transform">&#8594;</button>
+                <button 
+                  type="submit" 
+                  className="text-white text-3xl font-bold px-2 hover:scale-110 transition-transform"
+                  aria-label="Enviar mensagem"
+                >
+                  &#8594;
+                </button>
               </form>
             </>
           ) : (
-            <div className="flex-1 flex items-center justify-center text-gray-500">
+            <div 
+              className="flex-1 flex items-center justify-center text-gray-500"
+              role="status"
+              aria-label="Selecione uma conversa para começar"
+            >
               Selecione uma conversa para começar
             </div>
           )}

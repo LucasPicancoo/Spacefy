@@ -236,20 +236,29 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
     };
 
     return (
-        <aside className="w-[320px] min-w-[320px] max-w-[320px] bg-white border-r border-gray-100 flex flex-col h-[calc(100vh-64px)] sticky top-16 overflow-hidden">
-            <div className="p-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden flex-1">
+        <aside 
+            className="w-[320px] min-w-[320px] max-w-[320px] bg-white border-r border-gray-100 flex flex-col h-[calc(100vh-64px)] sticky top-16 overflow-hidden"
+            role="complementary"
+            aria-label="Filtros de busca"
+        >
+            <div 
+                className="p-6 flex flex-col gap-8 overflow-y-auto overflow-x-hidden flex-1"
+                role="form"
+                aria-label="Formulário de filtros"
+            >
                 {/* Localização */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-2">Localização</label>
+                <div role="group" aria-labelledby="localizacao-label">
+                    <label id="localizacao-label" className="block text-sm font-medium text-gray-800 mb-2">Localização</label>
                     <LocationSearch 
                         onLocationSelect={(loc) => handleFiltroChange('location', loc)}
                         initialLocation={location}
+                        aria-label="Buscar localização"
                     />
                 </div>
 
                 {/* Datas */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-2">Período</label>
+                <div role="group" aria-labelledby="periodo-label">
+                    <label id="periodo-label" className="block text-sm font-medium text-gray-800 mb-2">Período</label>
                     <div className="flex gap-2">
                         <div className="w-[140px]">
                             <input
@@ -261,6 +270,7 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                                 }}
                                 min={today.toISOString().split('T')[0]}
                                 className="w-full border-0 bg-gray-50 rounded-lg px-2 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset text-sm cursor-text"
+                                aria-label="Data de início"
                             />
                         </div>
                         <div className="w-[140px]">
@@ -273,18 +283,20 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                                 }}
                                 min={startDate ? startDate.toISOString().split('T')[0] : today.toISOString().split('T')[0]}
                                 className="w-full border-0 bg-gray-50 rounded-lg px-2 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset text-sm cursor-text"
+                                aria-label="Data de término"
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Ordenar Por */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-2">Ordenar Por</label>
+                <div role="group" aria-labelledby="ordenar-label">
+                    <label id="ordenar-label" className="block text-sm font-medium text-gray-800 mb-2">Ordenar Por</label>
                     <select 
                         value={ordenarPor} 
                         onChange={e => handleFiltroChange('ordenarPor', e.target.value)} 
                         className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset cursor-pointer"
+                        aria-label="Ordenar resultados por"
                     >
                         {opcoesOrdenar.map(op => (
                             <option key={op.value} value={op.value}>
@@ -295,12 +307,13 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                 </div>
 
                 {/* Tipo do Espaço */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-2">Tipo do Espaço</label>
+                <div role="group" aria-labelledby="tipo-label">
+                    <label id="tipo-label" className="block text-sm font-medium text-gray-800 mb-2">Tipo do Espaço</label>
                     <select 
                         value={tipoEspaco} 
                         onChange={e => handleFiltroChange('tipoEspaco', e.target.value)} 
                         className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset cursor-pointer"
+                        aria-label="Selecionar tipo de espaço"
                     >
                         {opcoesTipo.map(op => (
                             <option key={op.value} value={op.value}>
@@ -311,33 +324,33 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                 </div>
 
                 {/* Valores e Área */}
-                <div className="space-y-6">
-                    <div>
-                        <h3 className="text-sm font-medium text-gray-800 mb-2">Faixa de Preço</h3>
-                        <div className="flex gap-3">
-                            <div className="flex-1">
-                                <input 
-                                    type="number" 
-                                    value={valorMin} 
-                                    onChange={e => handleFiltroChange('valorMin', e.target.value)} 
-                                    placeholder="Valor Min" 
-                                    className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset" 
-                                />
-                            </div>
-                            <div className="flex-1">
-                                <input 
-                                    type="number" 
-                                    value={valorMax} 
-                                    onChange={e => handleFiltroChange('valorMax', e.target.value)} 
-                                    placeholder="Valor Max" 
-                                    className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset" 
-                                />
-                            </div>
+                <div className="space-y-6" role="group" aria-labelledby="valores-area-label">
+                    <h3 id="valores-area-label" className="text-sm font-medium text-gray-800 mb-2">Faixa de Preço</h3>
+                    <div className="flex gap-3">
+                        <div className="flex-1">
+                            <input 
+                                type="number" 
+                                value={valorMin} 
+                                onChange={e => handleFiltroChange('valorMin', e.target.value)} 
+                                placeholder="Valor Min" 
+                                className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset"
+                                aria-label="Valor mínimo em reais"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <input 
+                                type="number" 
+                                value={valorMax} 
+                                onChange={e => handleFiltroChange('valorMax', e.target.value)} 
+                                placeholder="Valor Max" 
+                                className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset"
+                                aria-label="Valor máximo em reais"
+                            />
                         </div>
                     </div>
 
-                    <div>
-                        <h3 className="text-sm font-medium text-gray-800 mb-2">Área do Espaço</h3>
+                    <div role="group" aria-labelledby="area-label">
+                        <h3 id="area-label" className="text-sm font-medium text-gray-800 mb-2">Área do Espaço</h3>
                         <div className="flex gap-3">
                             <div className="flex-1">
                                 <input 
@@ -345,7 +358,8 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                                     value={areaMin} 
                                     onChange={e => handleFiltroChange('areaMin', e.target.value)} 
                                     placeholder="Area Min" 
-                                    className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset" 
+                                    className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset"
+                                    aria-label="Área mínima em metros quadrados"
                                 />
                             </div>
                             <div className="flex-1">
@@ -354,7 +368,8 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                                     value={areaMax} 
                                     onChange={e => handleFiltroChange('areaMax', e.target.value)} 
                                     placeholder="Area Max" 
-                                    className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset" 
+                                    className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset"
+                                    aria-label="Área máxima em metros quadrados"
                                 />
                             </div>
                         </div>
@@ -362,25 +377,26 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                 </div>
 
                 {/* Pessoas Min */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-2">Capacidade Mínima</label>
+                <div role="group" aria-labelledby="pessoas-label">
+                    <label id="pessoas-label" className="block text-sm font-medium text-gray-800 mb-2">Capacidade Mínima</label>
                     <input 
                         type="number" 
                         value={pessoasMin} 
                         onChange={e => handleFiltroChange('pessoasMin', e.target.value)} 
                         placeholder="Número de pessoas" 
-                        className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset" 
+                        className="w-full border-0 bg-gray-50 rounded-lg px-3 py-2.5 text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#1486B8] focus:ring-inset"
+                        aria-label="Número mínimo de pessoas"
                     />
                 </div>
 
                 {/* Características do espaço */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-800 mb-3">Características do espaço</label>
+                <div role="group" aria-labelledby="caracteristicas-label">
+                    <label id="caracteristicas-label" className="block text-sm font-medium text-gray-800 mb-3">Características do espaço</label>
                     <div className="flex flex-col gap-6">
                         {Object.entries(categoriasCaracteristicas).map(([categoria, itens]) => (
                             <div key={categoria} className="border-b border-gray-100 pb-4 last:border-0">
                                 <h3 className="font-medium text-gray-800 mb-3">{categoria}</h3>
-                                <div className="flex flex-col gap-2.5">
+                                <div className="flex flex-col gap-2.5" role="group" aria-label={`Características de ${categoria}`}>
                                     {itens.map((item) => (
                                         <label key={item} className="flex items-center gap-2.5 text-gray-600 text-sm hover:text-[#1486B8] cursor-pointer transition-colors">
                                             <div className="relative">
@@ -389,7 +405,8 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
                                                     name="caracteristicas" 
                                                     checked={caracteristicas.includes(item)} 
                                                     onChange={() => handleFiltroChange('caracteristicas', item)}
-                                                    className="peer sr-only" 
+                                                    className="peer sr-only"
+                                                    aria-label={item.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                                 />
                                                 <div className="w-4 h-4 border-2 border-gray-200 rounded-full peer-checked:border-[#1486B8] peer-checked:bg-[#1486B8] transition-colors">
                                                     {caracteristicas.includes(item) && (
@@ -410,17 +427,19 @@ function SidebarFiltros({ onFiltrosChange, onBuscar, filtrosIniciais }) {
             </div>
 
             {/* Botões */}
-            <div className="p-6 border-t border-gray-100 bg-white">
+            <div className="p-6 border-t border-gray-100 bg-white" role="group" aria-label="Ações dos filtros">
                 <div className="flex gap-3">
                     <button 
                         onClick={limparFiltros} 
                         className="flex-1 bg-gray-50 text-gray-700 py-2.5 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                        aria-label="Limpar todos os filtros"
                     >
                         Limpar
                     </button>
                     <button 
                         onClick={onBuscar}
                         className="flex-1 bg-[#1486B8] text-white py-2.5 rounded-lg font-medium hover:bg-[#0f6a94] transition-colors"
+                        aria-label="Buscar espaços com os filtros selecionados"
                     >
                         Buscar
                     </button>

@@ -44,11 +44,28 @@ export default function Dashboard_Mensagens() {
   const [conversaSelecionada, setConversaSelecionada] = useState(conversasMock[0]);
 
   return (
-    <div className="flex w-full h-full min-h-0 bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] p-8 gap-8 box-border">
+    <div 
+      className="flex w-full h-full min-h-0 bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] p-8 gap-8 box-border"
+      role="main"
+      aria-label="Página de mensagens"
+    >
       {/* Conversas */}
-      <aside className="w-72 bg-white rounded-xl shadow-lg flex flex-col min-h-0 h-full overflow-y-auto p-8 box-border">
-        <h2 className="text-2xl font-bold mb-6">Conversas</h2>
-        <div className="flex flex-col gap-2">
+      <aside 
+        className="w-72 bg-white rounded-xl shadow-lg flex flex-col min-h-0 h-full overflow-y-auto p-8 box-border"
+        role="complementary"
+        aria-label="Lista de conversas"
+      >
+        <h2 
+          className="text-2xl font-bold mb-6"
+          aria-label="Título da seção de conversas"
+        >
+          Conversas
+        </h2>
+        <div 
+          className="flex flex-col gap-2"
+          role="list"
+          aria-label="Lista de conversas disponíveis"
+        >
           {conversasMock.map((conversa) => (
             <button
               key={conversa.id}
@@ -58,6 +75,9 @@ export default function Dashboard_Mensagens() {
                   ? "bg-[#1486B8] text-white"
                   : "bg-white text-gray-800 border border-gray-200 hover:bg-gray-100"
               }`}
+              role="listitem"
+              aria-label={`Conversa com ${conversa.nome} sobre ${conversa.subtitulo}`}
+              aria-selected={conversaSelecionada.id === conversa.id}
             >
               <div className="truncate">{conversa.nome.length > 22 ? conversa.nome.slice(0, 22) + "..." : conversa.nome}</div>
               <div className={`text-xs truncate ${conversaSelecionada.id === conversa.id ? "text-white/80" : "text-gray-500"}`}>{conversa.subtitulo}</div>
@@ -67,29 +87,80 @@ export default function Dashboard_Mensagens() {
       </aside>
 
       {/* Chat principal */}
-      <section className="flex-1 flex flex-col bg-white rounded-xl shadow-lg p-8 min-w-0 h-full min-h-0 box-border">
+      <section 
+        className="flex-1 flex flex-col bg-white rounded-xl shadow-lg p-8 min-w-0 h-full min-h-0 box-border"
+        role="region"
+        aria-label="Área de chat"
+      >
         {/* Topo do chat */}
-        <div className="flex items-center gap-3 border-b border-gray-200 pb-4 mb-4">
-          <img src={conversaSelecionada.avatar} alt="avatar" className="w-8 h-8 rounded-full" />
-          <span className="text-xl font-semibold">{conversaSelecionada.nome}</span>
+        <div 
+          className="flex items-center gap-3 border-b border-gray-200 pb-4 mb-4"
+          role="banner"
+          aria-label="Cabeçalho do chat"
+        >
+          <img 
+            src={conversaSelecionada.avatar} 
+            alt={`Avatar de ${conversaSelecionada.nome}`} 
+            className="w-8 h-8 rounded-full" 
+          />
+          <span 
+            className="text-xl font-semibold"
+            aria-label={`Conversando com ${conversaSelecionada.nome}`}
+          >
+            {conversaSelecionada.nome}
+          </span>
         </div>
         {/* Mensagens */}
-        <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 min-h-0">
+        <div 
+          className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 min-h-0"
+          role="log"
+          aria-label="Histórico de mensagens"
+        >
           {conversaSelecionada.mensagens.map((msg, idx) =>
             msg.autor === "eu" ? (
-              <div className="flex flex-col items-end" key={idx}>
-                <div className="bg-[#1486B8] text-white rounded-xl px-5 py-3 max-w-xl shadow-md relative whitespace-pre-line">
+              <div 
+                className="flex flex-col items-end" 
+                key={idx}
+                role="listitem"
+                aria-label={`Mensagem enviada às ${msg.hora}`}
+              >
+                <div 
+                  className="bg-[#1486B8] text-white rounded-xl px-5 py-3 max-w-xl shadow-md relative whitespace-pre-line"
+                  role="article"
+                >
                   <span className="block text-base">{msg.texto}</span>
-                  <span className="block text-xs text-right text-white/80 mt-2">{msg.hora}</span>
+                  <span 
+                    className="block text-xs text-right text-white/80 mt-2"
+                    aria-label={`Enviada às ${msg.hora}`}
+                  >
+                    {msg.hora}
+                  </span>
                 </div>
               </div>
             ) : (
-              <div className="flex items-start gap-2" key={idx}>
-                <img src={conversaSelecionada.avatar} alt="avatar" className="w-8 h-8 rounded-full mt-1" />
+              <div 
+                className="flex items-start gap-2" 
+                key={idx}
+                role="listitem"
+                aria-label={`Mensagem recebida às ${msg.hora}`}
+              >
+                <img 
+                  src={conversaSelecionada.avatar} 
+                  alt={`Avatar de ${conversaSelecionada.nome}`} 
+                  className="w-8 h-8 rounded-full mt-1" 
+                />
                 <div>
-                  <div className="bg-[#22346C] text-white rounded-xl px-5 py-3 max-w-xl shadow-md whitespace-pre-line">
+                  <div 
+                    className="bg-[#22346C] text-white rounded-xl px-5 py-3 max-w-xl shadow-md whitespace-pre-line"
+                    role="article"
+                  >
                     <span className="block text-base">{msg.texto}</span>
-                    <span className="block text-xs text-right text-white/80 mt-2">{msg.hora}</span>
+                    <span 
+                      className="block text-xs text-right text-white/80 mt-2"
+                      aria-label={`Recebida às ${msg.hora}`}
+                    >
+                      {msg.hora}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -97,14 +168,29 @@ export default function Dashboard_Mensagens() {
           )}
         </div>
         {/* Campo de digitação */}
-        <form className="flex items-center gap-3 mt-6 bg-[#166b8e] rounded-xl px-4 py-2">
-          <FaPaperclip className="text-white text-xl cursor-pointer" />
+        <form 
+          className="flex items-center gap-3 mt-6 bg-[#166b8e] rounded-xl px-4 py-2"
+          role="form"
+          aria-label="Formulário de envio de mensagem"
+        >
+          <FaPaperclip 
+            className="text-white text-xl cursor-pointer" 
+            aria-label="Anexar arquivo"
+            role="button"
+          />
           <input
             type="text"
             placeholder="Digite a mensagem aqui..."
             className="flex-1 bg-transparent outline-none text-white placeholder:text-white/70 px-2 py-2 text-lg"
+            aria-label="Campo para digitar mensagem"
           />
-          <button type="submit" className="text-white text-3xl font-bold px-2 hover:scale-110 transition-transform">&#8594;</button>
+          <button 
+            type="submit" 
+            className="text-white text-3xl font-bold px-2 hover:scale-110 transition-transform"
+            aria-label="Enviar mensagem"
+          >
+            &#8594;
+          </button>
         </form>
       </section>
     </div>

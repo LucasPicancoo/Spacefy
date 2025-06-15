@@ -2,8 +2,8 @@ import React from 'react';
 
 // Componente reutilizável para campos de texto
 const CampoTexto = ({ label, id, name, value, onChange, required = false, type = "text", min, placeholder, maxLength }) => (
-    <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+    <div role="group" aria-labelledby={`${id}-label`}>
+        <label id={`${id}-label`} htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
         </label>
         <input
@@ -17,14 +17,16 @@ const CampoTexto = ({ label, id, name, value, onChange, required = false, type =
             placeholder={placeholder}
             className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
             required={required}
+            aria-required={required}
+            aria-label={typeof label === 'string' ? label : undefined}
         />
     </div>
 );
 
 // Componente reutilizável para campos de seleção
 const CampoSelect = ({ label, id, name, value, onChange, options, required = false }) => (
-    <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+    <div role="group" aria-labelledby={`${id}-label`}>
+        <label id={`${id}-label`} htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
         </label>
         <select
@@ -34,6 +36,8 @@ const CampoSelect = ({ label, id, name, value, onChange, options, required = fal
             onChange={onChange}
             className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
             required={required}
+            aria-required={required}
+            aria-label={typeof label === 'string' ? label : undefined}
         >
             <option value="">Selecione uma opção</option>
             {options.map((option) => (
@@ -47,8 +51,8 @@ const CampoSelect = ({ label, id, name, value, onChange, options, required = fal
 
 // Componente reutilizável para campos de texto longo (textarea)
 const CampoTextArea = ({ label, id, name, value, onChange, maxLength, placeholder }) => (
-    <div className="flex flex-col h-full ml-8">
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+    <div className="flex flex-col h-full ml-8" role="group" aria-labelledby={`${id}-label`}>
+        <label id={`${id}-label`} htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
         </label>
         <textarea
@@ -60,8 +64,9 @@ const CampoTextArea = ({ label, id, name, value, onChange, maxLength, placeholde
             className="mt-1 block w-full h-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
             maxLength={maxLength}
             placeholder={placeholder}
+            aria-label={typeof label === 'string' ? label : undefined}
         />
-        <p className="mt-1 text-sm text-gray-500 text-right">
+        <p className="mt-1 text-sm text-gray-500 text-right" role="status" aria-label={`Contador de caracteres: ${value?.length || 0} de ${maxLength}`}>
             {value?.length || 0}/{maxLength} caracteres
         </p>
     </div>
@@ -126,18 +131,18 @@ const Etapa1 = ({ formData, onUpdate }) => {
     ];
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" role="form" aria-label="Etapa 1: Informações do Espaço">
             {/* Cabeçalho da etapa */}
             <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4" id="etapa1-titulo">
                     Informações do Espaço
                 </h3>
             </div>
 
             {/* Grid com os campos do formulário */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-x-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-x-12" role="group" aria-labelledby="etapa1-titulo">
                 {/* Coluna da esquerda - Campos de texto */}
-                <div className="space-y-6">
+                <div className="space-y-6" role="group" aria-label="Informações básicas do espaço">
                     <CampoTexto
                         label="Nome do espaço"
                         id="space_name"
@@ -150,7 +155,7 @@ const Etapa1 = ({ formData, onUpdate }) => {
                     <CampoSelect
                         label={
                             <>
-                                Tipo do espaço <span className="text-xs text-gray-400">(Espaço para Eventos, Sala de Reuniões, Auditório, etc...)</span>
+                                Tipo do espaço <span className="text-xs text-gray-400" aria-label="Exemplos: Espaço para Eventos, Sala de Reuniões, Auditório, etc...">(Espaço para Eventos, Sala de Reuniões, Auditório, etc...)</span>
                             </>
                         }
                         id="space_type"
@@ -177,7 +182,7 @@ const Etapa1 = ({ formData, onUpdate }) => {
                 <CampoTextArea
                     label={
                         <>
-                            Descrição do espaço <span className="text-xs text-gray-400">(Max 750 caracteres)</span>
+                            Descrição do espaço <span className="text-xs text-gray-400" aria-label="Máximo de 750 caracteres">(Max 750 caracteres)</span>
                         </>
                     }
                     id="space_description"

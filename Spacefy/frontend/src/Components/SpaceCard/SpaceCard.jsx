@@ -83,42 +83,73 @@ const SpaceCard = ({
     <div 
       className={`${containerClassName} ${className}`}
       onClick={handleCardClick}
+      role="article"
+      aria-label={`Espaço ${space.space_name}`}
     >
       <div className="relative w-full h-40">
         <img 
           src={imageUrl}
-          alt={space.space_name} 
+          alt={`Imagem do espaço ${space.space_name}`}
           className={imageClassName}
         />
         {showFavoriteButton && (
           <button 
             onClick={handleFavoriteClick}
             className="absolute top-4 right-4 transition-colors"
+            aria-label={isFavorite(space._id) ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            aria-pressed={isFavorite(space._id)}
           >
             <FaHeart 
               className={`text-xl ${isFavorite(space._id) ? 'text-red-500' : 'text-white'} hover:text-red-500 transition-colors`}
+              aria-hidden="true"
             />
           </button>
         )}
       </div>
-      <div className="p-4 flex flex-col gap-1 flex-1 min-h-[120px]">
+      <div 
+        className="p-4 flex flex-col gap-1 flex-1 min-h-[120px]"
+        role="contentinfo"
+      >
         <div className="flex items-center justify-between">
-          <span className="font-semibold text-base line-clamp-1">{space.space_name}</span>
-          <span className="flex items-center gap-1 text-sm text-gray-700 flex-shrink-0">
-            <FaStar className="text-yellow-400" />
+          <span 
+            className="font-semibold text-base line-clamp-1"
+            role="heading"
+            aria-level="2"
+          >
+            {space.space_name}
+          </span>
+          <span 
+            className="flex items-center gap-1 text-sm text-gray-700 flex-shrink-0"
+            aria-label={`Avaliação média: ${rating} estrelas`}
+          >
+            <FaStar className="text-yellow-400" aria-hidden="true" />
             {rating}
           </span>
         </div>
-        <span className="text-xs text-gray-500 line-clamp-1">{truncateText(space.location?.formatted_address)}</span>
-        <span className="text-[#1486B8] font-semibold text-base">
+        <span 
+          className="text-xs text-gray-500 line-clamp-1"
+          aria-label={`Localização: ${space.location?.formatted_address}`}
+        >
+          {truncateText(space.location?.formatted_address)}
+        </span>
+        <span 
+          className="text-[#1486B8] font-semibold text-base"
+          aria-label={`Preço: R$ ${space.price_per_hour} por hora`}
+        >
           R$ {space.price_per_hour} <span className="text-xs font-normal text-gray-500">por hora</span>
         </span>
         <div className="flex items-center justify-between mt-auto">
-          <span className="text-xs text-gray-500">
+          <span 
+            className="text-xs text-gray-500"
+            aria-label={`Capacidade máxima: ${space.max_people} pessoas`}
+          >
             Cabe até <b>{space.max_people}</b> pessoas
           </span>
-          <div className="flex items-center text-gray-500 text-sm">
-            <FaClock className="mr-1" />
+          <div 
+            className="flex items-center text-gray-500 text-sm"
+            aria-label={`Total de avaliações: ${totalReviews > 0 ? totalReviews : 'Sem avaliações'}`}
+          >
+            <FaClock className="mr-1" aria-hidden="true" />
             <span>{totalReviews > 0 ? `${totalReviews} avaliações` : 'Sem avaliações'}</span>
           </div>
         </div>

@@ -41,11 +41,12 @@ const TOTAL_ETAPAS = 8;
 
 // Componente da barra de progresso que mostra o avanço na edição
 const BarraProgresso = ({ etapaAtual }) => (
-    <div className="mt-4">
+    <div className="mt-4" role="progressbar" aria-valuenow={etapaAtual} aria-valuemin={1} aria-valuemax={TOTAL_ETAPAS} aria-label={`Progresso: etapa ${etapaAtual} de ${TOTAL_ETAPAS}`}>
         <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
                 className="bg-[#1EACE3] h-2 rounded-full transition-all duration-300"
                 style={{ width: `${(etapaAtual / TOTAL_ETAPAS) * 100}%` }}
+                aria-hidden="true"
             />
         </div>
     </div>
@@ -313,24 +314,25 @@ const Dashboard_Editar_Espaco = ({ espaco, onVoltar }) => {
     };
 
     return (
-        <div className="flex flex-col min-h-screen bg-white">
+        <div className="flex flex-col min-h-screen bg-white" role="main" aria-label="Edição de espaço">
             <div className="flex-1 p-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="mb-8">
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                                <h1 className="text-3xl font-bold text-gray-900 mb-2" aria-label="Editar Espaço">
                                     Editar Espaço
                                 </h1>
-                                <p className="text-gray-600">
+                                <p className="text-gray-600" role="status" aria-label={`Etapa ${etapaAtual} de ${TOTAL_ETAPAS}`}>
                                     Etapa {etapaAtual} de {TOTAL_ETAPAS}
                                 </p>
                             </div>
-                            <div className="flex gap-4">
+                            <div className="flex gap-4" role="toolbar" aria-label="Ações de navegação">
                                 <button
                                     onClick={onVoltar}
                                     className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out"
                                     disabled={loading}
+                                    aria-label="Cancelar edição"
                                 >
                                     Cancelar
                                 </button>
@@ -339,6 +341,7 @@ const Dashboard_Editar_Espaco = ({ espaco, onVoltar }) => {
                                         onClick={etapaAnterior}
                                         className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out"
                                         disabled={loading}
+                                        aria-label="Voltar para etapa anterior"
                                     >
                                         Voltar
                                     </button>
@@ -347,6 +350,7 @@ const Dashboard_Editar_Espaco = ({ espaco, onVoltar }) => {
                                     onClick={proximaEtapa}
                                     className="bg-[#1EACE3] hover:bg-[#1a9bc9] text-white font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out"
                                     disabled={loading}
+                                    aria-label={etapaAtual === TOTAL_ETAPAS ? 'Salvar alterações' : 'Ir para próxima etapa'}
                                 >
                                     {etapaAtual === TOTAL_ETAPAS ? 'Salvar' : 'Próximo'}
                                 </button>
@@ -355,10 +359,12 @@ const Dashboard_Editar_Espaco = ({ espaco, onVoltar }) => {
                         <BarraProgresso etapaAtual={etapaAtual} />
                     </div>
 
-                    {renderizarEtapa()}
+                    <div role="region" aria-label={`Etapa ${etapaAtual} do formulário de edição`}>
+                        {renderizarEtapa()}
+                    </div>
                 </div>
             </div>
-            <ToastContainer />
+            <ToastContainer role="status" aria-live="polite" />
         </div>
     );
 };

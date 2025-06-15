@@ -6,8 +6,18 @@ const ProtectedRoute = ({ children }) => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] flex items-center justify-center">
-        <div className="text-white text-xl">Carregando...</div>
+      <div 
+        className="min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] flex items-center justify-center"
+        role="status"
+        aria-label="Carregando página"
+      >
+        <div 
+          className="text-white text-xl"
+          role="alert"
+          aria-live="polite"
+        >
+          Carregando...
+        </div>
       </div>
     );
   }

@@ -28,8 +28,17 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] flex items-center justify-center">
-        <div className="text-white text-xl">Carregando...</div>
+      <div 
+        className="min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B] flex items-center justify-center"
+        role="status"
+        aria-label="Carregando dashboard"
+      >
+        <div 
+          className="text-white text-xl"
+          aria-label="Aguarde, carregando conteúdo"
+        >
+          Carregando...
+        </div>
       </div>
     );
   }
@@ -53,39 +62,70 @@ export default function Dashboard() {
   const renderizarPagina = () => {
     switch (paginaAtual) {
       case 'Home':
-        return <Dashboard_Home />;
+        return <Dashboard_Home aria-label="Página inicial do dashboard" />;
       case 'Reservas':
-        return <Dashboard_Reservas />;
+        return <Dashboard_Reservas aria-label="Página de reservas" />;
       case 'Avaliacoes':
-        return <div className="p-8">Página de Avaliações</div>;
+        return (
+          <div 
+            className="p-8"
+            role="region"
+            aria-label="Página de avaliações"
+          >
+            Página de Avaliações
+          </div>
+        );
       case 'Mensagens':
-        return <Dashboard_Mensagens showHeader={false} />;
+        return <Dashboard_Mensagens showHeader={false} aria-label="Página de mensagens" />;
       case 'Perfil':
-        return <Dashboard_Perfil />;
+        return <Dashboard_Perfil aria-label="Página de perfil" />;
       case 'Espaco':
-        return <Dashboard_Espaco 
-          subEspacoSelecionado={subEspacoSelecionado} 
-          onEditarEspaco={handleEditarEspaco}
-        />;
+        return (
+          <Dashboard_Espaco 
+            subEspacoSelecionado={subEspacoSelecionado} 
+            onEditarEspaco={handleEditarEspaco}
+            aria-label="Página de gerenciamento de espaços"
+          />
+        );
       case 'EditarEspaco':
-        return <Dashboard_Editar_Espaco 
-          espaco={espacoParaEditar} 
-          onVoltar={() => {
-            setPaginaAtual('Espaco');
-            setEspacoParaEditar(null);
-          }}
-        />;
+        return (
+          <Dashboard_Editar_Espaco 
+            espaco={espacoParaEditar} 
+            onVoltar={() => {
+              setPaginaAtual('Espaco');
+              setEspacoParaEditar(null);
+            }}
+            aria-label="Página de edição de espaço"
+          />
+        );
       default:
-        return <Dashboard_Home />;
+        return <Dashboard_Home aria-label="Página inicial do dashboard" />;
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B]">
+    <div 
+      className="flex flex-col min-h-screen bg-gradient-to-br from-[#1BAAE9] to-[#093C6B]"
+      role="main"
+      aria-label="Dashboard do locatário"
+    >
       <Header />
-      <div className="flex flex-1">
-        <SidebarDashboardLocatario onPageChange={handlePageChange} paginaAtual={paginaAtual} subEspacoSelecionado={subEspacoSelecionado} />
-        <main className="flex-1">
+      <div 
+        className="flex flex-1"
+        role="region"
+        aria-label="Área principal do dashboard"
+      >
+        <SidebarDashboardLocatario 
+          onPageChange={handlePageChange} 
+          paginaAtual={paginaAtual} 
+          subEspacoSelecionado={subEspacoSelecionado}
+          aria-label="Menu de navegação do dashboard"
+        />
+        <main 
+          className="flex-1"
+          role="region"
+          aria-label={`Conteúdo da página ${paginaAtual}`}
+        >
           {renderizarPagina()}
         </main>
       </div>

@@ -3,8 +3,8 @@ import { googleMapsService } from '../../../services/googleMapsService';
 
 // Componente reutilizável para campos de texto
 const CampoTexto = ({ label, id, name, value, onChange, required = false, type = "text", min, placeholder, maxLength, inputRef, onBlur, onFocus }) => (
-    <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+    <div role="group" aria-labelledby={`${id}-label`}>
+        <label id={`${id}-label`} htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
         </label>
         <input
@@ -21,14 +21,16 @@ const CampoTexto = ({ label, id, name, value, onChange, required = false, type =
             className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
             required={required}
             ref={inputRef}
+            aria-required={required}
+            aria-label={typeof label === 'string' ? label : undefined}
         />
     </div>
 );
 
 // Componente reutilizável para campos de seleção
 const CampoSelect = ({ label, id, name, value, onChange, options, required = false }) => (
-    <div>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+    <div role="group" aria-labelledby={`${id}-label`}>
+        <label id={`${id}-label`} htmlFor={id} className="block text-sm font-medium text-gray-700">
             {label}
         </label>
         <select
@@ -38,6 +40,8 @@ const CampoSelect = ({ label, id, name, value, onChange, options, required = fal
             onChange={onChange}
             className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-gray-400 focus:ring-0 focus:outline-none py-2 px-3"
             required={required}
+            aria-required={required}
+            aria-label={typeof label === 'string' ? label : undefined}
         >
             <option value="">Selecione uma opção</option>
             {options.map((option) => (
@@ -184,20 +188,20 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
     ];
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" role="form" aria-label="Etapa 2: Endereço do Espaço">
             {/* Cabeçalho da etapa */}
             <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4" id="etapa2-titulo">
                     Endereço do Espaço
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500" role="doc-subtitle">
                     Preencha os dados do endereço onde o espaço está localizado
                 </p>
             </div>
 
             {/* Grid com os campos do formulário */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-x-12">
-                <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 gap-x-12" role="group" aria-labelledby="etapa2-titulo">
+                <div className="space-y-6" role="group" aria-label="Campos de endereço">
                     <CampoTexto
                         label="Rua"
                         id="street"
@@ -211,7 +215,7 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
                         inputRef={streetInputRef}
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4" role="group" aria-label="Número e CEP">
                         <CampoTexto
                             label="Número"
                             id="number"
@@ -232,7 +236,7 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4" role="group" aria-label="Bairro e Cidade">
                         <CampoTexto
                             label="Bairro"
                             id="neighborhood"
@@ -264,15 +268,15 @@ const Etapa1_2 = ({ formData, onUpdate }) => {
                 </div>
 
                 {/* Coluna da direita - Mapa ou instruções */}
-                <div className="bg-gray-50 p-6 rounded-lg">
-                    <h4 className="text-lg font-medium text-gray-900 mb-4">
+                <div className="bg-gray-50 p-6 rounded-lg" role="complementary" aria-label="Instruções de preenchimento">
+                    <h4 className="text-lg font-medium text-gray-900 mb-4" id="instrucoes-titulo">
                         Instruções
                     </h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
-                        <li>Digite o nome da rua para autopreenchimento do endereço</li>
-                        <li>Verifique se todos os dados estão corretos</li>
-                        <li>O endereço será usado para localização no mapa</li>
-                        <li>Certifique-se de que o endereço está completo e correto</li>
+                    <ul className="list-disc list-inside space-y-2 text-gray-600" role="list" aria-labelledby="instrucoes-titulo">
+                        <li role="listitem">Digite o nome da rua para autopreenchimento do endereço</li>
+                        <li role="listitem">Verifique se todos os dados estão corretos</li>
+                        <li role="listitem">O endereço será usado para localização no mapa</li>
+                        <li role="listitem">Certifique-se de que o endereço está completo e correto</li>
                     </ul>
                 </div>
             </div>

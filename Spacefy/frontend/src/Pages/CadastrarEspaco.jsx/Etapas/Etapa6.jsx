@@ -114,14 +114,15 @@ const CATEGORIAS_BAIXO = CATEGORIAS.filter(cat => [
 
 // Componente para checkbox de item individual
 const CheckboxItem = ({ item, checked, onChange }) => (
-    <li className="flex flex-col items-start">
-        <label className="flex items-center">
+    <li className="flex flex-col items-start" role="listitem">
+        <label className="flex items-center" role="checkbox" aria-checked={checked}>
             <input
                 type="checkbox"
                 name={item.id}
                 checked={checked}
                 onChange={onChange}
                 className="h-4 w-4 text-blue-600 border-gray-300 rounded mr-2 cursor-pointer"
+                aria-label={item.label}
             />
             <span className="text-gray-800 text-sm">{item.label}</span>
         </label>
@@ -130,9 +131,11 @@ const CheckboxItem = ({ item, checked, onChange }) => (
 
 // Componente para renderizar uma categoria e seus itens
 const Categoria = ({ titulo, itens, checkedItems, onChange }) => (
-    <div>
-        <h4 className="font-semibold text-gray-800 mb-2 text-base">{titulo}</h4>
-        <ul className="space-y-2">
+    <div role="region" aria-label={`Categoria: ${titulo}`}>
+        <h4 className="font-semibold text-gray-800 mb-2 text-base" id={`${titulo.toLowerCase().replace(/\s+/g, '-')}-titulo`}>
+            {titulo}
+        </h4>
+        <ul className="space-y-2" role="list" aria-labelledby={`${titulo.toLowerCase().replace(/\s+/g, '-')}-titulo`}>
             {itens.map((item) => (
                 <CheckboxItem
                     key={item.id}
@@ -145,8 +148,8 @@ const Categoria = ({ titulo, itens, checkedItems, onChange }) => (
     </div>
 );
 
-// Componente principal da Etapa 5 - Infraestrutura e Serviços
-const Etapa5 = ({ formData, onUpdate }) => {
+// Componente principal da Etapa 6 - Infraestrutura e Serviços
+const Etapa6 = ({ formData, onUpdate }) => {
     // Função para gerenciar mudanças nos itens selecionados
     const handleChange = (e) => {
         const { name, checked } = e.target;
@@ -167,13 +170,21 @@ const Etapa5 = ({ formData, onUpdate }) => {
     };
 
     return (
-        <div>
+        <div role="form" aria-label="Etapa 6: Infraestrutura e Serviços">
             {/* Cabeçalho da etapa */}
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">Infraestrutura e Serviços</h2>
-            <h3 className="text-lg font-semibold text-gray-900 mb-6">Itens Disponíveis no Espaço</h3>
+            <div role="banner">
+                <h2 className="text-3xl font-bold text-gray-900 mb-2" id="etapa6-titulo">Infraestrutura e Serviços</h2>
+                <h3 className="text-lg font-semibold text-gray-900 mb-6" role="doc-subtitle">
+                    Itens Disponíveis no Espaço
+                </h3>
+            </div>
 
             {/* Seção superior - 4 colunas */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div 
+                className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+                role="region"
+                aria-label="Categorias principais de infraestrutura"
+            >
                 {CATEGORIAS_CIMA.map((cat) => (
                     <Categoria
                         key={cat.titulo}
@@ -186,7 +197,11 @@ const Etapa5 = ({ formData, onUpdate }) => {
             </div>
 
             {/* Seção inferior - 2 colunas */}
-            <div className="pt-4 border-t border-gray-200">
+            <div 
+                className="pt-4 border-t border-gray-200"
+                role="region"
+                aria-label="Categorias adicionais de infraestrutura"
+            >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {CATEGORIAS_BAIXO.map((cat) => (
                         <Categoria
@@ -203,4 +218,4 @@ const Etapa5 = ({ formData, onUpdate }) => {
     );
 };
 
-export default Etapa5; 
+export default Etapa6; 

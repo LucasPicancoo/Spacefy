@@ -53,8 +53,15 @@ export function LocationSearch({ onLocationSelect, initialLocation }) {
   };
 
   return (
-    <div className="flex-1 flex items-center bg-white rounded-xl px-4 py-3 location-search">
-      <FaMapMarkerAlt className="text-gray-400 mr-2 text-lg" />
+    <div 
+      className="flex-1 flex items-center bg-white rounded-xl px-4 py-3 location-search"
+      role="searchbox"
+      aria-label="Campo de busca de localização"
+    >
+      <FaMapMarkerAlt 
+        className="text-gray-400 mr-2 text-lg" 
+        aria-hidden="true"
+      />
       <input
         type="text"
         ref={inputRef}
@@ -63,7 +70,16 @@ export function LocationSearch({ onLocationSelect, initialLocation }) {
         value={location}
         onChange={handleInputChange}
         onFocus={handleInputFocus}
+        aria-label="Digite o endereço ou localização desejada"
+        aria-autocomplete="list"
+        aria-expanded={isApiInitialized}
+        aria-controls="location-suggestions"
+        aria-describedby="location-description"
       />
+      <span id="location-description" className="sr-only">
+        Digite um endereço para ver sugestões de localização. Use as setas do teclado para navegar entre as sugestões e pressione Enter para selecionar.
+      </span>
+      <div id="location-suggestions" className="sr-only" role="listbox" aria-label="Sugestões de localização" />
     </div>
   );
 } 

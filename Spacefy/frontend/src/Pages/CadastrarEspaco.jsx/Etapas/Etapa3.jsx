@@ -6,18 +6,19 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 // Modal para visualização de imagem
 const ModalImagem = ({ url, onClose }) => (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true" aria-label="Visualização de imagem">
         <div className="bg-white rounded-lg p-4 max-w-3xl w-full flex flex-col items-center relative">
             <button
                 onClick={onClose}
                 className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 cursor-pointer"
                 title="Fechar"
+                aria-label="Fechar visualização"
             >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
             </button>
-            <img src={url} alt="Visualização" className="max-w-full max-h-[70vh] rounded" />
+            <img src={url} alt="Visualização da imagem do espaço" className="max-w-full max-h-[70vh] rounded" />
         </div>
     </div>
 );
@@ -91,9 +92,9 @@ const CampoImagem = ({ value, onChange }) => {
     };
 
     return (
-        <div className="">
+        <div className="" role="group" aria-label="Upload de imagens do espaço">
             <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="upload-imagem">
                     Selecione as imagens (máximo 5MB cada)
                 </label>
                 <input
@@ -104,35 +105,40 @@ const CampoImagem = ({ value, onChange }) => {
                     className="hidden"
                     disabled={isUploading}
                     multiple
+                    aria-label="Selecionar imagens para upload"
                 />
                 <label
                     htmlFor="upload-imagem"
                     className={`px-4 py-2 bg-blue-600 text-white rounded-lg cursor-pointer hover:bg-blue-700 transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    aria-disabled={isUploading}
                 >
                     {isUploading ? 'Enviando...' : 'Selecionar Imagem'}
                 </label>
                 {error && (
-                    <p className="mt-2 text-sm text-red-600">
+                    <p className="mt-2 text-sm text-red-600" role="alert" aria-label="Mensagem de erro">
                         {error}
                     </p>
                 )}
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4" role="list" aria-label="Lista de imagens carregadas">
                 {previewUrls.map((url, index) => (
-                    <div key={index} className="relative group">
+                    <div key={index} className="relative group" role="listitem">
                         <img
                             src={url}
-                            alt={`Preview ${index + 1}`}
+                            alt={`Imagem ${index + 1} do espaço`}
                             className="w-full h-32 object-cover rounded-lg cursor-pointer"
                             onClick={() => setModalUrl(url)}
+                            role="button"
+                            aria-label={`Visualizar imagem ${index + 1}`}
                         />
                         <button
                             onClick={() => handleRemoveImage(index)}
                             className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                             title="Remover imagem"
+                            aria-label={`Remover imagem ${index + 1}`}
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
                         </button>
@@ -141,14 +147,14 @@ const CampoImagem = ({ value, onChange }) => {
             </div>
 
             {isUploading && (
-                <div className="text-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                <div className="text-center py-4" role="status" aria-label="Enviando imagens">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto" aria-hidden="true"></div>
                     <p className="mt-2 text-sm text-gray-600">Enviando imagens...</p>
                 </div>
             )}
 
             {value && value.length > 0 && !isUploading && (
-                <div className="mt-4">
+                <div className="mt-4" role="status" aria-label="Total de imagens carregadas">
                     <p className="text-sm text-gray-600">
                         Total de imagens: {value.length}
                     </p>
@@ -167,13 +173,13 @@ const Etapa2 = ({ formData, onUpdate }) => {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-8" role="form" aria-label="Etapa 3: Fotos do Espaço">
             {/* Cabeçalho da etapa */}
             <div>
-                <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                <h3 className="text-2xl font-semibold text-gray-900 mb-4" id="etapa3-titulo">
                     Fotos do Espaço
                 </h3>
-                <p className="text-gray-600 mb-6">
+                <p className="text-gray-600 mb-6" role="doc-subtitle">
                     Faça upload das imagens do seu espaço. Você pode adicionar várias imagens e removê-las se necessário.
                     <br />
                     <span className="text-sm text-gray-500">Tamanho máximo por imagem: 5MB</span>
@@ -181,7 +187,7 @@ const Etapa2 = ({ formData, onUpdate }) => {
             </div>
 
             {/* Área de upload da imagem */}
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-6" role="group" aria-labelledby="etapa3-titulo">
                 <CampoImagem
                     value={formData.image_url}
                     onChange={handleImageChange}

@@ -79,6 +79,13 @@ const RentalChart = ({ spaceId }) => {
         font: {
           size: 16
         }
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return `Quantidade de aluguéis: ${context.raw}`;
+          }
+        }
       }
     },
     scales: {
@@ -86,14 +93,51 @@ const RentalChart = ({ spaceId }) => {
         beginAtZero: true,
         ticks: {
           stepSize: 1
+        },
+        title: {
+          display: true,
+          text: 'Quantidade de Aluguéis'
+        }
+      },
+      x: {
+        title: {
+          display: true,
+          text: 'Data'
         }
       }
-    }
+    },
+    maintainAspectRatio: false
+  };
+
+  // Função para gerar uma descrição textual dos dados do gráfico
+  const generateChartDescription = () => {
+    if (!chartData.labels.length) return 'Nenhum dado disponível para exibição.';
+    
+    const maxRentals = Math.max(...chartData.datasets[0].data);
+    const totalRentals = chartData.datasets[0].data.reduce((a, b) => a + b, 0);
+    const dates = chartData.labels.join(', ');
+    
+    return `Gráfico de barras mostrando a quantidade de aluguéis por dia. 
+            Total de ${totalRentals} aluguéis registrados. 
+            Maior quantidade de aluguéis em um único dia: ${maxRentals}. 
+            Datas registradas: ${dates}.`;
   };
 
   return (
-    <div style={{ width: '100%', height: '400px', padding: '20px' }}>
-      <Bar data={chartData} options={options} />
+    <div 
+      style={{ width: '100%', height: '400px', padding: '20px' }}
+      role="img"
+      aria-label="Gráfico de quantidade de aluguéis por dia"
+      aria-describedby="chart-description"
+    >
+      <div id="chart-description" className="sr-only">
+        {generateChartDescription()}
+      </div>
+      <Bar 
+        data={chartData} 
+        options={options}
+        aria-hidden="true"
+      />
     </div>
   );
 };

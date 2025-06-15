@@ -34,6 +34,7 @@ function renderStars(avaliacao, size = 'text-base') {
         <div 
             role="img" 
             aria-label={`Avaliação de ${avaliacao} estrelas`}
+            className="flex"
         >
             {stars}
         </div>

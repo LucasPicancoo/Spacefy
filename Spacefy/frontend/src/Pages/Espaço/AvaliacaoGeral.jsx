@@ -34,6 +34,7 @@ function renderStars(avaliacao, size = 'text-2xl') {
         <div 
             role="img" 
             aria-label={`Avaliação de ${avaliacao} estrelas`}
+            className="flex flex-row"
         >
             {stars}
         </div>

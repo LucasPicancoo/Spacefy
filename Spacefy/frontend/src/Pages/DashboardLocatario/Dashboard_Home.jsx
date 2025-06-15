@@ -106,7 +106,7 @@ export default function Dashboard_Home() {
       }
     }
     return (
-      <div role="img" aria-label={`Avaliação: ${rating} de 5 estrelas`}>
+      <div role="img" aria-label={`Avaliação: ${rating} de 5 estrelas`} className="flex">
         {stars}
       </div>
     );

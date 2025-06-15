@@ -31,7 +31,7 @@ function renderStars(avaliacao, size = 'text-base') {
         }
     }
     return (
-        <div role="img" aria-label={`${avaliacao} de 5 estrelas`}>
+        <div role="img" aria-label={`${avaliacao} de 5 estrelas`} className="flex flex-row">
             {stars}
         </div>
     );

@@ -21,7 +21,7 @@ function renderStars(avaliacao) {
     }
   }
   return (
-    <div role="img" aria-label={`Avaliação: ${avaliacao} de 5 estrelas`}>
+    <div role="img" aria-label={`Avaliação: ${avaliacao} de 5 estrelas`} className="flex flex-row gap-1">
       {stars}
     </div>
   );

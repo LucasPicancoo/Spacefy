@@ -23,10 +23,10 @@ const app = express();
 
 // Configuração do Rate Limiter
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 9999999, // limite de 250 requisições por IP
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 100, // limite de 100 requisições por IP
   message: {
-    error: "Muitas requisições deste IP, por favor tente novamente após 15 minutos"
+    error: "Muitas requisições deste IP, por favor tente novamente após 1 minuto"
   },
   standardHeaders: true, // Retorna rate limit info nos headers `RateLimit-*`
   legacyHeaders: false, // Desabilita os headers `X-RateLimit-*`

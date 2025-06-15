@@ -4,14 +4,12 @@ import { AMENITIES, ALLOWED_AMENITIES } from "../constants/amenities";
 import { ALLOWED_RULES } from "../constants/spaceRules";
 import mongoose from 'mongoose';
 import { GoogleMapsService } from "../services/googleMapsService";
-import connectDB from "../config/database";
 
 // import { AuthenticationData } from "../types/auth";
 
 // Listar todos os espaços
 export const getAllSpaces = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const spaces = await SpaceModel.find().select('space_name location price_per_hour max_people image_url');
 
     if (!spaces) {
@@ -24,18 +22,13 @@ export const getAllSpaces = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao listar espaços:", error);
     res.status(500).json({ error: "Erro ao listar espaços" });
-
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Obter um espaço por ID
 export const getSpaceById = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { id } = req.params;
     const space = await SpaceModel.findById(id);
 
@@ -49,10 +42,7 @@ export const getSpaceById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar espaço:", error);
     res.status(500).json({ error: "Erro ao buscar espaço" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
@@ -63,7 +53,6 @@ export const getSpaceById = async (req: Request, res: Response) => {
 // Buscar espaços com filtros
 export const getSpacesWithFilters = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const {
       space_type,
       min_price,
@@ -358,11 +347,7 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar espaços com filtros:", error);
     res.status(500).json({ error: "Erro interno ao buscar espaços" });
-
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
@@ -371,7 +356,6 @@ export const getSpacesWithFilters = async (req: Request, res: Response) => {
 // Criar um novo espaço
 export const createSpace = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     // Para que somente locatários possam criar espaços
     if (req.auth?.role !== "locatario") {
       res.status(403).json({ error: "Apenas locatários podem criar espaços." });
@@ -550,18 +534,13 @@ export const createSpace = async (req: Request, res: Response) => {
     }
 
     res.status(500).json({ error: "Erro ao criar espaço" });
-
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Atualizar um espaço por ID
 export const updateSpace = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     // Para que somente locatários possam atualizar espaços
     if (req.auth?.role !== "locatario") {
       res.status(403).json({ error: "Apenas locatários podem atualizar espaços." });
@@ -750,18 +729,13 @@ export const updateSpace = async (req: Request, res: Response) => {
     }
 
     res.status(500).json({ error: "Erro ao atualizar espaço" });
-
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Excluir um espaço por ID
 export const deleteSpace = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     if (!req.auth || !["locatario", "admin"].includes(req.auth.role)) {
       res.status(403).json({
         error: "Apenas locatários ou administradores podem excluir espaços."
@@ -795,10 +769,7 @@ export const deleteSpace = async (req: Request, res: Response) => {
       error: "Erro ao excluir espaço",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
@@ -806,7 +777,6 @@ export const deleteSpace = async (req: Request, res: Response) => {
 // Buscar espaços por comodidades da tela de experiência
 export const getSpacesByExperienceAmenities = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     // Busca todos os espaços que tenham pelo menos uma das comodidades
     const spaces = await SpaceModel.find({
       space_amenities: {
@@ -876,17 +846,13 @@ export const getSpacesByExperienceAmenities = async (req: Request, res: Response
       error: "Erro ao buscar espaços por comodidades",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Buscar espaços por ID do proprietário
 export const getSpacesByOwnerId = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { owner_id } = req.params;
 
     // Validação do ID
@@ -910,9 +876,6 @@ export const getSpacesByOwnerId = async (req: Request, res: Response) => {
       error: "Erro ao buscar espaços do proprietário",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };

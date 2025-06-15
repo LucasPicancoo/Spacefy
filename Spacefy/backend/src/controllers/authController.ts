@@ -3,14 +3,11 @@ import UserModel from "../models/userModel";
 import { compare } from "../middlewares/hashManager";
 import { Authenticator } from "../middlewares/authenticator";
 import { IBaseUser } from "../types/user"; // ajuste o caminho se necessário
-import connectDB from "../config/database";
-import mongoose from "mongoose";
 
 const authenticator = new Authenticator();
 
 export const login = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -61,47 +58,24 @@ export const login = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao fazer login:", error);
     res.status(500).json({ error: "Erro ao fazer login" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return
   }
 };
 
 // Ler um cookie
-export const getCookie = async (req: Request, res: Response) => {
-  try {
-    await connectDB(); // conecta ao banco
-    const token = req.cookies.token; // Acessa o cookie "token"
-    if (!token) {
-      res.status(404).json({ message: "Cookie não encontrado" });
-      return
-    }
-    res.status(200).json({ token });
+export const getCookie = (req: Request, res: Response) => {
+  const token = req.cookies.token; // Acessa o cookie "token"
+  if (!token) {
+    res.status(404).json({ message: "Cookie não encontrado" });
     return
-  } catch (error) {
-    console.error("Erro ao obter cookie:", error);
-    res.status(500).json({ error: "Erro ao obter cookie" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
   }
+  res.status(200).json({ token });
+  return
 };
 
 // Excluir um cookie
-export const deleteCookie = async (req: Request, res: Response) => {
-  try {
-    await connectDB(); // conecta ao banco
-    res.clearCookie("token");
-    res.status(200).json({ message: "Cookie removido com sucesso!" });
-    return
-  } catch (error) {
-    console.error("Erro ao deletar cookie:", error);
-    res.status(500).json({ error: "Erro ao deletar cookie" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
-  }
+export const deleteCookie = (req: Request, res: Response) => {
+  res.clearCookie("token");
+  res.status(200).json({ message: "Cookie removido com sucesso!" });
+  return
 };

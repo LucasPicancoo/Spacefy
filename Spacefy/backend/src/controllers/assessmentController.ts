@@ -2,12 +2,10 @@ import { Request, Response } from "express";
 import Review from "../models/assessmentModel";
 import mongoose from "mongoose";
 import { IBaseUser } from "../types/user";
-import connectDB from "../config/database";
 
 // Registrar uma avaliação
 export const createAssessment = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { spaceID, userID, score, comment } = req.body || {};
 
     // Verificação de campos obrigatórios
@@ -56,26 +54,22 @@ export const createAssessment = async (req: Request, res: Response) => {
       error: "Erro ao criar avaliação.",
       details: error.message 
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Editar uma avaliação
 export const updateAssessment = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { score, comment } = req.body || {};
+
+  // Validação da nota
+  if (score !== undefined && (score < 0 || score > 5)) {
+    res.status(400).json({ error: "A nota deve ser entre 0 e 5 estrelas." });
+    return;
+  }
+
   try {
-    await connectDB(); // conecta ao banco
-    const { id } = req.params;
-    const { score, comment } = req.body || {};
-
-    // Validação da nota
-    if (score !== undefined && (score < 0 || score > 5)) {
-      res.status(400).json({ error: "A nota deve ser entre 0 e 5 estrelas." });
-      return;
-    }
-
     const review = await Review.findByIdAndUpdate(
       id,
       { score, comment },
@@ -92,19 +86,15 @@ export const updateAssessment = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao atualizar avaliação:", error);
     res.status(500).json({ error: "Erro ao atualizar avaliação." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Excluir uma avaliação
 export const deleteAssessment = async (req: Request, res: Response) => {
-  try {
-    await connectDB(); // conecta ao banco
-    const { id } = req.params;
+  const { id } = req.params;
 
+  try {
     // Busca a avaliação antes de excluir para verificar as permissões
     const assessment = await Review.findById(id);
 
@@ -127,19 +117,15 @@ export const deleteAssessment = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao excluir avaliação:", error);
     res.status(500).json({ error: "Erro ao excluir avaliação." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Buscar avaliações de um espaço específico
 export const getAssessmentsBySpace = async (req: Request, res: Response) => {
-  try {
-    await connectDB(); // conecta ao banco
-    const { spaceId } = req.params;
+  const { spaceId } = req.params;
 
+  try {
     // Validação do ID do espaço
     if (!mongoose.Types.ObjectId.isValid(spaceId)) {
       res.status(400).json({ error: "ID do espaço inválido." });
@@ -175,35 +161,27 @@ export const getAssessmentsBySpace = async (req: Request, res: Response) => {
       error: "Erro ao buscar avaliações do espaço.",
       details: error.message 
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 export const getAllAssessments = async (req: Request, res: Response) => {
+  if (!req.auth || req.auth.role !== "admin") {
+    res.status(403).json({ error: "Acesso negado. Usuário não autorizado. somente admin pode acessar" });
+    return;
+  }
   try {
-    await connectDB(); // conecta ao banco
-    if (!req.auth || req.auth.role !== "admin") {
-      res.status(403).json({ error: "Acesso negado. Usuário não autorizado. somente admin pode acessar" });
-      return;
-    }
     const assessments = await Review.find();
     res.status(200).json(assessments);
     return;
   } catch (error) {
     res.status(500).json({ error: "Erro ao buscar todas as avaliações." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 export const getTopRatedSpaces = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const topSpaces = await Review.aggregate([
       {
         $group: {
@@ -247,21 +225,17 @@ export const getTopRatedSpaces = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar espaços melhor avaliados:", error);
     res.status(500).json({ error: "Erro ao buscar espaços melhor avaliados." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 export const getAssessmentsByUser = async (req: Request, res: Response) => {
-  try {
-    await connectDB(); // conecta ao banco
-    const { userId } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const limit = 3;
-    const skip = (page - 1) * limit;
+  const { userId } = req.params;
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = 3;
+  const skip = (page - 1) * limit;
 
+  try {
     // Validação do ID do usuário
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       res.status(400).json({ error: "ID do usuário inválido." });
@@ -296,18 +270,14 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar avaliações do usuário:", error);
     res.status(500).json({ error: "Erro ao buscar avaliações do usuário." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 export const getAverageScoreBySpace = async (req: Request, res: Response) => {
-  try {
-    await connectDB(); // conecta ao banco
-    const { spaceId } = req.params;
+  const { spaceId } = req.params;
 
+  try {
     // Validação do ID do espaço
     if (!mongoose.Types.ObjectId.isValid(spaceId)) {
       res.status(400).json({ error: "ID do espaço inválido." });
@@ -348,10 +318,7 @@ export const getAverageScoreBySpace = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao calcular média das avaliações:", error);
     res.status(500).json({ error: "Erro ao calcular média das avaliações do espaço." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 

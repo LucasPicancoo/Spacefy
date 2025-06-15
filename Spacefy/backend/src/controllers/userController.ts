@@ -8,14 +8,15 @@ import "../models/spaceModel"; // Importando o modelo de espaço para o populate
 import RentalModel from "../models/rentalModel";
 import SpaceModel from "../models/spaceModel";
 import { Authenticator } from "../middlewares/authenticator";
-import connectDB from "../config/database";
-
+// Deixando aqui algumas importações caso necessário
+// import { ObjectId } from "mongoose";
+// import { IBaseUser } from "../types/user";
+// import { User } from "../types/user";
+// import mongoose, { Schema, model } from "mongoose";
 
 // Listar todos os usuários (com espaços alugados)
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
-
     if (req.auth?.role !== "admin") {
       res.status(403).json({
         error:
@@ -41,18 +42,13 @@ export const getAllUsers = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao listar usuários:", error);
     res.status(500).json({ error: "Erro ao listar usuários" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Criar um novo usuário
 export const createUser = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
-
     const { name, surname, email, password, telephone, role, cpfOrCnpj } =
       req.body;
 
@@ -87,18 +83,13 @@ export const createUser = async (req: Request, res: Response) => {
       return;
     }
     res.status(500).json({ error: "Erro ao criar usuário" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Atualizar um usuário
 export const updateUser = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
-
     if (!req.auth) {
       res.status(401).json({ error: "Autenticação necessária" });
       return;
@@ -185,18 +176,13 @@ export const updateUser = async (req: Request, res: Response) => {
       return;
     }
     res.status(500).json({ error: "Erro ao atualizar usuário." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Atualizar usuário para locatário
 export const updateToLocatario = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
-
     if (!req.auth) {
       res.status(401).json({ error: "Autenticação necessária" });
       return;
@@ -262,21 +248,16 @@ export const updateToLocatario = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao atualizar usuário para locatário:", error);
     res.status(500).json({ error: "Erro ao atualizar usuário para locatário." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Favoritar ou desfavoritar um espaço
 export const toggleFavoriteSpace = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { spaceId } = req.body;
+
   try {
-    await connectDB(); // conecta ao banco
-
-    const { userId } = req.params;
-    const { spaceId } = req.body;
-
     if (!req.auth) {
       res.status(401).json({
         error: "Autenticação necessária para favoritar espaços.",
@@ -325,19 +306,14 @@ export const toggleFavoriteSpace = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao favoritar/desfavoritar espaço:", error);
     res.status(500).json({ error: "Erro interno ao atualizar favoritos." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 export const getUserFavorites = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
   try {
-    await connectDB(); // conecta ao banco
-
-    const { userId } = req.params;
-
     if (!req.auth) {
       res.status(401).json({
         error: "Autenticação necessária para ver favoritos.",
@@ -359,18 +335,13 @@ export const getUserFavorites = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar favoritos:", error);
     res.status(500).json({ error: "Erro interno ao buscar favoritos." });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Deletar um usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
-
     if (!req.auth) {
       res.status(401).json({ error: "Autenticação necessária" });
       return;
@@ -416,18 +387,13 @@ export const deleteUser = async (req: Request, res: Response) => {
       error: "Erro interno no servidor ao deletar usuário",
       details: error instanceof Error ? error.message : "Erro desconhecido",
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Obter espaços alugados por um usuário
 export const getUserRentals = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
-
     if (!req.auth) {
       res.status(401).json({ error: "Autenticação necessária" });
       return;
@@ -467,18 +433,13 @@ export const getUserRentals = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar aluguéis do usuário:", error);
     res.status(500).json({ error: "Erro ao buscar aluguéis do usuário" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Obter usuário por ID
 export const getUserById = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
-
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -498,10 +459,7 @@ export const getUserById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Erro ao buscar usuário:", error);
     res.status(500).json({ error: "Erro ao buscar usuário" });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 

@@ -1,12 +1,10 @@
 import { Request, Response } from "express";
 import viewhistoryModel from "../models/viewhistoryModel";
 import mongoose from "mongoose";
-import connectDB from "../config/database";
 
 // Registro de Visualização
 export const registerViewHistory = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { user_id, space_id } = req.body;
 
     if (!user_id || !space_id) {
@@ -59,17 +57,13 @@ export const registerViewHistory = async (req: Request, res: Response) => {
       error: "Erro ao registrar visualização",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Busca Histórico de Visualização
 export const getViewHistoryByUser = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { user_id } = req.params;
 
     if (!user_id || !mongoose.Types.ObjectId.isValid(user_id)) {
@@ -111,9 +105,6 @@ export const getViewHistoryByUser = async (req: Request, res: Response) => {
       error: "Erro ao buscar histórico de visualizações",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };

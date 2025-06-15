@@ -2,12 +2,10 @@ import { Request, Response } from "express";
 import BlockedDatesModel from "../models/blockedDatesModel";
 import mongoose from "mongoose";
 import RentalModel from "../models/rentalModel";
-import connectDB from "../config/database";
 
 // Criar ou atualizar datas bloqueadas
 export const createOrUpdateBlockedDates = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { space_id, blocked_dates } = req.body;
 
     // Validação do ID do espaço
@@ -68,17 +66,13 @@ export const createOrUpdateBlockedDates = async (req: Request, res: Response) =>
       error: "Erro ao criar/atualizar datas bloqueadas",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 
 // Obter datas bloqueadas por ID do espaço
 export const getBlockedDatesBySpaceId = async (req: Request, res: Response) => {
   try {
-    await connectDB(); // conecta ao banco
     const { space_id } = req.params;
 
     // Validação do ID do espaço
@@ -144,10 +138,7 @@ export const getBlockedDatesBySpaceId = async (req: Request, res: Response) => {
       error: "Erro ao buscar datas bloqueadas e reservadas",
       details: error instanceof Error ? error.message : "Erro desconhecido"
     });
-  } finally {
-    mongoose.disconnect().catch(err => {
-      console.error("Erro ao desconectar do MongoDB:", err);
-    });
+    return;
   }
 };
 

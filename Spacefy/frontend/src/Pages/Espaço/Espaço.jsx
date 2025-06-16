@@ -18,6 +18,7 @@ import { useUser } from "../../Contexts/UserContext";
 import MiniChat from "../../Components/MiniChat/MiniChat";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import AvaliarEspaco from "../../Components/AvaliarEspaco/avaliarEspaco";
 
 registerLocale('pt-BR', ptBR);
 setDefaultLocale('pt-BR');
@@ -348,6 +349,9 @@ function Espaço() {
                     aria-label="Comentários dos usuários"
                 />
             </div>
+            
+            <AvaliarEspaco />
+
             <div 
                 className="mt-10"
                 role="region"

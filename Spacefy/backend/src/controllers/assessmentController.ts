@@ -3,6 +3,7 @@ import Review from "../models/assessmentModel";
 import mongoose from "mongoose";
 import { IBaseUser } from "../types/user";
 import redisConfig from "../config/redisConfig";
+import RentalModel from "../models/rentalModel";
 
 // Registrar uma avaliação
 export const createAssessment = async (req: Request, res: Response) => {
@@ -31,9 +32,38 @@ export const createAssessment = async (req: Request, res: Response) => {
       return;
     }
 
+    // Verificar se o usuário já alugou o espaço
+    const rental = await RentalModel.findOne({
+      user: new mongoose.Types.ObjectId(userID),
+      space: new mongoose.Types.ObjectId(spaceID),
+      end_date: { $lte: new Date() } // Verifica se o aluguel já foi concluído
+    });
+
+    if (!rental) {
+      res.status(403).json({ 
+        error: "Você só pode avaliar um espaço após ter alugado e concluído o período de aluguel." 
+      });
+      return;
+    }
+
+    // Verificar se já existe uma avaliação para este aluguel específico
+    const existingReview = await Review.findOne({
+      userID: new mongoose.Types.ObjectId(userID),
+      spaceID: new mongoose.Types.ObjectId(spaceID),
+      rentalID: rental._id
+    });
+
+    if (existingReview) {
+      res.status(400).json({ 
+        error: "Você já avaliou este aluguel específico." 
+      });
+      return;
+    }
+
     const review = await Review.create({
       spaceID: new mongoose.Types.ObjectId(spaceID),
       userID: new mongoose.Types.ObjectId(userID),
+      rentalID: rental._id, // Adiciona referência ao aluguel
       score,
       comment,
       evaluation_date: new Date()

@@ -10,4 +10,5 @@ export interface IAssessment extends Document {
   evaluation_date: Date; // Data da avaliação
   userID: mongoose.Types.ObjectId | IBaseUser; // ID do usuário (ObjectId do MongoDB)
   spaceID: mongoose.Types.ObjectId; // ID do espaço (ObjectId do MongoDB)
+  rentalID: mongoose.Types.ObjectId; // ID do aluguel (ObjectId do MongoDB)
 }

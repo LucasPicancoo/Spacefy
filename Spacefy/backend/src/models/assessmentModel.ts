@@ -26,6 +26,11 @@ const assessmentSchema = new Schema<IAssessment>({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Space",
     required: true
+  },
+  rentalID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Rental",
+    required: true
   }
 }, {
   // Desabilita a criação automática de índices
@@ -42,5 +47,6 @@ assessmentSchema.index({ spaceID: 1 });
 assessmentSchema.index({ userID: 1 });
 assessmentSchema.index({ evaluation_date: -1 });
 assessmentSchema.index({ userID: 1, spaceID: 1 });
+assessmentSchema.index({ rentalID: 1 });
 
 export default mongoose.model<IAssessment>("Assessment", assessmentSchema);

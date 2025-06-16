@@ -1,6 +1,6 @@
-# Spacefy - Sistema de Gerenciamento de Espaços
-
 ![Spacefy Logo](Spacefy/frontend/src/assets/LogoSpacefy.png)
+
+# Spacefy - Sistema de Gerenciamento de Espaços
 
 ## 📄 Descrição
 

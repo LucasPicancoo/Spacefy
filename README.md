@@ -176,6 +176,7 @@ Este README detalha os principais componentes, funcionalidades e arquitetura do 
 - Breno Kuhn
 - Marco Decco
 - Hian Matheus
+- Yuri Queiroz
 
 ---
 

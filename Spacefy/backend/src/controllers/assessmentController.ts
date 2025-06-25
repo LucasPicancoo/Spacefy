@@ -40,32 +40,8 @@ export const createAssessment = async (req: Request, res: Response) => {
       return;
     }
 
-    // Buscar o aluguel concluído
-    const rental = await RentalModel.findOne({
-      space: new mongoose.Types.ObjectId(spaceID),
-      end_date: { $lte: new Date() },
-    });
-
-    if (!rental) {
-      res.status(403).json({
-        error: "Avaliação só é permitida após o aluguel ser concluído.",
-      });
-      return;
-    }
-
-    // Verifica se quem está avaliando faz parte do aluguel (locatário ou usuário)
-    const isOwner = req.auth && req.auth.id === rental.owner.toString();
-    const isRenter = req.auth && req.auth.id === rental.user.toString();
-
-    if (!isOwner && !isRenter) {
-      res.status(403).json({
-        error: "Apenas participantes do aluguel podem avaliar.",
-      });
-      return;
-    }
-
     // Buscar o usuário avaliado
-    const UserModel = require("../models/userModel"); // ajuste o import se necessário
+    const UserModel = require("../models/userModel");
     const evaluatedUser = await UserModel.findById(userID);
 
     if (!evaluatedUser) {
@@ -73,43 +49,32 @@ export const createAssessment = async (req: Request, res: Response) => {
       return;
     }
 
-    // Se o avaliado for locatário, qualquer participante pode avaliar
-    if (evaluatedUser.role === "locatario") {
-      // Nenhuma restrição extra, já garantido que é participante do aluguel
-    } else {
-      // Se o avaliado for usuário comum, só o locatário pode avaliar
-      if (!isOwner) {
-        res
-          .status(403)
-          .json({ error: "Apenas locatários podem avaliar usuários comuns." });
-        return;
-      }
-      // E só após o aluguel (já garantido pela busca do rental)
-    }
-
-    // Garante que o avaliado seja o outro participante
-    if (
-      (isOwner && userID !== rental.user.toString()) ||
-      (isRenter && userID !== rental.owner.toString())
-    ) {
-      res.status(400).json({
-        error: "Você só pode avaliar o outro participante do aluguel.",
-      });
+    // Não permitir autoavaliação
+    if (req.auth.id === userID) {
+      res.status(400).json({ error: "Você não pode se autoavaliar." });
       return;
     }
 
-    // Verificar se já existe uma avaliação desse avaliador para esse aluguel
+    // Se o avaliado for usuário comum, só locatários podem avaliar
+    if (evaluatedUser.role !== "locatario") {
+      if (req.auth.role !== "locatario") {
+        res.status(403).json({ error: "Apenas locatários podem avaliar usuários comuns." });
+        return;
+      }
+    }
+    // Se o avaliado for locatário, qualquer locatário pode avaliar (inclusive outros locatários)
+    // Se quiser permitir que usuários comuns avaliem locatários, remova o if acima
+
+    // Verificar se já existe uma avaliação desse avaliador para esse usuário e espaço
     const existingReview = await Review.findOne({
       userID: new mongoose.Types.ObjectId(userID),
       spaceID: new mongoose.Types.ObjectId(spaceID),
-      rentalID: rental._id,
-      // Aqui, quem avalia é o req.auth.id
       createdBy: req.auth.id,
     });
 
     if (existingReview) {
       res.status(400).json({
-        error: "Você já avaliou este aluguel específico.",
+        error: "Você já avaliou este usuário para este espaço.",
       });
       return;
     }
@@ -118,11 +83,10 @@ export const createAssessment = async (req: Request, res: Response) => {
     const review = await Review.create({
       spaceID: new mongoose.Types.ObjectId(spaceID),
       userID: new mongoose.Types.ObjectId(userID),
-      rentalID: rental._id,
       score,
       comment,
       evaluation_date: new Date(),
-      createdBy: req.auth.id, // ID do usuário que está criando a avaliação
+      createdBy: req.auth.id,
     });
 
     // Invalida os caches relacionados

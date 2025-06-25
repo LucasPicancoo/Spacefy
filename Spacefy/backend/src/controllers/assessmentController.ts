@@ -8,6 +8,12 @@ import RentalModel from "../models/rentalModel";
 // Registrar uma avaliação
 export const createAssessment = async (req: Request, res: Response) => {
   try {
+    // Garante que o usuário está autenticado
+    if (!req.auth || !req.auth.id) {
+      res.status(401).json({ error: "Usuário não autenticado." });
+      return;
+    }
+
     const { spaceID, userID, score, comment } = req.body || {};
 
     // Verificação de campos obrigatórios
@@ -32,41 +38,66 @@ export const createAssessment = async (req: Request, res: Response) => {
       return;
     }
 
-    // Verificar se o usuário já alugou o espaço
+    // Buscar o aluguel concluído
     const rental = await RentalModel.findOne({
-      user: new mongoose.Types.ObjectId(userID),
       space: new mongoose.Types.ObjectId(spaceID),
-      end_date: { $lte: new Date() } // Verifica se o aluguel já foi concluído
+      end_date: { $lte: new Date() }
     });
 
     if (!rental) {
-      res.status(403).json({ 
-        error: "Você só pode avaliar um espaço após ter alugado e concluído o período de aluguel." 
+      res.status(403).json({
+        error: "Avaliação só é permitida após o aluguel ser concluído."
       });
       return;
     }
 
-    // Verificar se já existe uma avaliação para este aluguel específico
+    // Verifica se quem está avaliando faz parte do aluguel (locatário ou usuário)
+    const isOwner = req.auth && req.auth.id === rental.owner.toString();
+    const isRenter = req.auth && req.auth.id === rental.user.toString();
+
+    if (!isOwner && !isRenter) {
+      res.status(403).json({
+        error: "Apenas participantes do aluguel podem avaliar."
+      });
+      return;
+    }
+
+    // Garante que o avaliado seja o outro participante
+    if (
+      (isOwner && userID !== rental.user.toString()) ||
+      (isRenter && userID !== rental.owner.toString())
+    ) {
+      res.status(400).json({
+        error: "Você só pode avaliar o outro participante do aluguel."
+      });
+      return;
+    }
+
+    // Verificar se já existe uma avaliação desse avaliador para esse aluguel
     const existingReview = await Review.findOne({
       userID: new mongoose.Types.ObjectId(userID),
       spaceID: new mongoose.Types.ObjectId(spaceID),
-      rentalID: rental._id
+      rentalID: rental._id,
+      // Aqui, quem avalia é o req.auth.id
+      createdBy: req.auth.id
     });
 
     if (existingReview) {
-      res.status(400).json({ 
-        error: "Você já avaliou este aluguel específico." 
+      res.status(400).json({
+        error: "Você já avaliou este aluguel específico."
       });
       return;
     }
 
+    // Cria a avaliação
     const review = await Review.create({
       spaceID: new mongoose.Types.ObjectId(spaceID),
       userID: new mongoose.Types.ObjectId(userID),
-      rentalID: rental._id, // Adiciona referência ao aluguel
+      rentalID: rental._id,
       score,
       comment,
-      evaluation_date: new Date()
+      evaluation_date: new Date(),
+      createdBy: req.auth.id // ID do usuário que está criando a avaliação
     });
 
     // Invalida os caches relacionados
@@ -81,17 +112,17 @@ export const createAssessment = async (req: Request, res: Response) => {
     return;
   } catch (error: any) {
     console.error("Erro ao criar avaliação:", error);
-    
+
     if (error.code === 11000) {
-      res.status(400).json({ 
-        error: "Erro de duplicação. Detalhes: " + error.message 
+      res.status(400).json({
+        error: "Erro de duplicação. Detalhes: " + error.message
       });
       return;
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: "Erro ao criar avaliação.",
-      details: error.message 
+      details: error.message
     });
     return;
   }

@@ -11,4 +11,5 @@ export interface IAssessment extends Document {
   userID: mongoose.Types.ObjectId | IBaseUser; // ID do usuário (ObjectId do MongoDB)
   spaceID: mongoose.Types.ObjectId; // ID do espaço (ObjectId do MongoDB)
   rentalID: mongoose.Types.ObjectId; // ID do aluguel (ObjectId do MongoDB)
+  createdBy: mongoose.Types.ObjectId; // ID do usuário que criou a avaliação
 }

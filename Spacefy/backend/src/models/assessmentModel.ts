@@ -31,6 +31,11 @@ const assessmentSchema = new Schema<IAssessment>({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Rental",
     required: true
+  },
+  createdBy: { // <-- Adicione este bloco
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "user",
+    required: true
   }
 }, {
   // Desabilita a criação automática de índices

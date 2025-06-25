@@ -8,11 +8,19 @@ import RentalModel from "../models/rentalModel";
 // Registrar uma avaliação
 export const createAssessment = async (req: Request, res: Response) => {
   try {
+    // Garante que o usuário está autenticado
+    if (!req.auth || !req.auth.id) {
+      res.status(401).json({ error: "Usuário não autenticado." });
+      return;
+    }
+
     const { spaceID, userID, score, comment } = req.body || {};
 
     // Verificação de campos obrigatórios
     if (!spaceID || !userID || score === undefined) {
-      res.status(400).json({ error: "Campos obrigatórios: spaceID, userID e score." });
+      res
+        .status(400)
+        .json({ error: "Campos obrigatórios: spaceID, userID e score." });
       return;
     }
 
@@ -32,41 +40,53 @@ export const createAssessment = async (req: Request, res: Response) => {
       return;
     }
 
-    // Verificar se o usuário já alugou o espaço
-    const rental = await RentalModel.findOne({
-      user: new mongoose.Types.ObjectId(userID),
-      space: new mongoose.Types.ObjectId(spaceID),
-      end_date: { $lte: new Date() } // Verifica se o aluguel já foi concluído
-    });
+    // Buscar o usuário avaliado
+    const UserModel = require("../models/userModel");
+    const evaluatedUser = await UserModel.findById(userID);
 
-    if (!rental) {
-      res.status(403).json({ 
-        error: "Você só pode avaliar um espaço após ter alugado e concluído o período de aluguel." 
-      });
+    if (!evaluatedUser) {
+      res.status(404).json({ error: "Usuário avaliado não encontrado." });
       return;
     }
 
-    // Verificar se já existe uma avaliação para este aluguel específico
+    // Não permitir autoavaliação
+    if (req.auth.id === userID) {
+      res.status(400).json({ error: "Você não pode se autoavaliar." });
+      return;
+    }
+
+    // Se o avaliado for usuário comum, só locatários podem avaliar
+    if (evaluatedUser.role !== "locatario") {
+      if (req.auth.role !== "locatario") {
+        res.status(403).json({ error: "Apenas locatários podem avaliar usuários comuns." });
+        return;
+      }
+    }
+    // Se o avaliado for locatário, qualquer locatário pode avaliar (inclusive outros locatários)
+    // Se quiser permitir que usuários comuns avaliem locatários, remova o if acima
+
+    // Verificar se já existe uma avaliação desse avaliador para esse usuário e espaço
     const existingReview = await Review.findOne({
       userID: new mongoose.Types.ObjectId(userID),
       spaceID: new mongoose.Types.ObjectId(spaceID),
-      rentalID: rental._id
+      createdBy: req.auth.id,
     });
 
     if (existingReview) {
-      res.status(400).json({ 
-        error: "Você já avaliou este aluguel específico." 
+      res.status(400).json({
+        error: "Você já avaliou este usuário para este espaço.",
       });
       return;
     }
 
+    // Cria a avaliação
     const review = await Review.create({
       spaceID: new mongoose.Types.ObjectId(spaceID),
       userID: new mongoose.Types.ObjectId(userID),
-      rentalID: rental._id, // Adiciona referência ao aluguel
       score,
       comment,
-      evaluation_date: new Date()
+      evaluation_date: new Date(),
+      createdBy: req.auth.id,
     });
 
     // Invalida os caches relacionados
@@ -74,24 +94,24 @@ export const createAssessment = async (req: Request, res: Response) => {
       redisConfig.deleteRedis(`assessments_space_${spaceID}`),
       redisConfig.deleteRedis(`assessments_user_${userID}`),
       redisConfig.deleteRedis(`average_score_${spaceID}`),
-      redisConfig.deleteRedisPattern('top_rated_spaces_*')
+      redisConfig.deleteRedisPattern("top_rated_spaces_*"),
     ]);
 
     res.status(201).json(review);
     return;
   } catch (error: any) {
     console.error("Erro ao criar avaliação:", error);
-    
+
     if (error.code === 11000) {
-      res.status(400).json({ 
-        error: "Erro de duplicação. Detalhes: " + error.message 
+      res.status(400).json({
+        error: "Erro de duplicação. Detalhes: " + error.message
       });
       return;
     }
-    
-    res.status(500).json({ 
+
+    res.status(500).json({
       error: "Erro ao criar avaliação.",
-      details: error.message 
+      details: error.message
     });
     return;
   }
@@ -350,9 +370,14 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
 
     const assessments = await Review.find({ userID: userId })
       .populate({
-        path: 'spaceID',
-        select: 'space_name',
-        model: 'Space'
+        path: "spaceID",
+        select: "space_name",
+        model: "Space",
+      })
+      .populate({
+        path: "createdBy",
+        select: "name role", // Popula nome e papel de quem avaliou
+        model: "user",
       })
       .sort({ evaluation_date: -1 })
       .skip(skip)

@@ -350,6 +350,55 @@ const Perfil = () => {
 
           {/* Conteúdo principal */}
           <section className="flex-1 flex flex-col gap-8 overflow-hidden">
+            {/* Avaliações recebidas */}
+            <section>
+              <h2 className="font-bold text-lg mb-2 px-4">
+                Avaliações recebidas:
+              </h2>
+              {receivedAssessments && receivedAssessments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-4">
+                  {receivedAssessments.map((assessment) => (
+                    <div
+                      key={assessment._id}
+                      className="bg-white rounded-lg shadow-lg p-4"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center">
+                          <FaStar className="text-yellow-400 mr-1" />
+                          <span className="font-semibold">
+                            {assessment.score}
+                          </span>
+                        </div>
+                        <span className="text-sm text-gray-500">
+                          {new Date(
+                            assessment.evaluation_date
+                          ).toLocaleDateString("pt-BR")}
+                        </span>
+                      </div>
+                      <p className="text-gray-700 mb-3">{assessment.comment}</p>
+                      <p className="text-gray-500 text-xs">
+                        Avaliado por: <b>{assessment.createdBy?.name}</b> (
+                        {assessment.createdBy?.role})
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <button
+                          onClick={() =>
+                            navigate(`/espaco/${assessment.spaceID}`)
+                          }
+                          className="text-[#00A3FF] hover:text-[#0084CC] text-sm font-medium"
+                        >
+                          Ver espaço
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-gray-500 text-sm px-4">
+                  Você ainda não recebeu nenhuma avaliação.
+                </div>
+              )}
+            </section>
             {/* Vistos recentemente */}
             <section className="overflow-hidden">
               <h2 className="font-bold text-lg mb-2 px-4">

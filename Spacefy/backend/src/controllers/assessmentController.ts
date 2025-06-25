@@ -18,7 +18,9 @@ export const createAssessment = async (req: Request, res: Response) => {
 
     // Verificação de campos obrigatórios
     if (!spaceID || !userID || score === undefined) {
-      res.status(400).json({ error: "Campos obrigatórios: spaceID, userID e score." });
+      res
+        .status(400)
+        .json({ error: "Campos obrigatórios: spaceID, userID e score." });
       return;
     }
 
@@ -41,12 +43,12 @@ export const createAssessment = async (req: Request, res: Response) => {
     // Buscar o aluguel concluído
     const rental = await RentalModel.findOne({
       space: new mongoose.Types.ObjectId(spaceID),
-      end_date: { $lte: new Date() }
+      end_date: { $lte: new Date() },
     });
 
     if (!rental) {
       res.status(403).json({
-        error: "Avaliação só é permitida após o aluguel ser concluído."
+        error: "Avaliação só é permitida após o aluguel ser concluído.",
       });
       return;
     }
@@ -57,9 +59,32 @@ export const createAssessment = async (req: Request, res: Response) => {
 
     if (!isOwner && !isRenter) {
       res.status(403).json({
-        error: "Apenas participantes do aluguel podem avaliar."
+        error: "Apenas participantes do aluguel podem avaliar.",
       });
       return;
+    }
+
+    // Buscar o usuário avaliado
+    const UserModel = require("../models/userModel"); // ajuste o import se necessário
+    const evaluatedUser = await UserModel.findById(userID);
+
+    if (!evaluatedUser) {
+      res.status(404).json({ error: "Usuário avaliado não encontrado." });
+      return;
+    }
+
+    // Se o avaliado for locatário, qualquer participante pode avaliar
+    if (evaluatedUser.role === "locatario") {
+      // Nenhuma restrição extra, já garantido que é participante do aluguel
+    } else {
+      // Se o avaliado for usuário comum, só o locatário pode avaliar
+      if (!isOwner) {
+        res
+          .status(403)
+          .json({ error: "Apenas locatários podem avaliar usuários comuns." });
+        return;
+      }
+      // E só após o aluguel (já garantido pela busca do rental)
     }
 
     // Garante que o avaliado seja o outro participante
@@ -68,7 +93,7 @@ export const createAssessment = async (req: Request, res: Response) => {
       (isRenter && userID !== rental.owner.toString())
     ) {
       res.status(400).json({
-        error: "Você só pode avaliar o outro participante do aluguel."
+        error: "Você só pode avaliar o outro participante do aluguel.",
       });
       return;
     }
@@ -79,12 +104,12 @@ export const createAssessment = async (req: Request, res: Response) => {
       spaceID: new mongoose.Types.ObjectId(spaceID),
       rentalID: rental._id,
       // Aqui, quem avalia é o req.auth.id
-      createdBy: req.auth.id
+      createdBy: req.auth.id,
     });
 
     if (existingReview) {
       res.status(400).json({
-        error: "Você já avaliou este aluguel específico."
+        error: "Você já avaliou este aluguel específico.",
       });
       return;
     }
@@ -97,7 +122,7 @@ export const createAssessment = async (req: Request, res: Response) => {
       score,
       comment,
       evaluation_date: new Date(),
-      createdBy: req.auth.id // ID do usuário que está criando a avaliação
+      createdBy: req.auth.id, // ID do usuário que está criando a avaliação
     });
 
     // Invalida os caches relacionados
@@ -105,7 +130,7 @@ export const createAssessment = async (req: Request, res: Response) => {
       redisConfig.deleteRedis(`assessments_space_${spaceID}`),
       redisConfig.deleteRedis(`assessments_user_${userID}`),
       redisConfig.deleteRedis(`average_score_${spaceID}`),
-      redisConfig.deleteRedisPattern('top_rated_spaces_*')
+      redisConfig.deleteRedisPattern("top_rated_spaces_*"),
     ]);
 
     res.status(201).json(review);
@@ -381,9 +406,14 @@ export const getAssessmentsByUser = async (req: Request, res: Response) => {
 
     const assessments = await Review.find({ userID: userId })
       .populate({
-        path: 'spaceID',
-        select: 'space_name',
-        model: 'Space'
+        path: "spaceID",
+        select: "space_name",
+        model: "Space",
+      })
+      .populate({
+        path: "createdBy",
+        select: "name role", // Popula nome e papel de quem avaliou
+        model: "user",
       })
       .sort({ evaluation_date: -1 })
       .skip(skip)
